@@ -36,12 +36,7 @@ Or install it yourself as:
         rename          - renames an instance container
         setup           - setups up the host
 
-        Example usage : vagrant subutai -c clone -l master,subtemplate -t test-fai
-        Specific options:
-            -c, --command COMMAND            Provide Subutai command to execute
-            -l, --list ADDITIONAL ARGS       Provide additional comma separated args
-            -t, --target TARGET HOSTS        Provide target host(s) in comma separated list for multiple targets
-            -h, --help                       PRINT USAGE
+        Example usage : vagrant subutai clone parent child
 
 
 

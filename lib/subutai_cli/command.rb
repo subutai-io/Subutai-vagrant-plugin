@@ -1,20 +1,32 @@
 module SubutaiCli
   class Command < Vagrant.plugin("2", "command")
+    $subutai = "subutai "
+    #synopsis of what this command does.
+    def self.synopsis
+      'executes subutai cli in vritual machine'
+    end
+
     def execute
-      @command = "subutai"
-      options = OpenStruct.new
-      options.library = ""
-      options.inplace = false
-      options.encoding = "utf8"
-      options.transfer_type = :auto
-      options.verbose = false
-      options.list= ""
-      options.hosts=""
+      command, command_args = parse_args
+      command && command_args or return nil
+      command = $subutai + command
+      with_target_vms(nil, single_target:true) do |vm|
+        command = command + " " + command_args.join(' ') if command_args.any?
+        if vm.state.id != :running
+          env.ui.info("#{vm.name} is not running.")
+        end
+        puts "#{command}"
+        vm.action(:ssh_run, ssh_run_command: command)
+      end
+    end
 
-      opt_parser = OptionParser.new do |opts|
-
-        opts.banner = "Usage: vagrant subutai [options]
-
+    #private methods
+    private
+    def parse_args
+      opts = OptionParser.new do |opt|
+        opt.banner = "
+        Usage: vagrant subutai <command> [options]
+        Available commands:
         clone           - clones an instance container from a template
         config          - adds or deletes a config path on a container
         demote          - demotes a template back to an instance container
@@ -29,70 +41,33 @@ module SubutaiCli
         promote         - promotes an instance container into a template
         register        - registers the template with the site registry
         rename          - renames an instance container
-        setup           - setups up the host
+        setup           - setups up the host"
 
-        Example usage : vagrant subutai -c clone -l master,subtemplate
-"
-        opts.separator ""
-        opts.separator "Specific options:"
+        opt.separator ''
 
-        opts.on("-c", "--command COMMAND", "Provide Subutai command to execute") do |lib|
-          options.library.concat(lib)
+        opt.on('-h', '--help', 'Print help') do
+          safe_puts(opt.help)
         end
 
-        opts.on("-l", "--list ADDITIONAL ARGS", "Provide additional comma separated args ") do |list|
-          options.list = list
+        argv = split_main_and_subcommand(@argv.dup)
+
+        exec_args, command, command_args = argv[0], argv[1], argv[2]
+
+        #if no args supplied print 'help'
+        if !command || exec_args.any? { |a| a == '-h' || a == '--help' }
+          safe_puts(opt.help)
+          return nil
         end
 
-        opts.on("-t", "--target TARGET HOSTS", "Provide target host(s) in comma separated list for multiple targets") do |hosts|
-          options.hosts = hosts
-        end
-
-        opts.on("-h", "--help", "PRINT USAGE") do
-          puts opts
-          exit
-        end
+        return command, command_args
 
       end
-      parse_options(opt_parser)
-
-      #get the command
-      if options.library.length >0
-        @command = @command.
-            concat(" ").
-            concat(options.library)
-      else
-        puts opt_parser
-        return 0
-      end
-
-
-      #parse if any additional args are provided
-      if options.list.length > 0
-        @command = @command.concat(" ").concat(options.list.gsub!(',', ' '))
-      else
-        puts opt_parser
-        return 0
-      end
-
-      #parse target hosts
-      if options.hosts.length > 0
-
-        targets = options.hosts.gsub!(',', ' ')
-
-        with_target_vms(targets) do |machine|
-
-          if machine.state.id != :running
-            @env.ui.error("Machine must be running.")
-          end
-
-          machine.communicate.execute(@command) do |type, data|
-            @env.ui.info(data)
-          end
-        end
-      end
-
-      return 0
     end
   end
 end
+
+
+
+
+
+
