@@ -1,6 +1,6 @@
 # SubutaiCli
 
-TODO: Write a gem description
+Vagrant Subutai CLI - executes Subutai scripts in target hosts
 
 ## Installation
 
@@ -20,12 +20,30 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Usage: vagrant subutai [options]
 
-## Contributing
+        clone           - clones an instance container from a template
+        config          - adds or deletes a config path on a container
+        demote          - demotes a template back to an instance container
+        destroy         - destroys a template or instance container
+        export          - export a template
+        import          - import a template
+        list            - lists templates and instance containers
+        master_create   - creates a new master from scratch
+        master_destroy  - destroys the master template
+        master_export   - exports the master template
+        master_import   - imports master template
+        promote         - promotes an instance container into a template
+        register        - registers the template with the site registry
+        rename          - renames an instance container
+        setup           - setups up the host
 
-1. Fork it ( https://github.com/[my-github-username]/subutai_cli/fork )
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
+        Example usage : vagrant subutai -c clone -l master,subtemplate -t
+
+Specific options:
+    -c, --command COMMAND            Provide Subutai command to execute
+    -l, --list ADDITIONAL ARGS       Provide additional comma separated args
+    -t, --target TARGET HOSTS        Provide target host(s) in comma separated list for multiple targets
+    -h, --help                       PRINT USAGE
+
+
