@@ -19,9 +19,7 @@ Or install it yourself as:
     $ gem install subutai_cli
 
 ## Usage
-
-Usage: vagrant subutai [options]
-
+        Usage: vagrant subutai [options]
         clone           - clones an instance container from a template
         config          - adds or deletes a config path on a container
         demote          - demotes a template back to an instance container
@@ -38,7 +36,7 @@ Usage: vagrant subutai [options]
         rename          - renames an instance container
         setup           - setups up the host
 
-        Example usage : vagrant subutai -c clone -l master,subtemplate -t
+        Example usage : vagrant subutai -c clone -l master,subtemplate -t test-fai
         Specific options:
             -c, --command COMMAND            Provide Subutai command to execute
             -l, --list ADDITIONAL ARGS       Provide additional comma separated args
