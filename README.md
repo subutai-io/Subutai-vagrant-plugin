@@ -39,11 +39,12 @@ Usage: vagrant subutai [options]
         setup           - setups up the host
 
         Example usage : vagrant subutai -c clone -l master,subtemplate -t
+        Specific options:
+            -c, --command COMMAND            Provide Subutai command to execute
+            -l, --list ADDITIONAL ARGS       Provide additional comma separated args
+            -t, --target TARGET HOSTS        Provide target host(s) in comma separated list for multiple targets
+            -h, --help                       PRINT USAGE
 
-Specific options:
-    -c, --command COMMAND            Provide Subutai command to execute
-    -l, --list ADDITIONAL ARGS       Provide additional comma separated args
-    -t, --target TARGET HOSTS        Provide target host(s) in comma separated list for multiple targets
-    -h, --help                       PRINT USAGE
+
 
 
