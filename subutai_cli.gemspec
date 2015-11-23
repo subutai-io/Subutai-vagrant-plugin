@@ -7,11 +7,11 @@ Gem::Specification.new do |spec|
   spec.name          = "subutai_cli"
   spec.version       = SubutaiCli::VERSION
   spec.authors       = ["Kylych Tynybekov"]
-  spec.email         = ["ktynybekov@critical-factor.com"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
-  spec.homepage      = ""
-  spec.license       = "MIT"
+  spec.email         = ["ktynybekov@subutai.io"]
+  spec.summary       = ["Subutai CLI. Execute subutai commands outside the Vagrant box"]
+  spec.description   = ["Part of Subutai Social Tooling"]
+  spec.homepage      = "https://www.subutai.io"
+  spec.license       = "ASK ME"
 
   spec.files         = `git ls-files -z`.split("\x0")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
