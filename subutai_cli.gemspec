@@ -14,4 +14,7 @@ Gem::Specification.new do |spec|
 
   spec.files         = ["lib/subutai_cli.rb", "lib/subutai_cli/command.rb", "lib/subutai_cli/version.rb", "lib/subutai_cli/plugin.rb"]
   spec.require_paths = ['lib']
+
+  spec.add_development_dependency 'bundler', '~> 1.3'
+  spec.add_development_dependency 'rake', '~> 0'
 end

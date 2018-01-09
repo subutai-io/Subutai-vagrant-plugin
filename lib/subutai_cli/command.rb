@@ -3,6 +3,7 @@ require 'vagrant'
 module SubutaiCli
   module Subutai
     class Command < Vagrant.plugin('2', :command)
+      $subutai = "subutai "
       # show description when `vagrant list-comands` is triggered
       def self.synopsis
         "Vagrant Subutai CLI - executes Subutai scripts in target hosts"
@@ -17,8 +18,9 @@ module SubutaiCli
           if vm.state.id != :running
             env.ui.info("#{vm.name} is not running.")
           end
-          puts "#{command}"
-          vm.action(:ssh_run, ssh_run_command: command)
+          puts "Result: #{command}"
+          #vm.action(:ssh_run, ssh_run_command: command)
+          vm.action(:halt)
         end
       end
 
@@ -42,12 +44,18 @@ module SubutaiCli
           promote         - promotes an instance container into a template
           register        - registers the template with the site registry
           rename          - renames an instance container
-          setup           - setups up the host"
+          setup           - setups up the host
+          stop            - shutdown subutai peer
+          update          - update subutai peer"
 
           opt.separator ''
 
           opt.on('-h', '--help', 'Print help') do
             safe_puts(opt.help)
+          end
+
+          opt.on('stop', 'shutdown subutai peer') do |status|
+            safe_puts(opt.status)
           end
 
           argv = split_main_and_subcommand(@argv.dup)
