@@ -11,6 +11,7 @@ Gem::Specification.new do |spec|
   spec.description   = ["Part of Subutai Social Tooling"]
   spec.homepage      = "https://github.com/subutai-io/vagrant"
   spec.license       = "MIT"
+  spec.metadata      = { "source_code_uri" => "https://github.com/subutai-io/vagrant" }
 
   spec.files         = ["lib/subutai_cli.rb", "lib/subutai_cli/command.rb", "lib/subutai_cli/version.rb", "lib/subutai_cli/plugin.rb"]
   spec.require_paths = ['lib']

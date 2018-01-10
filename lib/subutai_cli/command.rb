@@ -10,65 +10,17 @@ module SubutaiCli
       end
 
       def execute
-        command, command_args = parse_args 
-        command && command_args or return nil
-        command = $subutai + command
-        with_target_vms(nil, single_target:true) do |vm|
-          command = command + " " + command_args.join(' ') if command_args.any?
-          if vm.state.id != :running
-            env.ui.info("#{vm.name} is not running.")
-          end
-          puts "Result: #{command}"
-          #vm.action(:ssh_run, ssh_run_command: command)
-          vm.action(:halt)
-        end
-      end
+        machine = @env.machine(:default, :virtualbox)
+        puts machine.state.id
+        puts @argv 
 
-      private
-      def parse_args
-        opts = OptionParser.new do |opt|
-          opt.banner = "
-          Usage: vagrant subutai <command> [options]
-          Available commands:
-          clone           - clones an instance container from a template
-          config          - adds or deletes a config path on a container
-          demote          - demotes a template back to an instance container
-          destroy         - destroys a template or instance container
-          export          - export a template
-          import          - import a template
-          list            - lists templates and instance containers
-          master_create   - creates a new master from scratch
-          master_destroy  - destroys the master template
-          master_export   - exports the master template
-          master_import   - imports master template
-          promote         - promotes an instance container into a template
-          register        - registers the template with the site registry
-          rename          - renames an instance container
-          setup           - setups up the host
-          stop            - shutdown subutai peer
-          update          - update subutai peer"
+        with_target_vms(nil, single_target: true) do |machine|
+          puts machine.name
+          puts machine.state.id
+          puts "Command: #{@argv}"
 
-          opt.separator ''
-
-          opt.on('-h', '--help', 'Print help') do
-            safe_puts(opt.help)
-          end
-
-          opt.on('stop', 'shutdown subutai peer') do |status|
-            safe_puts(opt.status)
-          end
-
-          argv = split_main_and_subcommand(@argv.dup)
-
-          exec_args, command, command_args = argv[0], argv[1], argv[2]
-
-          #if no args supplied print 'help'
-          if !command || exec_args.any? { |a| a == '-h' || a == '--help' }
-            safe_puts(opt.help)
-            return nil
-          end
-
-          return command, command_args
+          puts 'trying to run command'
+          machine.action(:ssh_run, ssh_run_command: 'sudo /snap/bin/subutai log', ssh_opts: {extra_args: ['-q']})
         end
       end
     end
