@@ -12,34 +12,28 @@ module SubutaiCli
 
       def execute
         options = {}
-        opts = OptionParser.new do |opts|
-          opts.banner = 
+        opts = OptionParser.new do |opt|
+          opt.banner = 
           "Usage: vagrant subutai --<command> [options]
-           Available commands:
+           Available commands: 
           "
-          opts.separator ""
+          opt.separator ""
 
-          opts.on("-l", "--log", "show logs snap") do
-            options[:log] = true
+          opt.on("-l", "--log", "show logs snap") do
+            options[:command] = SubutaiCommands::LOG
           end
 
-          opts.on("-u", "--update", "update Subutai Resource host") do
-            options[:update] = true 
+          opt.on("-u", "--update", "update Subutai Resource host") do
+            options[:command] = SubutaiCommands::UPDATE_RH 
           end
         end
 
         argv = parse_options(opts)
         return if !argv
 
-        if options[:update]
+        unless options[:command].nil?
           with_target_vms(nil, single_target: true) do |machine|
-            machine.action(:ssh_run, ssh_run_command: SubutaiCommands::UPDATE_RH, ssh_opts: {extra_args: ['-q']})
-          end
-        end
-
-        if options[:log]
-          with_target_vms(nil, single_target: true) do |machine|
-            machine.action(:ssh_run, ssh_run_command: SubutaiCommands::LOG, ssh_opts: {extra_args: ['-q']})
+            machine.action(:ssh_run, ssh_run_command: options[:command], ssh_opts: {extra_args: ['-q']})
           end
         end
       end
