@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.license       = "MIT"
   spec.metadata      = { "source_code_uri" => "https://github.com/subutai-io/vagrant" }
 
-  spec.files         = ["lib/subutai_cli.rb", "lib/subutai_cli/command.rb", "lib/subutai_cli/version.rb", "lib/subutai_cli/plugin.rb"]
+  spec.files         = ["lib/subutai_cli.rb", "lib/subutai_cli/config.rb", "lib/subutai_cli/command.rb", "lib/subutai_cli/version.rb", "lib/subutai_cli/plugin.rb"]
   spec.require_paths = ['lib']
 
   spec.add_development_dependency 'bundler', '~> 1.3'
