@@ -20,23 +20,12 @@ Or install it yourself as:
 
 ## Usage
         Usage: vagrant subutai [options]
-        clone           - clones an instance container from a template
-        config          - adds or deletes a config path on a container
-        demote          - demotes a template back to an instance container
-        destroy         - destroys a template or instance container
-        export          - export a template
-        import          - import a template
-        list            - lists templates and instance containers
-        master_create   - creates a new master from scratch
-        master_destroy  - destroys the master template
-        master_export   - exports the master template
-        master_import   - imports master template
-        promote         - promotes an instance container into a template
-        register        - registers the template with the site registry
-        rename          - renames an instance container
-        setup           - setups up the host
+        -l, --log            - show snap logs
+        -u, --update NAME    - update Subutai rh or management
+        -r, --register       - register Subutai peer to hub
+        -h, --help           - help 
 
-        Example usage : vagrant subutai clone parent child
+        Example usage : vagrant subutai -r
 
 
 

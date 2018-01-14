@@ -19,7 +19,7 @@ module SubutaiCli
           opt.banner = "Usage: vagrant subutai --<command> [options]"
           opt.separator ""
 
-          opt.on("-l", "--log", "show logs snap") do
+          opt.on("-l", "--log", "show snap logs") do
             options[:command] = SubutaiCommands::LOG
           end
 
