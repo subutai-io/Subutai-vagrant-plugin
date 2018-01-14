@@ -4,19 +4,7 @@ Vagrant Subutai CLI - executes Subutai scripts in target hosts
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'subutai_cli'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install subutai_cli
+    $ vagrant plugin install subutai_cli
 
 ## Usage
         Usage: vagrant subutai [options]
