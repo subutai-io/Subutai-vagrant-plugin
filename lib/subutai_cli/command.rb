@@ -30,6 +30,11 @@ module SubutaiCli
           opt.on("-r", "--register", "register Subutai Peer to Hub") do
             options[:register] = true
           end
+
+          opt.on("-b", "--build TEMPLATE_NAME", "build custom Subutai template") do |name|
+            options[:build] = true
+            @template_name = name
+          end
         end
 
         @subutai_console_url = ""
@@ -43,6 +48,10 @@ module SubutaiCli
 
         if options[:register]
           login(@subutai_console_url)
+        end
+
+        if options[:build]
+          build(@template_name)
         end
 
         unless options[:command].nil?
@@ -116,7 +125,31 @@ module SubutaiCli
           else
             puts "Try again!"
             puts response.body
-            register(token, url)
+            login(url)
+        end
+      end
+
+      # Build Subutai Template
+      def build(name)
+        # Preparing Environment
+        # Imported ubuntu16 image to the system:
+        with_target_vms(nil, single_target: true) do |vm|
+          vm.action(:ssh_run, ssh_run_command: SubutaiCommands::TEMPLATE_IMPORT, ssh_opts: {extra_args: ['-q']})
+        end
+
+        # Preparing container
+        # clone ubuntu16 template to container with required name
+        with_target_vms(nil, single_target: true) do |vm|
+          vm.action(:ssh_run, ssh_run_command: SubutaiCommands::TEMPLATE_CLONE + " " + name, ssh_opts: {extra_args: ['-q']})
+        end
+
+        # Attach container to execute installation commands inside container
+        with_target_vms(nil, single_target: false) do |vm|
+          vm.action(:ssh_run, ssh_run_command: SubutaiCommands::TEMPLATE_ATTACH + " " + name, ssh_opts: {extra_args: ['-q']})
+        end
+
+        with_target_vms(nil, single_target: true) do |vm|
+          vm.action(:ssh_run, ssh_run_command: SubutaiCommands::TEMPLATE_EXPORT + " " + name, ssh_opts: {extra_args: ['-q']})
         end
       end
     end

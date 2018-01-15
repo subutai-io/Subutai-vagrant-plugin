@@ -1,8 +1,12 @@
 require 'vagrant'
 
 module SubutaiCommands
-  UPDATE = "sudo /snap/bin/subutai update"
+  UPDATE = "sudo /snap/bin/subutai update"                   # name params required
   LOG = "sudo /snap/bin/subutai log"
+  TEMPLATE_IMPORT = "sudo /snap/bin/subutai import ubuntu16"
+  TEMPLATE_CLONE = "sudo /snap/bin/subutai clone ubuntu16"   # name params required
+  TEMPLATE_ATTACH = "sudo /snap/bin/subutai attach"          # name params required
+  TEMPLATE_EXPORT = "sudo /snap/bin/subutai export"          # name params required
 end
 
 module SubutaiAPI
