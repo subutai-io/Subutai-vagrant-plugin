@@ -32,11 +32,17 @@ module SubutaiCli
           end
         end
 
+        @subutai_console_url = ""
+        with_target_vms(nil, single_target: true) do |machine|
+          @subutai_console_url = machine.config.subutai_console.url
+          puts "Peer URL: #{@subutai_console_url}"
+        end
+
         argv = parse_options(opts)
         return if !argv
 
         if options[:register]
-          login
+          login(@subutai_console_url)
         end
 
         unless options[:command].nil?
@@ -46,14 +52,19 @@ module SubutaiCli
         end
       end
 
-      def login
+      def login(url)
+        if url.nil?
+          puts "Please add this config to Vagrantfile 'config.subutai_console.url = \"https://PEER_IP:PEER_PORT\"'"
+          return
+        end
+
         puts "Please enter credentials Subutai Console"
         puts "username: "
         username = STDIN.gets.chomp
         puts "password: "
         password = STDIN.noecho(&:gets).chomp
 
-        uri = URI.parse(SubutaiAPI::TOKEN)
+        uri = URI.parse(url+SubutaiAPI::TOKEN)
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = true
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -66,13 +77,13 @@ module SubutaiCli
         case response
         when Net::HTTPOK
           puts 'You successfully signed to Subutai Console'
-          register(response.body)
+          register(response.body, url)
         else
-          login
+          login(url)
         end
       end
 
-      def register(token)
+      def register(token, url)
         puts "Register your peer to HUB"
         puts "Enter Hub email: "
         email = STDIN.gets.chomp
@@ -85,7 +96,7 @@ module SubutaiCli
         puts "Choose your peer scope (1 or 2): "
         scope = STDIN.gets.chomp.to_i
 
-        uri = URI.parse(SubutaiAPI::REGISTER_HUB+token)
+        uri = URI.parse(url+SubutaiAPI::REGISTER_HUB+token)
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -99,9 +110,9 @@ module SubutaiCli
           when Net::HTTPOK
             puts "You peer: #{name} successfully registered to hub."
           else
-            puts "Try again! "
+            puts "Try again!"
             puts response.body
-            register(token)
+            register(token, url)
         end
       end
     end

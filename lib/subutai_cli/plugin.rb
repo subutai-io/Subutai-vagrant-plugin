@@ -10,6 +10,11 @@ module SubutaiCli
                 require_relative 'command'
                 Command
             end
+
+            config "subutai_console" do
+              require_relative 'config'
+              Config
+            end
         end
     end
 end
