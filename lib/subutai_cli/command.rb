@@ -53,12 +53,14 @@ module SubutaiCli
       end
 
       def login(url)
-        if url.nil?
-          puts "Please add this config to Vagrantfile 'config.subutai_console.url = \"https://PEER_IP:PEER_PORT\"'"
-          return
+        if url.empty?
+          puts "Please add this to Vagrantfile => config.subutai_console.url = \"https://YOUR_LOCAL_PEER_IP:YOUR_LOCAL_PEER_PORT\""
+          exit
         end
 
+        puts ""
         puts "Please enter credentials Subutai Console"
+        puts ""
         puts "username: "
         username = STDIN.gets.chomp
         puts "password: "
@@ -84,7 +86,9 @@ module SubutaiCli
       end
 
       def register(token, url)
+        puts ""
         puts "Register your peer to HUB"
+        puts ""
         puts "Enter Hub email: "
         email = STDIN.gets.chomp
         puts "Enter Hub password: "
