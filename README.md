@@ -8,7 +8,7 @@ Vagrant Subutai CLI - executes Subutai scripts in target hosts
 
 ## Configuration / Usage
 
-Required to add peer IP address to Vagrantfile. Here is an Example Vagrantfile
+Required to add Subutai Peer IP address to Vagrantfile. Here is an Example Vagrantfile
 
 ```
 Vagrant.configure("2") do |config|
