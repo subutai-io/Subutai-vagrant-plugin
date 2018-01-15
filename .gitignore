@@ -14,3 +14,7 @@
 *.o
 *.a
 mkmf.log
+*.swp
+*.gem
+pkg
+Gemfile.lock

@@ -4,40 +4,26 @@ Vagrant Subutai CLI - executes Subutai scripts in target hosts
 
 ## Installation
 
-Add this line to your application's Gemfile:
+    $ vagrant plugin install subutai_cli
 
-```ruby
-gem 'subutai_cli'
+## Configuration / Usage
+
+Required to add Subutai Peer IP address to Vagrantfile. Here is an Example Vagrantfile
+
 ```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install subutai_cli
+Vagrant.configure("2") do |config|
+  config.subutai_console.url = "https://YOUR_LOCAL_PEER_IP:YOUR_LOCAL_PEER_PORT"
+end
+```
 
 ## Usage
         Usage: vagrant subutai [options]
-        clone           - clones an instance container from a template
-        config          - adds or deletes a config path on a container
-        demote          - demotes a template back to an instance container
-        destroy         - destroys a template or instance container
-        export          - export a template
-        import          - import a template
-        list            - lists templates and instance containers
-        master_create   - creates a new master from scratch
-        master_destroy  - destroys the master template
-        master_export   - exports the master template
-        master_import   - imports master template
-        promote         - promotes an instance container into a template
-        register        - registers the template with the site registry
-        rename          - renames an instance container
-        setup           - setups up the host
+        -l, --log            - show snap logs
+        -u, --update NAME    - update Subutai rh or management
+        -r, --register       - register Subutai peer to hub
+        -h, --help           - help 
 
-        Example usage : vagrant subutai clone parent child
-
+        Example usage : vagrant subutai -r
 
 
 
