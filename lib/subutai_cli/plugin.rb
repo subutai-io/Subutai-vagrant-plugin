@@ -11,7 +11,7 @@ module SubutaiCli
                 Command
             end
 
-            config "subutai_console" do
+            config 'subutai_console' do
               require_relative 'config'
               Config
             end
