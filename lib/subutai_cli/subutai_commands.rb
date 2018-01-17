@@ -1,6 +1,7 @@
 require_relative '../subutai_cli'
 require_relative 'command'
-require 'https/net'
+require 'net/https'
+require 'io/console'
 
 module SubutaiCli
   class Commands < Vagrant.plugin('2', :command)
@@ -20,23 +21,63 @@ module SubutaiCli
     end
 
     # register Subutai Peer to Hub
-    def register(url, username, password, hub_email, hub_password, peer_name, peer_scope)
-      response = SubutaiCli::Rest::SubutaiConsole.token(url, username, password)
+    def register(username, password)
+      username, password = get_input_token if username.nil? && password.nil?
+      response = SubutaiCli::Rest::SubutaiConsole.token($SUBUTAI_CONSOLE_URL, username, password)
 
-      if response.code == Net::HTTPOK
-        response = SubutaiCli::Rest::SubutaiConsole.register(url, hub_email, hub_password, peer_name, peer_scope)
+      case response
+        when Net::HTTPOK
+          STDOUT.puts "Successfully you signed Subutai Console"
+          hub_email, hub_password, peer_name, peer_scope = get_input_register
+          response = SubutaiCli::Rest::SubutaiConsole.register(response.body, $SUBUTAI_CONSOLE_URL, hub_email, hub_password, peer_name, peer_scope)
 
-        if response.code == Net::HTTPOK
-          STDOUT.puts response.body
-          return response
+          case response
+            when Net::HTTPOK
+              STDOUT.puts "You peer: \"#{peer_name}\" successfully registered to hub."
+            else
+              STDOUT.puts "Try again"
+              register(username, password)
+          end
         else
-          STDOUT.puts response.body
-          return response
-        end
-      else
-        STDOUT.puts response.body
-        return response
+          STDERR.puts "Error: #{response.body}"
+          register(nil, nil)
       end
+    end
+
+    # Get Subutai console credentials from input
+    def get_input_token
+      STDOUT.puts "\nPlease enter credentials Subutai Console:\n"
+      STDOUT.puts "username: "
+      username = STDIN.gets.chomp
+      puts "password: "
+      password = STDIN.noecho(&:gets).chomp
+
+      [username, password]
+    end
+
+    # Get Hub credentials and peer info
+    def get_input_register
+      STDOUT.puts "\nRegister your peer to HUB:\n"
+
+      # Hub email
+      STDOUT.puts "Enter Hub email: "
+      hub_email = STDIN.gets.chomp
+
+      # Hub password
+      STDOUT.puts "Enter Hub password: "
+      hub_password = STDIN.noecho(&:gets).chomp
+
+      # Peer name
+      STDOUT.puts "Enter peer name: "
+      peer_name = STDIN.gets.chomp
+
+      # Peer scope
+      STDOUT.puts "1. Public"
+      STDOUT.puts "2. Private"
+      STDOUT.puts "Choose your peer scope (1 or 2): "
+      peer_scope = STDIN.gets.chomp.to_i
+
+      [hub_email, hub_password, peer_name, peer_scope]
     end
 
     def ssh(command)

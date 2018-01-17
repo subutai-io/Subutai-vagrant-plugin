@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors       = "Adilet Zholdoshbekov"
   spec.email         = "azholdoshbekov@optimal-dynamics.com"
   spec.summary       = ["Subutai CLI. Execute subutai commands outside the Vagrant box"]
-  spec.description   = "Part of Subutai Social Tooling"
+  spec.description   = "Part of Subutai Tooling"
   spec.homepage      = "https://github.com/subutai-io/vagrant"
   spec.metadata      = { "source_code_uri" => "https://github.com/subutai-io/vagrant" }
 
