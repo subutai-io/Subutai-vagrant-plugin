@@ -1,5 +1,6 @@
 require_relative '../subutai_cli'
 require_relative 'command'
+require 'https/net'
 
 module SubutaiCli
   class Commands < Vagrant.plugin('2', :command)
@@ -19,8 +20,23 @@ module SubutaiCli
     end
 
     # register Subutai Peer to Hub
-    def register
-      puts "Todo register"
+    def register(url, username, password, hub_email, hub_password, peer_name, peer_scope)
+      response = SubutaiCli::Rest::SubutaiConsole.token(url, username, password)
+
+      if response.code == Net::HTTPOK
+        response = SubutaiCli::Rest::SubutaiConsole.register(url, hub_email, hub_password, peer_name, peer_scope)
+
+        if response.code == Net::HTTPOK
+          STDOUT.puts response.body
+          return response
+        else
+          STDOUT.puts response.body
+          return response
+        end
+      else
+        STDOUT.puts response.body
+        return response
+      end
     end
 
     def ssh(command)
