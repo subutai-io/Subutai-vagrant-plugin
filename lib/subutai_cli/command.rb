@@ -3,6 +3,7 @@ require 'optparse'
 require 'io/console'
 require 'net/https'
 require_relative 'subutai_commands'
+require 'fileutils'
 
 module SubutaiCli
   module Subutai
@@ -30,6 +31,11 @@ module SubutaiCli
           opt.on('-r', '--register', 'register Subutai Peer to Hub') do
             options[:register] = true
           end
+
+          opt.on('-a', '--add rh', 'add new RH to Subutai Peer') do |name|
+            options[:rh] = true
+            options[:rh_name] = name
+          end
         end
 
         # Gets Subutai console url from Vagrantfile
@@ -47,13 +53,16 @@ module SubutaiCli
           subutai_cli.update(options[:update_arg])
         elsif options[:register]
           if $SUBUTAI_CONSOLE_URL.empty?
-            puts "Please add this to Vagrantfile => config.subutai_console.url = \"https://YOUR_LOCAL_PEER_IP:YOUR_LOCAL_PEER_PORT\""
+            STDOUT.puts "Please add this to Vagrantfile => config.subutai_console.url = \"https://YOUR_LOCAL_PEER_IP:YOUR_LOCAL_PEER_PORT\""
             exit
           end
 
           subutai_cli.register(nil, nil)
+        elsif options[:rh]
+          puts @env.box
+          #subutai_cli.add(Dir.pwd, options[:rh_name])
         else
-          puts "For help on any individual command run `vagrant subutai -h`"
+          STDOUT.puts "For help on any individual command run `vagrant subutai -h`"
         end
       end
     end

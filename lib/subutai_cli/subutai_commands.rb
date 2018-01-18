@@ -2,6 +2,7 @@ require_relative '../subutai_cli'
 require_relative 'command'
 require 'net/https'
 require 'io/console'
+require 'fileutils'
 
 module SubutaiCli
   class Commands < Vagrant.plugin('2', :command)
@@ -13,6 +14,11 @@ module SubutaiCli
     # show snap logs
     def log
       ssh(SubutaiAgentCommand::LOG)
+    end
+
+    # info id
+    def info
+      ssh(SubutaiAgentCommand::INFO_ID)
     end
 
     # update Subutai rh or management
@@ -35,13 +41,37 @@ module SubutaiCli
             when Net::HTTPOK
               STDOUT.puts "You peer: \"#{peer_name}\" successfully registered to hub."
             else
-              STDOUT.puts "Try again"
+              STDOUT.puts "Try again! #{response.body}\n"
               register(username, password)
           end
         else
-          STDERR.puts "Error: #{response.body}"
+          STDERR.puts "Try again! #{response.body}\n"
           register(nil, nil)
       end
+    end
+
+    def add(peer_path, rh_name)
+      peer_path = peer_path + "/#{SubutaiCli::Subutai::RH_FOLDER_NAME}/#{rh_name}"
+
+      # create folder your_peer+path/RH/rh_name
+      unless File.exists?(peer_path)
+        FileUtils.mkdir_p(peer_path)
+      end
+
+      # 1. create RH
+      Dir.chdir(peer_path){
+        %x[#{VagrantCommand::INIT}]
+      }
+
+      # 2. up
+      Dir.chdir(peer_path){
+        %x[#{VagrantCommand::RH_UP}]
+      }
+
+      id = info
+      puts id
+
+      STDOUT.puts "Your RH path: #{peer_path}"
     end
 
     # Get Subutai console credentials from input
