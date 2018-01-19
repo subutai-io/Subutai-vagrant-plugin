@@ -1,13 +1,13 @@
 require_relative '../subutai_cli'
 
 module SubutaiAgentCommand
-  UPDATE = 'sudo /snap/bin/subutai update'                   # name params required
+  UPDATE = 'sudo /snap/bin/subutai update'                   # arg required
   LOG = 'sudo /snap/bin/subutai log'
-  INFO_ID = 'sudo /snap/bin/subutai info id'
+  INFO = 'sudo /snap/bin/subutai info'                       # arg required
   TEMPLATE_IMPORT = 'sudo /snap/bin/subutai import ubuntu16'
-  TEMPLATE_CLONE = 'sudo /snap/bin/subutai clone ubuntu16'   # name params required
-  TEMPLATE_ATTACH = 'sudo /snap/bin/subutai attach'          # name params required
-  TEMPLATE_EXPORT = 'sudo /snap/bin/subutai export'          # name params required
+  TEMPLATE_CLONE = 'sudo /snap/bin/subutai clone ubuntu16'   # arg required
+  TEMPLATE_ATTACH = 'sudo /snap/bin/subutai attach'          # arg required
+  TEMPLATE_EXPORT = 'sudo /snap/bin/subutai export'          # arg required
 end
 
 module SubutaiConsoleAPI
@@ -15,6 +15,7 @@ module SubutaiConsoleAPI
     TOKEN = '/rest/v1/identity/gettoken'
     REGISTER_HUB = '/rest/v1/hub/register?sptoken='
     APPROVE = '/rest/v1/registration/requests'
+    FINGERPRINT = '/rest/v1/security/keyman/getpublickeyfingerprint'
   end
 end
 
@@ -39,6 +40,7 @@ end
 
 module VagrantCommand
   INIT = 'vagrant init'
+  UP = 'vagrant up'
   RH_UP = 'SUBUTAI_PEER=false vagrant up'
   PROVISION = 'vagrant provision'
 end

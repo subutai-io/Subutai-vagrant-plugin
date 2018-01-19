@@ -32,15 +32,25 @@ module SubutaiCli
             options[:register] = true
           end
 
-          opt.on('-a', '--add rh', 'add new RH to Subutai Peer') do |name|
+          opt.on('-a', '--add NAME', 'add new RH to Subutai Peer') do |name|
             options[:rh] = true
-            options[:rh_name] = name
+            options[:rh_arg] = name
+          end
+
+          opt.on('-i', '--info NAME', 'information about host system: id, ipaddr') do |id|
+            options[:info] = true
+            options[:info_arg] = id
+          end
+
+          opt.on('-f', '--fingerprint', 'shows fingerprint Subutai Console') do
+            options[:fingerprint] = true
           end
         end
 
-        # Gets Subutai console url from Vagrantfile
+        # Gets Subutai console url and box name from Vagrantfile
         with_target_vms(nil, single_target: true) do |machine|
           $SUBUTAI_CONSOLE_URL = machine.config.subutai_console.url
+          $SUBUTAI_BOX_NAME = machine.config.vm.box
         end
 
         argv = parse_options(opts)
@@ -52,17 +62,26 @@ module SubutaiCli
         elsif options[:update]
           subutai_cli.update(options[:update_arg])
         elsif options[:register]
-          if $SUBUTAI_CONSOLE_URL.empty?
-            STDOUT.puts "Please add this to Vagrantfile => config.subutai_console.url = \"https://YOUR_LOCAL_PEER_IP:YOUR_LOCAL_PEER_PORT\""
-            exit
-          end
+          check_subutai_console_url
 
           subutai_cli.register(nil, nil)
         elsif options[:rh]
-          puts @env.box
-          #subutai_cli.add(Dir.pwd, options[:rh_name])
+          subutai_cli.add(Dir.pwd, options[:rh_arg])
+        elsif options[:info]
+          subutai_cli.info(options[:info_arg])
+        elsif options[:fingerprint]
+          check_subutai_console_url
+
+          subutai_cli.fingerprint($SUBUTAI_CONSOLE_URL)
         else
           STDOUT.puts "For help on any individual command run `vagrant subutai -h`"
+        end
+      end
+
+      def check_subutai_console_url
+        if $SUBUTAI_CONSOLE_URL.empty?
+          STDOUT.puts "Please add this to Vagrantfile => config.subutai_console.url = \"https://YOUR_LOCAL_PEER_IP:YOUR_LOCAL_PEER_PORT\""
+          exit
         end
       end
     end

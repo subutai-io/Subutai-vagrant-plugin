@@ -17,8 +17,8 @@ module SubutaiCli
     end
 
     # info id
-    def info
-      ssh(SubutaiAgentCommand::INFO_ID)
+    def info(arg)
+      ssh("#{SubutaiAgentCommand::INFO} #{arg}")
     end
 
     # update Subutai rh or management
@@ -50,28 +50,49 @@ module SubutaiCli
       end
     end
 
+    # Add new RH to Peer
     def add(peer_path, rh_name)
       peer_path = peer_path + "/#{SubutaiCli::Subutai::RH_FOLDER_NAME}/#{rh_name}"
 
-      # create folder your_peer+path/RH/rh_name
+      # create RH folder your_peer_path/RH/rh_name
       unless File.exists?(peer_path)
         FileUtils.mkdir_p(peer_path)
+
+        # 1. create RH
+        Dir.chdir(peer_path){
+          response = system(VagrantCommand::INIT + " " + $SUBUTAI_BOX_NAME)
+          unless response
+
+          end
+        }
+
+        # 2. up
+        Dir.chdir(peer_path){
+          system(VagrantCommand::RH_UP)
+        }
+
+        # 3. provision
+        Dir.chdir(peer_path){
+          system(VagrantCommand::PROVISION)
+        }
+
+        id = info('id')
+         puts id
+
+        STDOUT.puts "Your RH path: #{peer_path}"
       end
+    end
 
-      # 1. create RH
-      Dir.chdir(peer_path){
-        %x[#{VagrantCommand::INIT}]
-      }
+    # Show Subutai Console finger print
+    def fingerprint(url)
+      response = SubutaiCli::Rest::SubutaiConsole.fingerprint(url)
 
-      # 2. up
-      Dir.chdir(peer_path){
-        %x[#{VagrantCommand::RH_UP}]
-      }
-
-      id = info
-      puts id
-
-      STDOUT.puts "Your RH path: #{peer_path}"
+      case response
+        when Net::HTTPOK
+          STDOUT.puts response.body
+        else
+          STDOUT.puts "Try again! #{response.body}"
+      end
     end
 
     # Get Subutai console credentials from input

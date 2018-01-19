@@ -48,6 +48,18 @@ module SubutaiCli
 
         return https.request(request)
       end
+
+      # Gets Finger print Subutai Console
+      def self.fingerprint(url)
+        uri = URI.parse(url + SubutaiConsoleAPI::V1::FINGERPRINT)
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+
+        request = Net::HTTP::Get.new(uri.request_uri)
+
+        return https.request(request)
+      end
     end
   end
 end
