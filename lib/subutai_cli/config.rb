@@ -3,7 +3,7 @@ require_relative '../subutai_cli'
 module SubutaiAgentCommand
   UPDATE = 'sudo /snap/bin/subutai update'                   # arg required
   LOG = 'sudo /snap/bin/subutai log'
-  INFO = 'sudo /snap/bin/subutai info'                       # arg required
+  INFO = 'sudo /snap/bin/subutai info'                            # arg required
   TEMPLATE_IMPORT = 'sudo /snap/bin/subutai import ubuntu16'
   TEMPLATE_CLONE = 'sudo /snap/bin/subutai clone ubuntu16'   # arg required
   TEMPLATE_ATTACH = 'sudo /snap/bin/subutai attach'          # arg required
@@ -44,5 +44,6 @@ module VagrantCommand
   UP = 'vagrant up'
   RH_UP = 'SUBUTAI_PEER=false vagrant up'
   PROVISION = 'vagrant provision'
-  SUBUTAI_ID = 'vagrant subutai info id'
+  SUBUTAI_ID = 'vagrant subutai --info id'
+  ARG_IP_ADDR = 'ipaddr'
 end

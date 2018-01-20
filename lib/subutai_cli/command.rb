@@ -77,10 +77,6 @@ module SubutaiCli
           check_subutai_console_url
 
           subutai_cli.fingerprint($SUBUTAI_CONSOLE_URL)
-        elsif
-          check_subutai_console_url
-
-          subutai_cli.test
         else
           STDOUT.puts "For help on any individual command run `vagrant subutai -h`"
         end

@@ -3,7 +3,7 @@ require_relative 'command'
 require 'net/https'
 require 'io/console'
 require 'fileutils'
-require 'rh_controller'
+require_relative 'rh_controller'
 
 module SubutaiCli
   class Commands < Vagrant.plugin('2', :command)
@@ -19,7 +19,15 @@ module SubutaiCli
 
     # info id
     def info(arg)
-      ssh("#{SubutaiAgentCommand::INFO} #{arg}")
+      with_target_vms(nil, single_target: true) do |vm|
+        vm.communicate.sudo("#{SubutaiAgentCommand::INFO} #{arg}") do |type, data|
+          if type == :stdout
+            result = data.split(/[\r\n]+/)
+            STDOUT.puts result.first
+            return result.first
+          end
+        end
+      end
     end
 
     # update Subutai rh or management
@@ -53,6 +61,7 @@ module SubutaiCli
 
     # Add new RH to Peer
     def add(peer_path, rh_name)
+      # TODO peer_path also be fixed(this path must work on all platforms)
       peer_path = peer_path + "/#{SubutaiCli::Subutai::RH_FOLDER_NAME}/#{rh_name}"
 
       # create RH folder your_peer_path/RH/rh_name
@@ -62,34 +71,57 @@ module SubutaiCli
         # 1. create RH
         Dir.chdir(peer_path){
           unless system(VagrantCommand::INIT + " " + $SUBUTAI_BOX_NAME)
-            raise '\'vagrant init\' command failed.'
+            raise "#{VagrantCommand::INIT} command failed."
           end
         }
 
-        # 2. up
+        # 2. vagrant up
         Dir.chdir(peer_path){
           unless system(VagrantCommand::RH_UP)
-            raise '\'vagrant up\' command failed.'
+            raise "#{VagrantCommand::RH_UP} command failed."
           end
         }
 
-        # 3. provision
+        # 3. vagrant provision
         Dir.chdir(peer_path){
           unless system(VagrantCommand::PROVISION)
-            raise '\'vagrant provision\' command failed.'
+            raise "#{VagrantCommand::PROVISION} command failed."
           end
         }
 
         # 4. TODO set Subutai Console host and fingerprint in RH agent config
-        fingerprint = fingerprint($SUBUTAI_CONSOLE_URL).body
-        ip = info('ipaddr')
+        fingerprint = SubutaiCli::Rest::SubutaiConsole.fingerprint($SUBUTAI_CONSOLE_URL).body
+        ip = info(VagrantCommand::ARG_IP_ADDR)
 
         STDOUT.puts "Subutai Console(Peer)"
         STDOUT.puts "ip: #{ip}"
         STDOUT.puts "fingerprint: #{fingerprint}"
 
-        # 5. Check is rh request exist in Subutai Console
+        # 5. Check is RH request exist in Subutai Console
         # then approve
+        rhs = []
+        # Get RH requests from Subutai Console
+        rhs = SubutaiCli::RhController.new.all(get_token)
+
+        # Get RH id
+        id = nil
+        Dir.chdir(peer_path){
+          r, w = IO.pipe
+
+          pid = spawn(VagrantCommand::SUBUTAI_ID, :out => w)
+
+          w.close
+          id = r.read
+        }
+
+        # Check is this RH request exist in Subutai Console
+        found = rhs.detect {|rh| rh.id == id}
+
+        if found.nil?
+          raise 'RH not send request to Subutai Console for approve'
+        else
+          # TODO send REST call for approve RH to Subutai Console
+        end
 
         STDOUT.puts "Your RH path: #{peer_path}"
       end
@@ -118,6 +150,19 @@ module SubutaiCli
       [username, password]
     end
 
+    # gets token
+    def get_token
+      username, password = get_input_token
+      response = SubutaiCli::Rest::SubutaiConsole.token($SUBUTAI_CONSOLE_URL, username, password)
+
+      case response
+        when Net::HTTPOK
+          return response.body
+        else
+          get_token
+      end
+    end
+
     # Get Hub credentials and peer info
     def get_input_register
       STDOUT.puts "\nRegister your peer to HUB:\n"
@@ -141,18 +186,6 @@ module SubutaiCli
       peer_scope = STDIN.gets.chomp.to_i
 
       [hub_email, hub_password, peer_name, peer_scope]
-    end
-
-    def test
-      username, password = get_input_token
-      response = SubutaiCli::Rest::SubutaiConsole.token($SUBUTAI_CONSOLE_URL, username, password)
-
-      case response
-        when Net::HTTPOK
-          SubutaiCli::RhController.new.all(response.body)
-        else
-          test
-      end
     end
 
     def ssh(command)

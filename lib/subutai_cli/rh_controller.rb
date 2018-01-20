@@ -1,20 +1,32 @@
-require 'subutai_cli'
-require_relative 'models/resource_host'
+require_relative '../subutai_cli'
 require 'json'
 
 module SubutaiCli
   class RhController
 
     def all(token)
-      json = JSON.parse(SubutaiCli::Rest::SubutaiConsole.requests($SUBUTAI_CONSOLE_URL, token))
+      response = SubutaiCli::Rest::SubutaiConsole.requests($SUBUTAI_CONSOLE_URL, token)
+      rhs = []
 
-      json.each do |data|
-        STDOUT.puts data['id']
-        STDOUT.puts data['hostname']
-        STDOUT.puts data['status']
-        STDOUT.puts data['isManagement']
-        STDOUT.puts data['isConnected']
+      case response
+        when Net::HTTPOK
+          json = JSON.parse(response.body)
+
+          json.each do |data|
+            rh = SubutaiCli::Models::Rh.new
+            rh.id = data['id']
+            rh.hostname = data['hostname']
+            rh.status = data['status']
+            rh.isConnected = data['isConnected']
+            rh.isManagement = data['isManagement']
+            rhs << rh
+          end
+        else
+          STDERR.puts "#{response.body}"
+          raise 'Can\'t get requests info from Subutai Console'
       end
+
+      rhs
     end
   end
 end
