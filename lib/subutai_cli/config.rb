@@ -16,6 +16,7 @@ module SubutaiConsoleAPI
     REGISTER_HUB = '/rest/v1/hub/register?sptoken='
     APPROVE = '/rest/v1/registration/requests'
     FINGERPRINT = '/rest/v1/security/keyman/getpublickeyfingerprint'
+    REQUESTS = '/rest/v1/registration/requests?sptoken='
   end
 end
 
@@ -43,4 +44,5 @@ module VagrantCommand
   UP = 'vagrant up'
   RH_UP = 'SUBUTAI_PEER=false vagrant up'
   PROVISION = 'vagrant provision'
+  SUBUTAI_ID = 'vagrant subutai info id'
 end

@@ -45,6 +45,10 @@ module SubutaiCli
           opt.on('-f', '--fingerprint', 'shows fingerprint Subutai Console') do
             options[:fingerprint] = true
           end
+
+          opt.on('-t', '--test', 'Json parse test') do
+            options[:test] = true
+          end
         end
 
         # Gets Subutai console url and box name from Vagrantfile
@@ -73,6 +77,10 @@ module SubutaiCli
           check_subutai_console_url
 
           subutai_cli.fingerprint($SUBUTAI_CONSOLE_URL)
+        elsif
+          check_subutai_console_url
+
+          subutai_cli.test
         else
           STDOUT.puts "For help on any individual command run `vagrant subutai -h`"
         end
