@@ -1,4 +1,9 @@
 require 'vagrant'
-require_relative 'subutai_cli/plugin'
+require 'subutai_cli/command'
 require 'subutai_cli/config'
-
+require 'subutai_cli/plugin'
+require 'subutai_cli/rest'
+require 'subutai_cli/subutai_commands'
+require 'subutai_cli/version'
+require 'subutai_cli/rh_controller'
+require 'subutai_cli/models/resource_host'

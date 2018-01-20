@@ -1,122 +1,91 @@
-require 'vagrant'
+require_relative '../subutai_cli'
 require 'optparse'
-require 'net/https'
 require 'io/console'
-require 'uri'
-require_relative 'config'
+require 'net/https'
+require_relative 'subutai_commands'
+require 'fileutils'
 
 module SubutaiCli
   module Subutai
     class Command < Vagrant.plugin('2', :command)
-      # show description when `vagrant list-comands` is triggered
+      # shows description when `vagrant list-commands` is triggered
       def self.synopsis
-        "Vagrant Subutai CLI - executes Subutai scripts in target hosts"
+        'Vagrant Subutai CLI - executes Subutai scripts in target hosts'
       end
 
       def execute
         options = {}
         opts = OptionParser.new do |opt|
-          opt.banner = "Usage: vagrant subutai --<command> [options]"
-          opt.separator ""
+          opt.banner = 'Usage: vagrant subutai --<command> [options]'
+          opt.separator ''
 
-          opt.on("-l", "--log", "show snap logs") do
-            options[:command] = SubutaiCommands::LOG
+          opt.on('-l', '--log', 'show snap logs') do
+            options[:log] = true
           end
 
-          opt.on("-u", "--update NAME", "update Subutai rh or management") do |name|
-            options[:command] = SubutaiCommands::UPDATE + " " + name
+          opt.on('-u', '--update NAME', 'update Subutai rh or management') do |name|
+            options[:update] = true
+            options[:update_arg] = name
           end
 
-          opt.on("-r", "--register", "register Subutai Peer to Hub") do
+          opt.on('-r', '--register', 'register Subutai Peer to Hub') do
             options[:register] = true
+          end
+
+          opt.on('-a', '--add NAME', 'add new RH to Subutai Peer') do |name|
+            options[:rh] = true
+            options[:rh_arg] = name
+          end
+
+          opt.on('-i', '--info NAME', 'information about host system: id, ipaddr') do |id|
+            options[:info] = true
+            options[:info_arg] = id
+          end
+
+          opt.on('-f', '--fingerprint', 'shows fingerprint Subutai Console') do
+            options[:fingerprint] = true
+          end
+
+          opt.on('-t', '--test', 'Json parse test') do
+            options[:test] = true
           end
         end
 
-        @subutai_console_url = ""
+        # Gets Subutai console url and box name from Vagrantfile
         with_target_vms(nil, single_target: true) do |machine|
-          @subutai_console_url = machine.config.subutai_console.url
-          puts "Peer URL: #{@subutai_console_url}"
+          $SUBUTAI_CONSOLE_URL = machine.config.subutai_console.url
+          $SUBUTAI_BOX_NAME = machine.config.vm.box
         end
 
         argv = parse_options(opts)
         return if !argv
 
-        if options[:register]
-          login(@subutai_console_url)
-        end
+        subutai_cli = SubutaiCli::Commands.new(ARGV, @env)
+        if options[:log]
+          subutai_cli.log
+        elsif options[:update]
+          subutai_cli.update(options[:update_arg])
+        elsif options[:register]
+          check_subutai_console_url
 
-        unless options[:command].nil?
-          with_target_vms(nil, single_target: true) do |machine|
-            machine.action(:ssh_run, ssh_run_command: options[:command], ssh_opts: {extra_args: ['-q']})
-          end
-        end
-      end
+          subutai_cli.register(nil, nil)
+        elsif options[:rh]
+          subutai_cli.add(Dir.pwd, options[:rh_arg])
+        elsif options[:info]
+          subutai_cli.info(options[:info_arg])
+        elsif options[:fingerprint]
+          check_subutai_console_url
 
-      def login(url)
-        if url.empty?
-          puts "Please add this to Vagrantfile => config.subutai_console.url = \"https://YOUR_LOCAL_PEER_IP:YOUR_LOCAL_PEER_PORT\""
-          exit
-        end
-
-        puts ""
-        puts "Please enter credentials Subutai Console"
-        puts ""
-        puts "username: "
-        username = STDIN.gets.chomp
-        puts "password: "
-        password = STDIN.noecho(&:gets).chomp
-
-        uri = URI.parse(url+SubutaiAPI::TOKEN)
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-
-        request = Net::HTTP::Post.new(uri.request_uri)
-        request.set_form_data('username' => username, 'password' => password)
-
-        response = http.request(request)
-
-        case response
-        when Net::HTTPOK
-          puts 'You successfully signed to Subutai Console'
-          register(response.body, url)
+          subutai_cli.fingerprint($SUBUTAI_CONSOLE_URL)
         else
-          login(url)
+          STDOUT.puts "For help on any individual command run `vagrant subutai -h`"
         end
       end
 
-      def register(token, url)
-        puts ""
-        puts "Register your peer to HUB"
-        puts ""
-        puts "Enter Hub email: "
-        email = STDIN.gets.chomp
-        puts "Enter Hub password: "
-        password = STDIN.noecho(&:gets).chomp
-        puts "Enter peer name: "
-        name = STDIN.gets.chomp
-        puts "1. Public"
-        puts "2. Private"
-        puts "Choose your peer scope (1 or 2): "
-        scope = STDIN.gets.chomp.to_i
-
-        uri = URI.parse(url+SubutaiAPI::REGISTER_HUB+token)
-        https = Net::HTTP.new(uri.host, uri.port)
-        https.use_ssl = true
-        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-
-        request = Net::HTTP::Post.new(uri.request_uri)
-        request.set_form_data({'email' => email, 'password' => password, 'peerName' => name, 'peerScope' => scope == 1 ? "Public":"Private"})
-
-        response = https.request(request)
-
-        case response
-          when Net::HTTPOK
-            puts "You peer: #{name} successfully registered to hub."
-          else
-            puts "Try again!"
-            puts response.body
-            register(token, url)
+      def check_subutai_console_url
+        if $SUBUTAI_CONSOLE_URL.empty?
+          STDOUT.puts "Please add this to Vagrantfile => config.subutai_console.url = \"https://YOUR_LOCAL_PEER_IP:YOUR_LOCAL_PEER_PORT\""
+          exit
         end
       end
     end
