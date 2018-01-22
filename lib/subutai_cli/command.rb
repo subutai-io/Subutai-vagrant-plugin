@@ -14,42 +14,50 @@ module SubutaiCli
       end
 
       def execute
-        options = {}
-        opts = OptionParser.new do |opt|
-          opt.banner = 'Usage: vagrant subutai --<command> [options]'
-          opt.separator ''
+        commands = <<-EOF
+          
+Usage: vagrant subutai [global options] command [command options] [arguments...]
 
-          opt.on('-l', '--log', 'show snap logs') do
-            options[:log] = true
-          end
+COMMANDS:          
+       attach             attach to Subutai container
+       backup             backup Subutai container
+       batch              batch commands execution
+       checkpoint         chekpoint/restore in user space
+       clone              clone Subutai container
+       cleanup            clean Subutai environment
+       config             edit container config
+       daemon             start Subutai agent
+       demote             demote Subutai container
+       destroy            destroy Subutai container
+       export             export Subutai container
+       import             import Subutai template
+       info               information about host system
+       hostname           Set hostname of container or host
+       list               list Subutai container
+       log                print application logs
+       map                Subutai port mapping
+       metrics            list Subutai container
+       migrate            migrate Subutai container
+       p2p                P2P network operations
+       promote            promote Subutai container
+       proxy              Subutai reverse proxy
+       quota              set quotas for Subutai container
+       rename             rename Subutai container
+       restore            restore Subutai container
+       stats              statistics from host
+       start              start Subutai container
+       stop               stop Subutai container
+       tunnel             SSH tunnel management
+       update             update Subutai management, container or Resource host
+       vxlan              VXLAN tunnels operation
+       register           register Subutai Peer to Hub
+       add                add new RH to Subutai Peer
+       fingerprint        shows fingerprint Subutai Console
+       help, h            Shows a list of commands or help for one command 
 
-          opt.on('-u', '--update NAME', 'update Subutai rh or management') do |name|
-            options[:update] = true
-            options[:update_arg] = name
-          end
-
-          opt.on('-r', '--register', 'register Subutai Peer to Hub') do
-            options[:register] = true
-          end
-
-          opt.on('-a', '--add NAME', 'add new RH to Subutai Peer') do |name|
-            options[:rh] = true
-            options[:rh_arg] = name
-          end
-
-          opt.on('-i', '--info NAME', 'information about host system: id, ipaddr') do |id|
-            options[:info] = true
-            options[:info_arg] = id
-          end
-
-          opt.on('-f', '--fingerprint', 'shows fingerprint Subutai Console') do
-            options[:fingerprint] = true
-          end
-
-          opt.on('-t', '--test', 'Json parse test') do
-            options[:test] = true
-          end
-        end
+GLOBAL OPTIONS:
+       --help, -h     show help
+  EOF
 
         # Gets Subutai console url and box name from Vagrantfile
         with_target_vms(nil, single_target: true) do |machine|
@@ -57,28 +65,38 @@ module SubutaiCli
           $SUBUTAI_BOX_NAME = machine.config.vm.box
         end
 
-        argv = parse_options(opts)
-        return if !argv
-
         subutai_cli = SubutaiCli::Commands.new(ARGV, @env)
-        if options[:log]
-          subutai_cli.log
-        elsif options[:update]
-          subutai_cli.update(options[:update_arg])
-        elsif options[:register]
-          check_subutai_console_url
 
-          subutai_cli.register(nil, nil)
-        elsif options[:rh]
-          subutai_cli.add(Dir.pwd, options[:rh_arg])
-        elsif options[:info]
-          subutai_cli.info(options[:info_arg])
-        elsif options[:fingerprint]
-          check_subutai_console_url
-
-          subutai_cli.fingerprint($SUBUTAI_CONSOLE_URL)
-        else
-          STDOUT.puts "For help on any individual command run `vagrant subutai -h`"
+        case ARGV[1]
+          when 'register'
+            check_subutai_console_url
+            subutai_cli.register(nil, nil)
+          when 'add'
+            check_subutai_console_url
+            options = {}
+            opts = OptParse.new do |opt|
+              opt.banner = 'Usage: vagrant subutai add [options]'
+              opt.on('-n', '--name NAME') do |name|
+                options[:name] = name
+              end
+            end
+            opts.parse!
+            subutai_cli.add(Dir.pwd, options[:name])
+          when 'fingerprint'
+            check_subutai_console_url
+            subutai_cli.fingerprint($SUBUTAI_CONSOLE_URL)
+          when '-h'
+            STDOUT.puts commands
+          when '--help'
+            STDOUT.puts commands
+          else
+            command = ARGV
+            command.shift
+            if command.empty?
+              STDOUT.puts commands
+            else
+              subutai_cli.ssh("sudo /snap/bin/subutai #{command.join(' ')}")
+            end
         end
       end
 

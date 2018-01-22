@@ -188,6 +188,10 @@ module SubutaiCli
       [hub_email, hub_password, peer_name, peer_scope]
     end
 
+    def list(arg)
+      ssh("#{SubutaiAgentCommand::LIST} #{arg}")
+    end
+
     def ssh(command)
       with_target_vms(nil, single_target: true) do |vm|
         vm.action(:ssh_run, ssh_run_command: command, ssh_opts: {extra_args: ['-q']})
