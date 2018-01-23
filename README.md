@@ -17,6 +17,7 @@ end
 ```
 
 ## Usage
+```
 Usage: vagrant subutai [global options] command [command options] [arguments...]
 
 COMMANDS:
@@ -57,6 +58,5 @@ COMMANDS:
 
 GLOBAL OPTIONS:
        --help, -h     show help
-
-
+```
 
