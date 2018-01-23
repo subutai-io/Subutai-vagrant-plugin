@@ -8,6 +8,8 @@ module SubutaiAgentCommand
   TEMPLATE_CLONE = 'sudo /snap/bin/subutai clone ubuntu16'   # arg required
   TEMPLATE_ATTACH = 'sudo /snap/bin/subutai attach'          # arg required
   TEMPLATE_EXPORT = 'sudo /snap/bin/subutai export'          # arg required
+  LIST = 'sudo /snap/bin/subutai list'
+  SUBUTAI = 'sudo /snap/bin/subutai'
 end
 
 module SubutaiConsoleAPI
