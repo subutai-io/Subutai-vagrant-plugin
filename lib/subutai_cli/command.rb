@@ -31,7 +31,7 @@ module SubutaiCli
           when 'add'
             check_subutai_console_url
             options = {}
-            opts = OptParse.new do |opt|
+            opts = OptionParser.new do |opt|
               opt.banner = 'Usage: vagrant subutai add [options]'
               opt.on('-n', '--name NAME') do |name|
                 options[:name] = name
@@ -47,12 +47,40 @@ module SubutaiCli
           when '--help'
             STDOUT.puts cli_info
           else
+            # All Agent CLI commands implemented here
+            # Parse environment from args
+            options = {}
+            OptionParser.new do |opt|
+              opt.on('-e', '--environment NAME', 'specify environment dev, master or sysnet') do |name|
+                options[:environment] = true
+                options[:environment_arg] = name
+              end
+
+              opt.on('-h', '--help', nil) do
+                options[:help] = true
+              end
+            end.parse!
+
             command = ARGV
             command.shift
+
+            unless options[:environment].nil?
+              command.delete "-e"
+              command.delete "--environment"
+            end
+
+            unless options[:help].nil?
+              command << "-h"
+            end
+
             if command.empty?
               STDOUT.puts cli_info
             else
-              subutai_cli.ssh("#{SubutaiAgentCommand::SUBUTAI} #{command.join(' ')}")
+              if options[:environment]
+                subutai_cli.ssh("#{SubutaiAgentCommand::SUBUTAI}-#{options[:environment_arg]} #{command.join(' ')}")
+              else
+                subutai_cli.ssh("#{SubutaiAgentCommand::SUBUTAI} #{command.join(' ')}")
+              end
             end
         end
       end
@@ -69,45 +97,45 @@ module SubutaiCli
           
 Usage: vagrant subutai [global options] command [command options] [arguments...]
 
-COMMANDS:          
-       attach             attach to Subutai container
-       backup             backup Subutai container
-       batch              batch commands execution
-       checkpoint         checkpoint/restore in user space
-       clone              clone Subutai container
-       cleanup            clean Subutai environment
-       config             edit container config
-       daemon             start Subutai agent
-       demote             demote Subutai container
-       destroy            destroy Subutai container
-       export             export Subutai container
-       import             import Subutai template
-       info               information about host system
-       hostname           Set hostname of container or host
-       list               list Subutai container
-       log                print application logs
-       map                Subutai port mapping
-       metrics            list Subutai container
-       migrate            migrate Subutai container
-       p2p                P2P network operations
-       promote            promote Subutai container
-       proxy              Subutai reverse proxy
-       quota              set quotas for Subutai container
-       rename             rename Subutai container
-       restore            restore Subutai container
-       stats              statistics from host
-       start              start Subutai container
-       stop               stop Subutai container
-       tunnel             SSH tunnel management
-       update             update Subutai management, container or Resource host
-       vxlan              VXLAN tunnels operation
-       register           register Subutai Peer to Hub
-       add                add new RH to Subutai Peer
-       fingerprint        shows fingerprint Subutai Console
-       help, h            Shows a list of commands or help for one command 
+COMMANDS:
+       attach                  - attach to Subutai container
+       backup                  - backup Subutai container
+       batch                   - batch commands execution
+       checkpoint              - checkpoint/restore in user space
+       clone                   - clone Subutai container
+       cleanup                 - clean Subutai environment
+       config                  - edit container config
+       daemon                  - start Subutai agent
+       demote                  - demote Subutai container
+       destroy                 - destroy Subutai container
+       export                  - export Subutai container
+       import                  - import Subutai template
+       info                    - information about host system
+       hostname                - Set hostname of container or host
+       list                    - list Subutai container
+       log                     - print application logs
+       map                     - Subutai port mapping
+       metrics                 - list Subutai container
+       migrate                 - migrate Subutai container
+       p2p                     - P2P network operations
+       promote                 - promote Subutai container
+       proxy                   - Subutai reverse proxy
+       quota                   - set quotas for Subutai container
+       rename                  - rename Subutai container
+       restore                 - restore Subutai container
+       stats                   - statistics from host
+       start                   - start Subutai container
+       stop                    - stop Subutai container
+       tunnel                  - SSH tunnel management
+       update                  - update Subutai management, container or Resource host
+       vxlan                   - VXLAN tunnels operation
+       register                - register Subutai Peer to Hub
+       add                     - add new RH to Subutai Peer
+       fingerprint             - shows fingerprint Subutai Console
 
 GLOBAL OPTIONS:
-       --help, -h     show help
+       -e, --environment NAME  - specify environment dev, master or sysnet
+       -h, --help              - show help
         EOF
         commands
       end
