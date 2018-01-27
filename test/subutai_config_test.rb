@@ -2,7 +2,7 @@ require 'rubygems'
 require 'test/unit'
 require 'fileutils'
 
-require_relative '../lib/subutai_cli/subutai_config'
+require_relative '../lib/subutai_cli/packer/subutai_config'
 
 # Tests the SubutaiConfig module
 class SubutaiConfigTest < Test::Unit::TestCase

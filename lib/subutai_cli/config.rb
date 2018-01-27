@@ -1,18 +1,24 @@
 require_relative '../subutai_cli'
 
 module SubutaiAgentCommand
-  UPDATE = 'sudo /snap/bin/subutai update'                   # arg required
-  LOG = 'sudo /snap/bin/subutai log'
-  INFO = 'sudo /snap/bin/subutai info'                            # arg required
-  TEMPLATE_IMPORT = 'sudo /snap/bin/subutai import ubuntu16'
-  TEMPLATE_CLONE = 'sudo /snap/bin/subutai clone ubuntu16'   # arg required
-  TEMPLATE_ATTACH = 'sudo /snap/bin/subutai attach'          # arg required
-  TEMPLATE_EXPORT = 'sudo /snap/bin/subutai export'          # arg required
-  LIST = 'sudo /snap/bin/subutai list'
-  SUBUTAI = 'sudo /snap/bin/subutai'
+  if $SUBUTAI_ENV.nil?
+    ENV = 'subutai'
+  else
+    ENV = 'subutai-' + $SUBUTAI_ENV
+  end
+  BASE = 'sudo /snap/bin/' + ENV
+  UPDATE = BASE + ' update'                   # arg required
+  LOG = BASE + ' log'
+  INFO = BASE + ' info'                       # arg required
+  TEMPLATE_IMPORT = BASE + ' import ubuntu16'
+  TEMPLATE_CLONE = BASE + ' clone ubuntu16'   # arg required
+  TEMPLATE_ATTACH = BASE + ' attach'          # arg required
+  TEMPLATE_EXPORT = BASE + ' export'          # arg required
+  LIST = BASE + ' list'
 end
 
 module SubutaiConsoleAPI
+  PORT = '8443'
   module V1
     TOKEN = '/rest/v1/identity/gettoken'
     REGISTER_HUB = '/rest/v1/hub/register?sptoken='

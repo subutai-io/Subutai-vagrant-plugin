@@ -32,6 +32,7 @@ module SubutaiConfig
     BRIDGE
     AUTHORIZED_KEYS
     PASSWORD_OVERRIDE
+    SUBUTAI_DISK
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -46,6 +47,7 @@ module SubutaiConfig
     _ALT_MANAGEMENT
     _ALT_MANAGEMENT_MD5
     _ALT_MANAGEMENT_MD5_LAST
+    _SUBUTAI_DISK
   ].freeze
 
   # Used for testing
@@ -124,6 +126,16 @@ module SubutaiConfig
 
   def self.snap_provisioned!
     put(:_ALT_SNAP_MD5_LAST, get(:_ALT_SNAP_MD5), true) if provision_snap?
+  end
+
+  def self.provision_disk?
+    return false unless boolean?(:PROVISION)
+    return false if get(:_SUBUTAI_DISK).nil?
+    true
+  end
+
+  def self.disk_provisioned!
+    put(:_SUBUTAI_DISK, get(:SUBUTAI_DISK), true) if provision_disk?
   end
 
   def self.bridged!

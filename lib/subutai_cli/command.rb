@@ -18,7 +18,6 @@ module SubutaiCli
 
         # Gets Subutai console url and box name from Vagrantfile
         with_target_vms(nil, single_target: true) do |machine|
-          $SUBUTAI_CONSOLE_URL = machine.config.subutai_console.url
           $SUBUTAI_BOX_NAME = machine.config.vm.box
         end
 
@@ -26,10 +25,10 @@ module SubutaiCli
 
         case ARGV[1]
           when 'register'
-            check_subutai_console_url
+            check_subutai_console_url(subutai_cli)
             subutai_cli.register(nil, nil)
           when 'add'
-            check_subutai_console_url
+            check_subutai_console_url(subutai_cli)
             options = {}
             opts = OptionParser.new do |opt|
               opt.banner = 'Usage: vagrant subutai add [options]'
@@ -40,7 +39,7 @@ module SubutaiCli
             opts.parse!
             subutai_cli.add(Dir.pwd, options[:name])
           when 'fingerprint'
-            check_subutai_console_url
+            check_subutai_console_url(subutai_cli)
             subutai_cli.fingerprint($SUBUTAI_CONSOLE_URL)
           when '-h'
             STDOUT.puts cli_info
@@ -53,7 +52,7 @@ module SubutaiCli
             OptionParser.new do |opt|
               opt.on('-e', '--environment NAME', 'specify environment dev, master or sysnet') do |name|
                 options[:environment] = true
-                options[:environment_arg] = name
+                $SUBUTAI_ENV = name
               end
 
               opt.on('-h', '--help', nil) do
@@ -76,20 +75,20 @@ module SubutaiCli
             if command.empty?
               STDOUT.puts cli_info
             else
-              if options[:environment]
-                subutai_cli.ssh("#{SubutaiAgentCommand::SUBUTAI}-#{options[:environment_arg]} #{command.join(' ')}")
-              else
-                subutai_cli.ssh("#{SubutaiAgentCommand::SUBUTAI} #{command.join(' ')}")
-              end
+              subutai_cli.ssh("#{SubutaiAgentCommand::BASE} #{command.join(' ')}")
             end
         end
       end
 
-      def check_subutai_console_url
-        if $SUBUTAI_CONSOLE_URL.empty?
-          STDOUT.puts "Please add this to Vagrantfile => config.subutai_console.url = \"https://YOUR_LOCAL_PEER_IP:YOUR_LOCAL_PEER_PORT\""
+      def check_subutai_console_url(subutai_cli)
+        ip = subutai_cli.info(VagrantCommand::ARG_IP_ADDR)
+
+        if ip.nil?
+          STDOUT.puts "We can't detect your Subutai Console ip address!"
           exit
         end
+        $SUBUTAI_CONSOLE_URL = "https://#{ip}:#{SubutaiConsoleAPI::PORT}"
+        STDOUT.puts $SUBUTAI_CONSOLE_URL
       end
 
       def cli_info
