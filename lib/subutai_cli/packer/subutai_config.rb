@@ -206,11 +206,14 @@ module SubutaiConfig
     end
   end
 
-  # Stores ONLY generated configuration from YAML files
+  # Stores generated and conf from YAML files
   def self.store
     FileUtils.mkdir_p(PARENT_DIR) unless Dir.exist?(PARENT_DIR)
     stringified = Hash[@generated.map { |k, v| [k.to_s, v.to_s] }]
     File.open(GENERATED_FILE, 'w') { |f| f.write stringified.to_yaml }
+
+    stringified = Hash[@config.map { |k, v| [k.to_s, v.to_s] unless generated? k}]
+    File.open(CONF_FILE, 'w') { |f| f.write stringified.to_yaml }
     true
   end
 

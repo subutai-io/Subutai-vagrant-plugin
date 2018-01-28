@@ -41,6 +41,17 @@ module SubutaiCli
           when 'fingerprint'
             check_subutai_console_url(subutai_cli)
             subutai_cli.fingerprint($SUBUTAI_CONSOLE_URL)
+          when 'disk'
+            OptionParser.new do |opt|
+              opt.banner = 'Usage: vagrant subutai disk [options]'
+
+              opt.on('--size NUMBER', Integer, 'set your disk size') do |num|
+                STDOUT.puts "Test size: #{num}"
+                SubutaiConfig.load_config('up', :virtualbox)
+                SubutaiConfig.put(:SUBUTAI_DISK, num, true)
+                STDOUT.puts "Generated disk size: #{SubutaiConfig.get(:_SUBUTAI_DISK)}"
+              end
+            end.parse!
           when '-h'
             STDOUT.puts cli_info
           when '--help'
@@ -131,6 +142,7 @@ COMMANDS:
        register                - register Subutai Peer to Hub
        add                     - add new RH to Subutai Peer
        fingerprint             - shows fingerprint Subutai Console
+       disk                    - Changes size of disk in gb unit
 
 GLOBAL OPTIONS:
        -e, --environment NAME  - specify environment dev, master or sysnet
