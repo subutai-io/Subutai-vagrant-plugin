@@ -19,6 +19,7 @@ module SubutaiCli
         # Gets Subutai console url and box name from Vagrantfile
         with_target_vms(nil, single_target: true) do |machine|
           $SUBUTAI_BOX_NAME = machine.config.vm.box
+          STDOUT.puts machine.to_json
         end
 
         subutai_cli = SubutaiCli::Commands.new(ARGV, @env)
@@ -46,10 +47,24 @@ module SubutaiCli
               opt.banner = 'Usage: vagrant subutai disk [options]'
 
               opt.on('--size NUMBER', Integer, 'set your disk size') do |num|
-                STDOUT.puts "Test size: #{num}"
+                disk = num.to_i
+
                 SubutaiConfig.load_config('up', :virtualbox)
-                SubutaiConfig.put(:SUBUTAI_DISK, num, true)
-                STDOUT.puts "Generated disk size: #{SubutaiConfig.get(:_SUBUTAI_DISK)}"
+
+                generated_disk = SubutaiConfig.get(:_SUBUTAI_DISK)
+
+                if generated_disk.nil?
+                  grow_by = disk - 100 # default Subutai disk is 100 gigabytes
+                else
+                  grow_by = disk - (generated_disk.to_i + 100) # HERE Applied math BEDMAS rule
+                end
+
+                if grow_by > 0
+                  SubutaiConfig.put(:SUBUTAI_DISK, num, true)
+                  STDOUT.puts "Warning the disk change cannot be applied until a restart of the VM."
+                else
+                  STDOUT.puts "Warning the operation will be ignored because it shrink operations are not supported."
+                end
               end
             end.parse!
           when '-h'

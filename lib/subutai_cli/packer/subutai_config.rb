@@ -48,6 +48,7 @@ module SubutaiConfig
     _ALT_MANAGEMENT_MD5
     _ALT_MANAGEMENT_MD5_LAST
     _SUBUTAI_DISK
+    _SUBUTAI_DISK_PORT
   ].freeze
 
   # Used for testing
@@ -161,6 +162,24 @@ module SubutaiConfig
 
   def self.config
     @config
+  end
+
+  def self.get_grow_by
+    disk = get(:SUBUTAI_DISK)
+    if disk.nil?
+      nil
+    else
+      disk = disk.to_i
+      generated_disk = get(:_SUBUTAI_DISK)
+      grow_by = 0
+
+      if generated_disk.nil?
+        grow_by = disk - 100 # default Subutai disk is 100 gigabytes
+      else
+        grow_by = disk - (generated_disk.to_i + 100) # HERE Applied math BEDMAS rule
+      end
+      grow_by
+    end
   end
 
   def self.override_conf_file(filepath)
@@ -279,8 +298,8 @@ module SubutaiConfig
     @cmd = cmd
 
     # Load YAML based user and local configuration if they exist
-    load_config_file(CONF_FILE) if File.exist?(CONF_FILE)
     load_config_file(USER_CONF_FILE) if File.exist?(USER_CONF_FILE)
+    load_config_file(CONF_FILE) if File.exist?(CONF_FILE)
     load_generated
 
     # Load overrides from the environment, and generated configurations
