@@ -43,13 +43,13 @@ module SubutaiCli
             check_subutai_console_url(subutai_cli)
             subutai_cli.fingerprint($SUBUTAI_CONSOLE_URL)
           when 'disk'
+            SubutaiConfig.load_config('up', :virtualbox)
+
             OptionParser.new do |opt|
               opt.banner = 'Usage: vagrant subutai disk [options]'
 
               opt.on('--size NUMBER', Integer, 'set your disk size') do |num|
                 disk = num.to_i
-
-                SubutaiConfig.load_config('up', :virtualbox)
 
                 generated_disk = SubutaiConfig.get(:_SUBUTAI_DISK)
 
@@ -64,6 +64,16 @@ module SubutaiCli
                   STDOUT.puts "Warning the disk change cannot be applied until a restart of the VM."
                 else
                   STDOUT.puts "Warning the operation will be ignored because it shrink operations are not supported."
+                end
+              end
+
+              opt.on('-s', '--show', 'shows Subutai disk capacity') do
+                disk = SubutaiConfig.get(:SUBUTAI_DISK)
+
+                if disk.nil?
+                  STDOUT.puts "Subutai disk capacity is 100 gb."
+                else
+                  STDOUT.puts "Subutai disk capacity is #{disk} gb."
                 end
               end
             end.parse!
