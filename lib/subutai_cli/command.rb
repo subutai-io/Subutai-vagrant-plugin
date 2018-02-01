@@ -124,7 +124,6 @@ module SubutaiCli
           exit
         end
         $SUBUTAI_CONSOLE_URL = "https://#{ip}:#{SubutaiConsoleAPI::PORT}"
-        STDOUT.puts $SUBUTAI_CONSOLE_URL
       end
 
       def cli_info
@@ -165,9 +164,8 @@ COMMANDS:
        update                  - update Subutai management, container or Resource host
        vxlan                   - VXLAN tunnels operation
        register                - register Subutai Peer to Hub
-       add                     - add new RH to Subutai Peer
        fingerprint             - shows fingerprint Subutai Console
-       disk                    - Changes size of disk in gb unit
+       disk                    - manage Subutai disk
 
 GLOBAL OPTIONS:
        -e, --environment NAME  - specify environment dev, master or sysnet

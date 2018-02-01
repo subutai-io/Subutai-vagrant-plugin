@@ -6,16 +6,6 @@ Vagrant Subutai CLI - executes Subutai scripts in target hosts
 
     $ vagrant plugin install subutai_cli
 
-## Configuration / Usage
-
-Required to add Subutai Peer IP address to Vagrantfile. Here is an Example Vagrantfile
-
-```
-Vagrant.configure("2") do |config|
-  config.subutai_console.url = "https://YOUR_LOCAL_PEER_IP:YOUR_LOCAL_PEER_PORT"
-end
-```
-
 ## Usage
 ```
 Usage: vagrant subutai [global options] command [command options] [arguments...]
@@ -53,8 +43,8 @@ COMMANDS:
        update                  - update Subutai management, container or Resource host
        vxlan                   - VXLAN tunnels operation
        register                - register Subutai Peer to Hub
-       add                     - add new RH to Subutai Peer
        fingerprint             - shows fingerprint Subutai Console
+       disk                    - manage Subutai disk
 
 GLOBAL OPTIONS:
        -e, --environment NAME  - specify environment dev, master or sysnet
