@@ -27,37 +27,37 @@ def find_port(port)
 end
 
 # Most hypervisors uses a mac prefix: we cannot just generate a random mac
-PROVIDERS ||= %i[virtualbox libvirt vmware_fusion vmware parallels hyper_v].freeze
+PROVIDERS=%i[:virtualbox :libvirt :vmware_fusion :vmware :parallels :hyper_v]
 PROVIDER_MAC_PREFIXES = {
-    virtualbox: '080027',
-    libvirt: '525400',
-    vmware_fusion: '______',
-    vmware: '______',
-    parallels: '______',
-    hyper_v: '______'
-}.freeze
+    :virtualbox       => '080027',
+    :libvirt          => '525400',
+    :vmware_fusion    => '______',
+    :vmware           => '______',
+    :parallels        => '______',
+    :hyper_v          => '______'
+}
 
 os = nil
-os = :windows if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
-os = :mac     if RbConfig::CONFIG['host_os'] =~ /darwin/
-os = :linux   if RbConfig::CONFIG['host_os'] =~ /linux/
+os = :windows if (RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/)
+os = :mac     if (RbConfig::CONFIG['host_os'] =~ /darwin/)
+os = :linux   if (RbConfig::CONFIG['host_os'] =~ /linux/)
 
 def broadcast_addr
   octets = `route print 0.0.0.0 | findstr 0.0.0.0`.split(' ').map(&:strip)[2].split('.')    \
-    if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
+    if (RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/)
   octets = `ip route show | grep default | awk '{print $3}'`.gsub(/\s+/, "").split(".")     \
-    if RbConfig::CONFIG['host_os'] =~ /linux/
+    if (RbConfig::CONFIG['host_os'] =~ /linux/)
   octets = `route -n get default | grep gateway | awk '{print $2}'`.gsub(/\s+/, "").split(".") \
-    if RbConfig::CONFIG['host_os'] =~ /darwin/
+    if (RbConfig::CONFIG['host_os'] =~ /darwin/)
   octets[3] = 255
   octets.join('.')
 end
 
 def broadcast_ping(count)
   system("ping -n #{count} #{broadcast_addr} >/dev/null")   \
-    if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
+    if (RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/)
   system("ping -c #{count} #{broadcast_addr} >/dev/null")   \
-    if RbConfig::CONFIG['host_os'] =~ /darwin|linux/
+    if (RbConfig::CONFIG['host_os'] =~ /darwin|linux/)
 end
 
 def zero_pad_mac(mac)
@@ -74,11 +74,11 @@ def arp_table
   arp_table = {}
   `arp -a`.split("\n").each do |line|
     matches = /.*(\d+\.\d+\.\d+.\d+)[[:space:]]((([a-f]|[0-9]){1,2}:){5}([a-f]|[0-9]){1,2})[[:space:]].*/.match(line) \
-      if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
+      if (RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/)
     matches = /.*\((\d+\.\d+\.\d+.\d+)\) at ((([a-f]|[0-9]){1,2}:){5}([a-f]|[0-9]){1,2}) .*/.match(line) \
-      if RbConfig::CONFIG['host_os'] =~ /darwin|linux/
+      if (RbConfig::CONFIG['host_os'] =~ /darwin|linux/)
 
-    if !matches.nil? && ! matches[2].nil?
+    if ! matches.nil? && ! matches[2].nil?
       key_mac = zero_pad_mac(matches[2])
       value_ip = matches[1]
       arp_table.store(key_mac, value_ip)

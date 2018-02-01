@@ -1,5 +1,7 @@
 require 'yaml'
 require 'digest'
+require 'net/http'
+require 'json'
 
 require_relative 'subutai_net'
 require_relative 'subutai_hooks'
@@ -86,6 +88,8 @@ module SubutaiConfig
 
   @bridged = false
 
+  @url_of_cdn = 'https://cdn.subut.ai:8338/kurjun/rest'
+
   def self.write?
     raise 'SubutaiConfig.cmd not set' if @cmd.nil?
     @cmd == 'up'
@@ -127,16 +131,6 @@ module SubutaiConfig
 
   def self.snap_provisioned!
     put(:_ALT_SNAP_MD5_LAST, get(:_ALT_SNAP_MD5), true) if provision_snap?
-  end
-
-  def self.provision_disk?
-    return false unless boolean?(:PROVISION)
-    return false if get(:_SUBUTAI_DISK).nil?
-    true
-  end
-
-  def self.disk_provisioned!
-    put(:_SUBUTAI_DISK, get(:SUBUTAI_DISK), true) if provision_disk?
   end
 
   def self.bridged!
@@ -182,6 +176,9 @@ module SubutaiConfig
     end
   end
 
+  def self.url_of_cdn
+    @url_of_cdn
+  end
   def self.override_conf_file(filepath)
     @conf_file_override = filepath
   end
@@ -225,7 +222,7 @@ module SubutaiConfig
     end
   end
 
-  # Stores generated and conf from YAML files
+  # Stores ONLY generated configuration from YAML files
   def self.store
     FileUtils.mkdir_p(PARENT_DIR) unless Dir.exist?(PARENT_DIR)
     stringified = Hash[@generated.map { |k, v| [k.to_s, v.to_s] }]
@@ -278,9 +275,7 @@ module SubutaiConfig
   def self.do_network(provider)
     # set the next available console port if provisioning a peer in nat mode
     put(:_CONSOLE_PORT, find_port(get(:DESIRED_CONSOLE_PORT)), true) \
-      if !@bridged && boolean?(:SUBUTAI_PEER) &&
-         get(:_CONSOLE_PORT).nil? &&
-         write?
+      if boolean?(:SUBUTAI_PEER) && get(:_CONSOLE_PORT).nil? && write?
 
     # set the SSH port if we are using bridged mode
     put(:_SSH_PORT, find_port(get(:DESIRED_SSH_PORT)), true) \
@@ -362,6 +357,14 @@ module SubutaiConfig
     @config.each do |key, value|
       puts "#{('     + ' + key.to_s).ljust(29)} => #{value}" if generated? key
     end
+  end
+
+  def self.get_latest_id_artifact(owner, artifact_name)
+    url = url_of_cdn + '/raw/info?owner=' + owner + '&name=' + artifact_name
+    uri = URI(url)
+    response = Net::HTTP.get(uri)
+    result = JSON.parse(response)
+    result[0]['id']
   end
 end
 
