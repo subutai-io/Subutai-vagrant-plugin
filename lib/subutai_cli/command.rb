@@ -43,7 +43,7 @@ module SubutaiCli
             check_subutai_console_url(subutai_cli)
             subutai_cli.fingerprint($SUBUTAI_CONSOLE_URL)
           when 'disk'
-            SubutaiConfig.load_config('up', :virtualbox)
+            #SubutaiConfig.load_config('up', :virtualbox)
 
             OptionParser.new do |opt|
               opt.banner = 'Usage: vagrant subutai disk [options]'
