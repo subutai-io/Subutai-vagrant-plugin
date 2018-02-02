@@ -19,7 +19,6 @@ module SubutaiCli
         # Gets Subutai console url and box name from Vagrantfile
         with_target_vms(nil, single_target: true) do |machine|
           $SUBUTAI_BOX_NAME = machine.config.vm.box
-          STDOUT.puts machine.to_json
         end
 
         subutai_cli = SubutaiCli::Commands.new(ARGV, @env)
@@ -43,12 +42,10 @@ module SubutaiCli
             check_subutai_console_url(subutai_cli)
             subutai_cli.fingerprint($SUBUTAI_CONSOLE_URL)
           when 'disk'
-            #SubutaiConfig.load_config('up', :virtualbox)
-
             OptionParser.new do |opt|
               opt.banner = 'Usage: vagrant subutai disk [options]'
 
-              opt.on('--size NUMBER', Integer, 'set your disk size') do |num|
+              opt.on('-s', '--size NUMBER', 'set your disk size') do |num|
                 disk = num.to_i
 
                 generated_disk = SubutaiConfig.get(:_SUBUTAI_DISK)
@@ -61,19 +58,19 @@ module SubutaiCli
 
                 if grow_by > 0
                   SubutaiConfig.put(:SUBUTAI_DISK, num, true)
-                  STDOUT.puts "Warning the disk change cannot be applied until a restart of the VM."
+                  STDOUT.puts "    \e[33mWarning the disk change cannot be applied until a restart of the VM.\e[0m"
                 else
-                  STDOUT.puts "Warning the operation will be ignored because it shrink operations are not supported."
+                  STDOUT.puts "    \e[33mWarning the operation will be ignored because it shrink operations are not supported.\e[0m"
                 end
               end
 
-              opt.on('-s', '--show', 'shows Subutai disk capacity') do
+              opt.on('-i', '--info', 'shows Subutai disk capacity') do
                 disk = SubutaiConfig.get(:SUBUTAI_DISK)
 
                 if disk.nil?
-                  STDOUT.puts "Subutai disk capacity is 100 gb."
+                  STDOUT.puts "    \e[32mSubutai disk capacity is 100 gb.\e[0m"
                 else
-                  STDOUT.puts "Subutai disk capacity is #{disk} gb."
+                  STDOUT.puts "    \e[32mSubutai disk capacity is #{disk} gb.\e[0m"
                 end
               end
             end.parse!
