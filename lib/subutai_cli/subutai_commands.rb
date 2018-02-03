@@ -21,10 +21,10 @@ module SubutaiCli
       env = SubutaiConfig.get(:SUBUTAI_ENV)
 
       if env.nil?
-        BASE
+        SubutaiAgentCommand::BASE
       else
         if env.to_s == "prod"
-          BASE
+          SubutaiAgentCommand::BASE
         else
           "sudo /snap/bin/subutai-#{env.to_s}"
         end
