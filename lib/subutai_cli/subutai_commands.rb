@@ -23,7 +23,11 @@ module SubutaiCli
       if env.nil?
         BASE
       else
-        "sudo /snap/bin/subutai-#{env.to_s}"
+        if env.to_s == "prod"
+          BASE
+        else
+          "sudo /snap/bin/subutai-#{env.to_s}"
+        end
       end
     end
 
