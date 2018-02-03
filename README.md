@@ -8,7 +8,7 @@ Vagrant Subutai CLI - executes Subutai scripts in target hosts
 
 ## Usage
 ```
-Usage: vagrant subutai [global options] command [command options] [arguments...]
+Usage: vagrant subutai command [command options] [arguments...]
 
 COMMANDS:
        attach                  - attach to Subutai container
@@ -47,7 +47,6 @@ COMMANDS:
        disk                    - manage Subutai disk
 
 GLOBAL OPTIONS:
-       -e, --environment NAME  - specify environment dev, master or sysnet
        -h, --help              - show help
 ```
 

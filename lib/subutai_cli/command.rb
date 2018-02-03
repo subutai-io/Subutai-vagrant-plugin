@@ -27,17 +27,6 @@ module SubutaiCli
           when 'register'
             check_subutai_console_url(subutai_cli)
             subutai_cli.register(nil, nil)
-          when 'add'
-            check_subutai_console_url(subutai_cli)
-            options = {}
-            opts = OptionParser.new do |opt|
-              opt.banner = 'Usage: vagrant subutai add [options]'
-              opt.on('-n', '--name NAME') do |name|
-                options[:name] = name
-              end
-            end
-            opts.parse!
-            subutai_cli.add(Dir.pwd, options[:name])
           when 'fingerprint'
             check_subutai_console_url(subutai_cli)
             subutai_cli.fingerprint($SUBUTAI_CONSOLE_URL)
@@ -80,35 +69,14 @@ module SubutaiCli
             STDOUT.puts cli_info
           else
             # All Agent CLI commands implemented here
-            # Parse environment from args
-            options = {}
-            OptionParser.new do |opt|
-              opt.on('-e', '--environment NAME', 'specify environment dev, master or sysnet') do |name|
-                options[:environment] = true
-                $SUBUTAI_ENV = name
-              end
-
-              opt.on('-h', '--help', nil) do
-                options[:help] = true
-              end
-            end.parse!
 
             command = ARGV
             command.shift
 
-            unless options[:environment].nil?
-              command.delete "-e"
-              command.delete "--environment"
-            end
-
-            unless options[:help].nil?
-              command << "-h"
-            end
-
             if command.empty?
               STDOUT.puts cli_info
             else
-              subutai_cli.ssh("#{SubutaiAgentCommand::BASE} #{command.join(' ')}")
+              subutai_cli.ssh("#{subutai_cli.base} #{command.join(' ')}")
             end
         end
       end
@@ -126,7 +94,7 @@ module SubutaiCli
       def cli_info
         commands = <<-EOF
           
-Usage: vagrant subutai [global options] command [command options] [arguments...]
+Usage: vagrant subutai command [command options] [arguments...]
 
 COMMANDS:
        attach                  - attach to Subutai container
@@ -165,7 +133,6 @@ COMMANDS:
        disk                    - manage Subutai disk
 
 GLOBAL OPTIONS:
-       -e, --environment NAME  - specify environment dev, master or sysnet
        -h, --help              - show help
         EOF
         commands

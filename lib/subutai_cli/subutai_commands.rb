@@ -14,13 +14,23 @@ module SubutaiCli
 
     # show snap logs
     def log
-      ssh(SubutaiAgentCommand::LOG)
+      ssh(base + SubutaiAgentCommand::LOG)
+    end
+
+    def base
+      env = SubutaiConfig.get(:SUBUTAI_ENV)
+
+      if env.nil?
+        BASE
+      else
+        "sudo /snap/bin/subutai-#{env.to_s}"
+      end
     end
 
     # info id
     def info(arg)
       with_target_vms(nil, single_target: true) do |vm|
-        vm.communicate.sudo("#{SubutaiAgentCommand::INFO} #{arg}") do |type, data|
+        vm.communicate.sudo("#{base} #{SubutaiAgentCommand::INFO} #{arg}") do |type, data|
           if type == :stdout
             result = data.split(/[\r\n]+/)
             STDOUT.puts result.first
@@ -32,7 +42,7 @@ module SubutaiCli
 
     # update Subutai rh or management
     def update(name)
-      ssh(SubutaiAgentCommand::UPDATE + " #{name}")
+      ssh(base + SubutaiAgentCommand::UPDATE + " #{name}")
     end
 
     # register Subutai Peer to Hub
@@ -189,7 +199,7 @@ module SubutaiCli
     end
 
     def list(arg)
-      ssh("#{SubutaiAgentCommand::LIST} #{arg}")
+      ssh(base + "#{SubutaiAgentCommand::LIST} #{arg}")
     end
 
     def ssh(command)
