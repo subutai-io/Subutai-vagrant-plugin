@@ -5,11 +5,12 @@ require_relative 'lib/subutai_cli/version'
 Gem::Specification.new do |spec|
   spec.name          = 'subutai_cli'
   spec.version       = SubutaiCli::VERSION
-  spec.authors       = "Adilet Zholdoshbekov"
-  spec.email         = "azholdoshbekov@optimal-dynamics.com"
+  spec.authors       = ["Subutai"]
+  spec.email         = "info@subutai.io"
   spec.summary       = ["Subutai CLI. Execute subutai commands outside the Vagrant box"]
   spec.description   = "Part of Subutai Tooling"
   spec.homepage      = "https://github.com/subutai-io/vagrant"
+  spec.homepage      = "https://subutai.io"
   spec.metadata      = { "source_code_uri" => "https://github.com/subutai-io/vagrant" }
 
   spec.files         = `git ls-files`.split($/)
