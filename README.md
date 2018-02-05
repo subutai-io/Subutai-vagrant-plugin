@@ -1,4 +1,4 @@
-# SubutaiCli
+# Vagrant Subutai CLI
 
 Vagrant Subutai CLI - executes Subutai scripts in target hosts
 
