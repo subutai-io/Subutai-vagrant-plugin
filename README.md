@@ -4,7 +4,7 @@ Vagrant Subutai CLI - executes Subutai scripts in target hosts
 
 ## Installation
 
-    $ vagrant plugin install subutai_cli
+    $ vagrant plugin install vagrant-subutai
 
 ## Usage
 ```

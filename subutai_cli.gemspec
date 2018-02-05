@@ -3,7 +3,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require_relative 'lib/subutai_cli/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'subutai_cli'
+  spec.name          = 'vagrant-subutai'
   spec.version       = SubutaiCli::VERSION
   spec.authors       = ["Subutai"]
   spec.email         = "info@subutai.io"
