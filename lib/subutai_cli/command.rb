@@ -18,7 +18,6 @@ module SubutaiCli
 
         # Gets Subutai console url and box name from Vagrantfile
         with_target_vms(nil, single_target: true) do |machine|
-          $SUBUTAI_CONSOLE_URL = machine.config.subutai_console.url
           $SUBUTAI_BOX_NAME = machine.config.vm.box
         end
 
@@ -26,76 +25,76 @@ module SubutaiCli
 
         case ARGV[1]
           when 'register'
-            check_subutai_console_url
+            check_subutai_console_url(subutai_cli)
             subutai_cli.register(nil, nil)
-          when 'add'
-            check_subutai_console_url
-            options = {}
-            opts = OptionParser.new do |opt|
-              opt.banner = 'Usage: vagrant subutai add [options]'
-              opt.on('-n', '--name NAME') do |name|
-                options[:name] = name
-              end
-            end
-            opts.parse!
-            subutai_cli.add(Dir.pwd, options[:name])
           when 'fingerprint'
-            check_subutai_console_url
+            check_subutai_console_url(subutai_cli)
             subutai_cli.fingerprint($SUBUTAI_CONSOLE_URL)
+          when 'disk'
+            OptionParser.new do |opt|
+              opt.banner = 'Usage: vagrant subutai disk [options]'
+
+              opt.on('-s', '--size NUMBER', 'set your disk size') do |num|
+                disk = num.to_i
+
+                generated_disk = SubutaiConfig.get(:_SUBUTAI_DISK)
+
+                if generated_disk.nil?
+                  grow_by = disk - 100 # default Subutai disk is 100 gigabytes
+                else
+                  grow_by = disk - (generated_disk.to_i + 100) # HERE Applied math BEDMAS rule
+                end
+
+                if grow_by > 0
+                  SubutaiConfig.put(:SUBUTAI_DISK, num, true)
+                  STDOUT.puts "    \e[33mWarning the disk change cannot be applied until a restart of the VM.\e[0m"
+                else
+                  STDOUT.puts "    \e[33mWarning the operation will be ignored because it shrink operations are not supported.\e[0m"
+                end
+              end
+
+              opt.on('-i', '--info', 'shows Subutai disk capacity') do
+                disk = SubutaiConfig.get(:SUBUTAI_DISK)
+
+                if disk.nil?
+                  STDOUT.puts "    \e[32mSubutai disk capacity is 100 gb.\e[0m"
+                else
+                  STDOUT.puts "    \e[32mSubutai disk capacity is #{disk} gb.\e[0m"
+                end
+              end
+            end.parse!
           when '-h'
             STDOUT.puts cli_info
           when '--help'
             STDOUT.puts cli_info
           else
             # All Agent CLI commands implemented here
-            # Parse environment from args
-            options = {}
-            OptionParser.new do |opt|
-              opt.on('-e', '--environment NAME', 'specify environment dev, master or sysnet') do |name|
-                options[:environment] = true
-                options[:environment_arg] = name
-              end
-
-              opt.on('-h', '--help', nil) do
-                options[:help] = true
-              end
-            end.parse!
 
             command = ARGV
             command.shift
 
-            unless options[:environment].nil?
-              command.delete "-e"
-              command.delete "--environment"
-            end
-
-            unless options[:help].nil?
-              command << "-h"
-            end
-
             if command.empty?
               STDOUT.puts cli_info
             else
-              if options[:environment]
-                subutai_cli.ssh("#{SubutaiAgentCommand::SUBUTAI}-#{options[:environment_arg]} #{command.join(' ')}")
-              else
-                subutai_cli.ssh("#{SubutaiAgentCommand::SUBUTAI} #{command.join(' ')}")
-              end
+              subutai_cli.ssh("#{subutai_cli.base} #{command.join(' ')}")
             end
         end
       end
 
-      def check_subutai_console_url
-        if $SUBUTAI_CONSOLE_URL.empty?
-          STDOUT.puts "Please add this to Vagrantfile => config.subutai_console.url = \"https://YOUR_LOCAL_PEER_IP:YOUR_LOCAL_PEER_PORT\""
+      def check_subutai_console_url(subutai_cli)
+        ip = subutai_cli.info(VagrantCommand::ARG_IP_ADDR)
+
+        if ip.nil?
+          STDOUT.puts "We can't detect your Subutai Console ip address!"
           exit
         end
+        $SUBUTAI_CONSOLE_URL = "https://#{ip}:#{SubutaiConsoleAPI::PORT}"
       end
 
       def cli_info
         commands = <<-EOF
           
-Usage: vagrant subutai [global options] command [command options] [arguments...]
+Usage: vagrant subutai command [command options] [arguments...]
 
 COMMANDS:
        attach                  - attach to Subutai container
@@ -130,11 +129,10 @@ COMMANDS:
        update                  - update Subutai management, container or Resource host
        vxlan                   - VXLAN tunnels operation
        register                - register Subutai Peer to Hub
-       add                     - add new RH to Subutai Peer
        fingerprint             - shows fingerprint Subutai Console
+       disk                    - manage Subutai disk
 
 GLOBAL OPTIONS:
-       -e, --environment NAME  - specify environment dev, master or sysnet
        -h, --help              - show help
         EOF
         commands

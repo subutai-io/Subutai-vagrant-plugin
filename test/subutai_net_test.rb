@@ -1,5 +1,5 @@
 require 'test/unit'
-require_relative '../lib/subutai_cli/subutai_net'
+require_relative '../lib/subutai_cli/packer/subutai_net'
 
 # Tests the subutai_net module
 class SubutaiNetTest < Test::Unit::TestCase

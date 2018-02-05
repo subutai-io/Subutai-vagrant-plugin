@@ -1,5 +1,7 @@
 require 'yaml'
 require 'digest'
+require 'net/http'
+require 'json'
 
 require_relative 'subutai_net'
 require_relative 'subutai_hooks'
@@ -32,6 +34,7 @@ module SubutaiConfig
     BRIDGE
     AUTHORIZED_KEYS
     PASSWORD_OVERRIDE
+    SUBUTAI_DISK
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -46,6 +49,8 @@ module SubutaiConfig
     _ALT_MANAGEMENT
     _ALT_MANAGEMENT_MD5
     _ALT_MANAGEMENT_MD5_LAST
+    _SUBUTAI_DISK
+    _SUBUTAI_DISK_PORT
   ].freeze
 
   # Used for testing
@@ -82,6 +87,8 @@ module SubutaiConfig
   @logging = nil
 
   @bridged = false
+
+  @url_of_cdn = 'https://cdn.subut.ai:8338/kurjun/rest'
 
   def self.write?
     raise 'SubutaiConfig.cmd not set' if @cmd.nil?
@@ -151,6 +158,27 @@ module SubutaiConfig
     @config
   end
 
+  def self.get_grow_by
+    disk = get(:SUBUTAI_DISK)
+    if disk.nil?
+      nil
+    else
+      disk = disk.to_i
+      generated_disk = get(:_SUBUTAI_DISK)
+      grow_by = 0
+
+      if generated_disk.nil?
+        grow_by = disk - 100 # default Subutai disk is 100 gigabytes
+      else
+        grow_by = disk - (generated_disk.to_i + 100) # HERE Applied math BEDMAS rule
+      end
+      grow_by
+    end
+  end
+
+  def self.url_of_cdn
+    @url_of_cdn
+  end
   def self.override_conf_file(filepath)
     @conf_file_override = filepath
   end
@@ -199,6 +227,16 @@ module SubutaiConfig
     FileUtils.mkdir_p(PARENT_DIR) unless Dir.exist?(PARENT_DIR)
     stringified = Hash[@generated.map { |k, v| [k.to_s, v.to_s] }]
     File.open(GENERATED_FILE, 'w') { |f| f.write stringified.to_yaml }
+
+    stringified = Hash.new
+    @config.map do |k, v|
+      unless generated?(k)
+        if !k.nil? && !v.nil?
+          stringified.store(k.to_s, v.to_s)
+        end
+      end
+    end
+    File.open(CONF_FILE, 'w') { |f| f.write stringified.to_yaml }
     true
   end
 
@@ -244,9 +282,7 @@ module SubutaiConfig
   def self.do_network(provider)
     # set the next available console port if provisioning a peer in nat mode
     put(:_CONSOLE_PORT, find_port(get(:DESIRED_CONSOLE_PORT)), true) \
-      if !@bridged && boolean?(:SUBUTAI_PEER) &&
-         get(:_CONSOLE_PORT).nil? &&
-         write?
+      if boolean?(:SUBUTAI_PEER) && get(:_CONSOLE_PORT).nil? && write?
 
     # set the SSH port if we are using bridged mode
     put(:_SSH_PORT, find_port(get(:DESIRED_SSH_PORT)), true) \
@@ -264,8 +300,8 @@ module SubutaiConfig
     @cmd = cmd
 
     # Load YAML based user and local configuration if they exist
-    load_config_file(CONF_FILE) if File.exist?(CONF_FILE)
     load_config_file(USER_CONF_FILE) if File.exist?(USER_CONF_FILE)
+    load_config_file(CONF_FILE) if File.exist?(CONF_FILE)
     load_generated
 
     # Load overrides from the environment, and generated configurations
@@ -328,6 +364,14 @@ module SubutaiConfig
     @config.each do |key, value|
       puts "#{('     + ' + key.to_s).ljust(29)} => #{value}" if generated? key
     end
+  end
+
+  def self.get_latest_id_artifact(owner, artifact_name)
+    url = url_of_cdn + '/raw/info?owner=' + owner + '&name=' + artifact_name
+    uri = URI(url)
+    response = Net::HTTP.get(uri)
+    result = JSON.parse(response)
+    result[0]['id']
   end
 end
 
