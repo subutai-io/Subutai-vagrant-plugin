@@ -1,0 +1,10 @@
+SUBUTAI_PEER: false
+SUBUTAI_ENV: master
+SUBUTAI_DESKTOP: true
+DESIRED_CONSOLE_PORT: 9191
+ALLOW_INSECURE: true
+SUBUTAI_RAM: 2000
+SUBUTAI_CPU: 6
+SUBUTAI_SNAP: ./foo/bar/bogus/path/to/shell/script.sh
+SUBUTAI_MAN_TMPL: ./bar/foo/bogus/path/to/deb/pkg/management.deb
+APT_PROXY_URL: http://some_server:4444

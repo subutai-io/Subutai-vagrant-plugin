@@ -1,1 +1,1 @@
-require 'subutai_cli'
+require_relative 'subutai_cli'
