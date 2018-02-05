@@ -1,8 +1,8 @@
 require 'net/https'
 require 'uri'
-require_relative '../subutai_cli'
+require_relative '../vagrant-subutai'
 
-module SubutaiCli
+module VagrantSubutai
   module Rest
     class SubutaiConsole
       # Subutai Console credentials username, password

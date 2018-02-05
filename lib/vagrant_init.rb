@@ -1,1 +1,1 @@
-require_relative 'subutai_cli'
+require_relative 'vagrant-subutai'

@@ -1,10 +1,10 @@
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require_relative 'lib/subutai_cli/version'
+require_relative 'lib/vagrant-subutai/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'vagrant-subutai'
-  spec.version       = SubutaiCli::VERSION
+  spec.version       = VagrantSubutai::VERSION
   spec.authors       = ["Subutai"]
   spec.email         = "info@subutai.io"
   spec.summary       = ["Subutai CLI. Execute subutai commands outside the Vagrant box"]

@@ -1,4 +1,4 @@
-module SubutaiCli
+module VagrantSubutai
     module Subutai
         class Plugin < Vagrant.plugin(2)
             name 'Subutai'

@@ -1,3 +1,3 @@
-module SubutaiCli
+module VagrantSubutai
   VERSION = "1.0.0"
 end

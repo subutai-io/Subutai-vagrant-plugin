@@ -1,11 +1,11 @@
-require_relative '../subutai_cli'
+require_relative '../vagrant-subutai'
 require_relative 'command'
 require 'net/https'
 require 'io/console'
 require 'fileutils'
 require_relative 'rh_controller'
 
-module SubutaiCli
+module VagrantSubutai
   class Commands < Vagrant.plugin('2', :command)
 
     def initialize(arg, env)
@@ -52,13 +52,13 @@ module SubutaiCli
     # register Subutai Peer to Hub
     def register(username, password)
       username, password = get_input_token if username.nil? && password.nil?
-      response = SubutaiCli::Rest::SubutaiConsole.token($SUBUTAI_CONSOLE_URL, username, password)
+      response = VagrantSubutai::Rest::SubutaiConsole.token($SUBUTAI_CONSOLE_URL, username, password)
 
       case response
         when Net::HTTPOK
           STDOUT.puts "Successfully you signed Subutai Console"
           hub_email, hub_password, peer_name, peer_scope = get_input_register
-          response = SubutaiCli::Rest::SubutaiConsole.register(response.body, $SUBUTAI_CONSOLE_URL, hub_email, hub_password, peer_name, peer_scope)
+          response = VagrantSubutai::Rest::SubutaiConsole.register(response.body, $SUBUTAI_CONSOLE_URL, hub_email, hub_password, peer_name, peer_scope)
 
           case response
             when Net::HTTPOK
@@ -76,7 +76,7 @@ module SubutaiCli
     # Add new RH to Peer
     def add(peer_path, rh_name)
       # TODO peer_path also be fixed(this path must work on all platforms)
-      peer_path = peer_path + "/#{SubutaiCli::Subutai::RH_FOLDER_NAME}/#{rh_name}"
+      peer_path = peer_path + "/#{VagrantSubutai::Subutai::RH_FOLDER_NAME}/#{rh_name}"
 
       # create RH folder your_peer_path/RH/rh_name
       unless File.exists?(peer_path)
@@ -104,7 +104,7 @@ module SubutaiCli
         }
 
         # 4. TODO set Subutai Console host and fingerprint in RH agent config
-        fingerprint = SubutaiCli::Rest::SubutaiConsole.fingerprint($SUBUTAI_CONSOLE_URL).body
+        fingerprint = VagrantSubutai::Rest::SubutaiConsole.fingerprint($SUBUTAI_CONSOLE_URL).body
         ip = info(VagrantCommand::ARG_IP_ADDR)
 
         STDOUT.puts "Subutai Console(Peer)"
@@ -115,7 +115,7 @@ module SubutaiCli
         # then approve
         rhs = []
         # Get RH requests from Subutai Console
-        rhs = SubutaiCli::RhController.new.all(get_token)
+        rhs = VagrantSubutai::RhController.new.all(get_token)
 
         # Get RH id
         id = nil
@@ -143,7 +143,7 @@ module SubutaiCli
 
     # Show Subutai Console finger print
     def fingerprint(url)
-      response = SubutaiCli::Rest::SubutaiConsole.fingerprint(url)
+      response = VagrantSubutai::Rest::SubutaiConsole.fingerprint(url)
 
       case response
         when Net::HTTPOK
@@ -167,7 +167,7 @@ module SubutaiCli
     # gets token
     def get_token
       username, password = get_input_token
-      response = SubutaiCli::Rest::SubutaiConsole.token($SUBUTAI_CONSOLE_URL, username, password)
+      response = VagrantSubutai::Rest::SubutaiConsole.token($SUBUTAI_CONSOLE_URL, username, password)
 
       case response
         when Net::HTTPOK

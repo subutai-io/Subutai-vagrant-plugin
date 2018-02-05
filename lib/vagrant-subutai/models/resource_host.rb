@@ -1,4 +1,4 @@
-module SubutaiCli
+module VagrantSubutai
   module Models
     class Rh
       attr_accessor :id, :hostname, :status, :isManagement, :isConnected

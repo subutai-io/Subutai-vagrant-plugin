@@ -1,11 +1,11 @@
-require_relative '../subutai_cli'
+require_relative '../vagrant-subutai'
 require 'optparse'
 require 'io/console'
 require 'net/https'
 require_relative 'subutai_commands'
 require 'fileutils'
 
-module SubutaiCli
+module SubutaiVagrant
   module Subutai
     class Command < Vagrant.plugin('2', :command)
       # shows description when `vagrant list-commands` is triggered
@@ -21,7 +21,7 @@ module SubutaiCli
           $SUBUTAI_BOX_NAME = machine.config.vm.box
         end
 
-        subutai_cli = SubutaiCli::Commands.new(ARGV, @env)
+        subutai_cli = SubutaiVagrant::Commands.new(ARGV, @env)
 
         case ARGV[1]
           when 'register'

@@ -1,11 +1,11 @@
-require_relative '../subutai_cli'
+require_relative '../vagrant-subutai'
 require 'json'
 
-module SubutaiCli
+module VagrantSubutai
   class RhController
 
     def all(token)
-      response = SubutaiCli::Rest::SubutaiConsole.requests($SUBUTAI_CONSOLE_URL, token)
+      response = VagrantSubutai::Rest::SubutaiConsole.requests($SUBUTAI_CONSOLE_URL, token)
       rhs = []
 
       case response
@@ -13,7 +13,7 @@ module SubutaiCli
           json = JSON.parse(response.body)
 
           json.each do |data|
-            rh = SubutaiCli::Models::Rh.new
+            rh = VagrantSubutai::Models::Rh.new
             rh.id = data['id']
             rh.hostname = data['hostname']
             rh.status = data['status']

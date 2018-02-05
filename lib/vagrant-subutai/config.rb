@@ -1,4 +1,4 @@
-require_relative '../subutai_cli'
+require_relative '../vagrant-subutai'
 
 module SubutaiAgentCommand
   BASE = "sudo /snap/bin/subutai"
@@ -23,7 +23,7 @@ module SubutaiConsoleAPI
   end
 end
 
-module SubutaiCli
+module VagrantSubutai
   module Subutai
     RH_FOLDER_NAME = "RH"
 
