@@ -1,6 +1,6 @@
-# Vagrant Subutai CLI
+# Vagrant Subutai Plugin
 
-Vagrant Subutai CLI - executes Subutai scripts in target hosts
+Vagrant Subutai Plugin - executes Subutai scripts in target hosts
 
 ## Installation
 

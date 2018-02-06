@@ -10,7 +10,7 @@ module VagrantSubutai
     class Command < Vagrant.plugin('2', :command)
       # shows description when `vagrant list-commands` is triggered
       def self.synopsis
-        'Vagrant Subutai CLI - executes Subutai scripts in target hosts'
+        'Vagrant Subutai Plugin - executes Subutai scripts in target hosts'
       end
 
       def execute
