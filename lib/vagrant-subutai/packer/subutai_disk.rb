@@ -38,7 +38,7 @@ module SubutaiDisk
   def self.save_conf(grow_by)
     SubutaiConfig.put(:_DISK_PORT, port, true)
 
-    generated_disk = SubutaiConfig.get(:_SUBUTAI_DISK)
+    generated_disk = SubutaiConfig.get(:_DISK_SIZE)
     if generated_disk.nil?
       SubutaiConfig.put(:_DISK_SIZE, grow_by, true) # we set all size of virtual disks to _SUBUTAI_DISK in unit gb
     else
