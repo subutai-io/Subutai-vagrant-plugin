@@ -34,7 +34,7 @@ module SubutaiConfig
     BRIDGE
     AUTHORIZED_KEYS
     PASSWORD_OVERRIDE
-    SUBUTAI_DISK
+    DISK_SIZE
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -49,8 +49,8 @@ module SubutaiConfig
     _ALT_MANAGEMENT
     _ALT_MANAGEMENT_MD5
     _ALT_MANAGEMENT_MD5_LAST
-    _SUBUTAI_DISK
-    _SUBUTAI_DISK_PORT
+    _DISK_SIZE
+    _DISK_PORT
   ].freeze
 
   # Used for testing
@@ -159,12 +159,12 @@ module SubutaiConfig
   end
 
   def self.get_grow_by
-    disk = get(:SUBUTAI_DISK)
+    disk = get(:DISK_SIZE)
     if disk.nil?
       nil
     else
       disk = disk.to_i
-      generated_disk = get(:_SUBUTAI_DISK)
+      generated_disk = get(:_DISK_SIZE)
       grow_by = 0
 
       if generated_disk.nil?
