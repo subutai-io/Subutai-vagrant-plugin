@@ -26,7 +26,7 @@ module SubutaiDisk
     if port.nil?
       1
     else
-      port.to_i + 1 # if
+      port.to_i + 1 # increasing by one for next vm disk attach
     end
   end
 
@@ -40,9 +40,9 @@ module SubutaiDisk
 
     generated_disk = SubutaiConfig.get(:_DISK_SIZE)
     if generated_disk.nil?
-      SubutaiConfig.put(:_DISK_SIZE, grow_by, true) # we set all size of virtual disks to _SUBUTAI_DISK in unit gb
+      SubutaiConfig.put(:_DISK_SIZE, grow_by, true) # we set all size of virtual disks to _DISK_SIZE in unit gb
     else
-      SubutaiConfig.put(:_DISK_SIZE, grow_by + generated_disk.to_i, true) # we set all size of virtual disks to _SUBUTAI_DISK in unit gb
+      SubutaiConfig.put(:_DISK_SIZE, grow_by + generated_disk.to_i, true) # we set all size of virtual disks to _DISK_SIZE in unit gb
     end
   end
 
