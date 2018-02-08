@@ -8,6 +8,7 @@ require 'fileutils'
 module VagrantSubutai
   module Subutai
     class Command < Vagrant.plugin('2', :command)
+      attr_accessor :box
       # shows description when `vagrant list-commands` is triggered
       def self.synopsis
         'Vagrant Subutai Plugin - executes Subutai scripts in target hosts'
@@ -18,18 +19,31 @@ module VagrantSubutai
 
         # Gets Subutai console url and box name from Vagrantfile
         with_target_vms(nil, single_target: true) do |machine|
-          $SUBUTAI_BOX_NAME = machine.config.vm.box
+          @box = machine.config.vm.box
         end
 
         subutai_cli = VagrantSubutai::Commands.new(ARGV, @env)
 
         case ARGV[1]
           when 'register'
-            check_subutai_console_url(subutai_cli)
-            subutai_cli.register(nil, nil)
+            options = {}
+            OptionParser.new do |opt|
+              opt.banner = 'Usage: vagrant subutai register [options]'
+
+              opt.on('-f', '--force', 'Register Subutai to hub force') do
+                options[:force] = true
+              end
+            end.parse!
+
+            if options[:force]
+              subutai_cli.register(nil, nil, check_subutai_console_url(subutai_cli))
+            elsif SubutaiConfig.get(:_REGISTERED)
+              STDOUT.puts "Already registered peer to hub!"
+            else
+              subutai_cli.register(nil, nil, check_subutai_console_url(subutai_cli))
+            end
           when 'fingerprint'
-            check_subutai_console_url(subutai_cli)
-            subutai_cli.fingerprint($SUBUTAI_CONSOLE_URL)
+            subutai_cli.fingerprint(check_subutai_console_url(subutai_cli))
           when 'disk'
             OptionParser.new do |opt|
               opt.banner = 'Usage: vagrant subutai disk [options]'
@@ -88,7 +102,7 @@ module VagrantSubutai
           STDOUT.puts "We can't detect your Subutai Console ip address!"
           exit
         end
-        $SUBUTAI_CONSOLE_URL = "https://#{ip}:#{SubutaiConsoleAPI::PORT}"
+        "https://#{ip}:#{SubutaiConsoleAPI::PORT}"
       end
 
       def cli_info
