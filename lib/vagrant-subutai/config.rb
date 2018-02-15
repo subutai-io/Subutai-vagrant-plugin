@@ -26,6 +26,7 @@ end
 module VagrantSubutai
   module Subutai
     RH_FOLDER_NAME = "RH"
+    BLUE_PRINT_FILE_NAME = "Subutai.json"
 
     class Config < Vagrant.plugin('2', :config)
       attr_accessor :url
