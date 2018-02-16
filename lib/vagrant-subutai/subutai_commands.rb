@@ -4,6 +4,7 @@ require 'net/https'
 require 'io/console'
 require 'fileutils'
 require_relative 'rh_controller'
+require_relative 'blueprint/variables_controller'
 
 module VagrantSubutai
   class Commands < Vagrant.plugin('2', :command)
@@ -52,13 +53,13 @@ module VagrantSubutai
     # register Subutai Peer to Hub
     def register(username, password, url)
       username, password = get_input_token if username.nil? && password.nil?
-      response = VagrantSubutai::Rest::SubutaiConsole.token(url, username, password)
+      response = Rest::SubutaiConsole.token(url, username, password)
 
       case response
         when Net::HTTPOK
           STDOUT.puts "Successfully you signed Subutai Console"
           hub_email, hub_password, peer_name, peer_scope = get_input_register
-          response = VagrantSubutai::Rest::SubutaiConsole.register(response.body, url, hub_email, hub_password, peer_name, peer_scope)
+          response = Rest::SubutaiConsole.register(response.body, url, hub_email, hub_password, peer_name, peer_scope)
 
           case response
             when Net::HTTPOK
@@ -75,77 +76,9 @@ module VagrantSubutai
       end
     end
 
-    # Add new RH to Peer
-    def add(peer_path, rh_name, url)
-      # TODO peer_path also be fixed(this path must work on all platforms)
-      peer_path = peer_path + "/#{VagrantSubutai::Subutai::RH_FOLDER_NAME}/#{rh_name}"
-
-      # create RH folder your_peer_path/RH/rh_name
-      unless File.exists?(peer_path)
-        FileUtils.mkdir_p(peer_path)
-
-        # 1. create RH
-        Dir.chdir(peer_path){
-          unless system(VagrantCommand::INIT + " " + $SUBUTAI_BOX_NAME)
-            raise "#{VagrantCommand::INIT} command failed."
-          end
-        }
-
-        # 2. vagrant up
-        Dir.chdir(peer_path){
-          unless system(VagrantCommand::RH_UP)
-            raise "#{VagrantCommand::RH_UP} command failed."
-          end
-        }
-
-        # 3. vagrant provision
-        Dir.chdir(peer_path){
-          unless system(VagrantCommand::PROVISION)
-            raise "#{VagrantCommand::PROVISION} command failed."
-          end
-        }
-
-        # 4. TODO set Subutai Console host and fingerprint in RH agent config
-        fingerprint = VagrantSubutai::Rest::SubutaiConsole.fingerprint(url).body
-        ip = info(VagrantCommand::ARG_IP_ADDR)
-
-        STDOUT.puts "Subutai Console(Peer)"
-        STDOUT.puts "ip: #{ip}"
-        STDOUT.puts "fingerprint: #{fingerprint}"
-
-        # 5. Check is RH request exist in Subutai Console
-        # then approve
-        rhs = []
-        # Get RH requests from Subutai Console
-        rhs = VagrantSubutai::RhController.new.all(get_token(url))
-
-        # Get RH id
-        id = nil
-        Dir.chdir(peer_path){
-          r, w = IO.pipe
-
-          pid = spawn(VagrantCommand::SUBUTAI_ID, :out => w)
-
-          w.close
-          id = r.read
-        }
-
-        # Check is this RH request exist in Subutai Console
-        found = rhs.detect {|rh| rh.id == id}
-
-        if found.nil?
-          raise 'RH not send request to Subutai Console for approve'
-        else
-          # TODO send REST call for approve RH to Subutai Console
-        end
-
-        STDOUT.puts "Your RH path: #{peer_path}"
-      end
-    end
-
     # Show Subutai Console finger print
     def fingerprint(url)
-      response = VagrantSubutai::Rest::SubutaiConsole.fingerprint(url)
+      response = Rest::SubutaiConsole.fingerprint(url)
 
       case response
         when Net::HTTPOK
@@ -169,7 +102,7 @@ module VagrantSubutai
     # gets token
     def get_token(url)
       username, password = get_input_token
-      response = VagrantSubutai::Rest::SubutaiConsole.token(url, username, password)
+      response = Rest::SubutaiConsole.token(url, username, password)
 
       case response
         when Net::HTTPOK
@@ -206,6 +139,19 @@ module VagrantSubutai
 
     def list(arg)
       ssh(base + "#{SubutaiAgentCommand::LIST} #{arg}")
+    end
+
+    def blueprint
+      variable = Blueprint::VariablesController.new("./#{Config::Blueprint::FILE_NAME}")
+      user_variables = variable.user_variables
+      keys = user_variables.keys
+
+      keys.each do |key|
+        input = variable.get_input(user_variables[key])
+        if variable.validate(input, user_variables[key])
+          STDERR.puts "Error"
+        end
+      end
     end
 
     def ssh(command)

@@ -4,8 +4,8 @@ require 'json'
 module VagrantSubutai
   class RhController
 
-    def all(token)
-      response = VagrantSubutai::Rest::SubutaiConsole.requests($SUBUTAI_CONSOLE_URL, token)
+    def all(url, token)
+      response = Rest::SubutaiConsole.requests(url, token)
       rhs = []
 
       case response
@@ -13,7 +13,7 @@ module VagrantSubutai
           json = JSON.parse(response.body)
 
           json.each do |data|
-            rh = VagrantSubutai::Models::Rh.new
+            rh = Models::Rh.new
             rh.id = data['id']
             rh.hostname = data['hostname']
             rh.status = data['status']
@@ -25,7 +25,6 @@ module VagrantSubutai
           STDERR.puts "#{response.body}"
           raise 'Can\'t get requests info from Subutai Console'
       end
-
       rhs
     end
   end
