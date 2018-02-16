@@ -2,7 +2,6 @@ require_relative '../vagrant-subutai'
 require 'optparse'
 require 'io/console'
 require 'net/https'
-require_relative 'subutai_commands'
 require 'fileutils'
 
 module VagrantSubutai

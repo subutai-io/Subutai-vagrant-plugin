@@ -1,4 +1,4 @@
-require '../../vagrant-subutai'
+require_relative '../../vagrant-subutai'
 require 'json'
 
 module VagrantSubutai
@@ -8,7 +8,7 @@ module VagrantSubutai
 
       # @params path
       def initialize(path)
-        @json = JSON.parse(File.open(path))
+        @json = JSON.parse(File.read(path))
       end
 
       # Gives Subutai.json user variables
@@ -20,15 +20,15 @@ module VagrantSubutai
       # Gets input variable
       # @params variable json object
       def get_input(variable_json)
-        STDOUT.puts "\e[33m#{variable_json['description']}:\e[0m"
+        STDOUT.puts "\e[33m#{variable_json['description']}: (Ex: #{variable_json['default']})\e[0m"
 
         if variable_json['type'] == 'enum'
-          STDOUT.puts "\e[33mEnter your container size:\e[0m"
-          validations = variable_json['validation']
-          validations.split(',').each do |validation, index|
+          STDOUT.puts "\e[33mEnter your container size (Ex: #{variable_json['default']}):\e[0m"
+          validations = variable_json['validation'].split(',')
+          validations.each_with_index do |validation, index|
             STDOUT.puts "   \e[33m #{index}. #{validation}:\e[0m"
           end
-          STDOUT.puts "   \e[33mChoose your container size between ( 0 to n)\e[0m"
+          STDOUT.puts "\e[33mChoose your container size between ( 0 to n)\e[0m"
           input = STDIN.gets.strip.to_i
           validations[input]
         else

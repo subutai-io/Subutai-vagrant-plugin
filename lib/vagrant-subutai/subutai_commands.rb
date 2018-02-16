@@ -1,10 +1,7 @@
 require_relative '../vagrant-subutai'
-require_relative 'command'
 require 'net/https'
 require 'io/console'
 require 'fileutils'
-require_relative 'rh_controller'
-require_relative 'blueprint/variables_controller'
 
 module VagrantSubutai
   class Commands < Vagrant.plugin('2', :command)
@@ -142,16 +139,16 @@ module VagrantSubutai
     end
 
     def blueprint
-      variable = Blueprint::VariablesController.new("./#{Config::Blueprint::FILE_NAME}")
+      hash = {}
+      variable = Blueprint::VariablesController.new("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}")
       user_variables = variable.user_variables
       keys = user_variables.keys
 
       keys.each do |key|
-        input = variable.get_input(user_variables[key])
-        if variable.validate(input, user_variables[key])
-          STDERR.puts "Error"
-        end
+        hash[key] = variable.get_input(user_variables[key])
       end
+
+      STDOUT.puts hash
     end
 
     def ssh(command)

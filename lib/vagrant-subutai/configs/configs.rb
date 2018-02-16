@@ -1,5 +1,5 @@
 module VagrantSubutai
-  module Config
+  module Configs
     module VagrantCommand
       INIT = "vagrant init"
       UP = "vagrant up"
