@@ -12,17 +12,17 @@ module VagrantSubutai
 
     # show snap logs
     def log
-      ssh(base + SubutaiAgentCommand::LOG)
+      ssh(base + Configs::SubutaiAgentCommand::LOG)
     end
 
     def base
       env = SubutaiConfig.get(:SUBUTAI_ENV)
 
       if env.nil?
-        SubutaiAgentCommand::BASE
+        Configs::SubutaiAgentCommand::BASE
       else
         if env.to_s == "prod"
-          SubutaiAgentCommand::BASE
+          Configs::SubutaiAgentCommand::BASE
         else
           "sudo /snap/bin/subutai-#{env.to_s}"
         end
@@ -32,7 +32,7 @@ module VagrantSubutai
     # info id
     def info(arg)
       with_target_vms(nil, single_target: true) do |vm|
-        vm.communicate.sudo("#{base} #{SubutaiAgentCommand::INFO} #{arg}") do |type, data|
+        vm.communicate.sudo("#{base} #{Configs::SubutaiAgentCommand::INFO} #{arg}") do |type, data|
           if type == :stdout
             result = data.split(/[\r\n]+/)
             STDOUT.puts result.first
@@ -44,7 +44,7 @@ module VagrantSubutai
 
     # update Subutai rh or management
     def update(name)
-      ssh(base + SubutaiAgentCommand::UPDATE + " #{name}")
+      ssh(base + Configs::SubutaiAgentCommand::UPDATE + " #{name}")
     end
 
     # register Subutai Peer to Hub
@@ -135,7 +135,7 @@ module VagrantSubutai
     end
 
     def list(arg)
-      ssh(base + "#{SubutaiAgentCommand::LIST} #{arg}")
+      ssh(base + "#{Configs::SubutaiAgentCommand::LIST} #{arg}")
     end
 
     def blueprint

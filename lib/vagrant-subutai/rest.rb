@@ -9,7 +9,7 @@ module VagrantSubutai
       # Subutai Console url
       # login methods gets token
       def self.token(url, username, password)
-        uri = URI.parse(url + SubutaiConsoleAPI::V1::TOKEN)
+        uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::TOKEN)
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = true
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -25,7 +25,7 @@ module VagrantSubutai
       # specify your peer_name
       # peer_scope acceptable only like this "Public" : "Private"
       def self.register(token, url, email, password, peer_name, peer_scope)
-        uri = URI.parse(url + SubutaiConsoleAPI::V1::REGISTER_HUB + token)
+        uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::REGISTER_HUB + token)
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -39,7 +39,7 @@ module VagrantSubutai
 
       # Approves Resource Host
       def self.approve(token, url, id)
-        uri = URI.parse(url + SubutaiConsoleAPI::V1::APPROVE + "/#{id}/approve?sptoken?=" + token)
+        uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::APPROVE + "/#{id}/approve?sptoken?=" + token)
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -51,7 +51,7 @@ module VagrantSubutai
 
       # Gets Finger print Subutai Console
       def self.fingerprint(url)
-        uri = URI.parse(url + SubutaiConsoleAPI::V1::FINGERPRINT)
+        uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::FINGERPRINT)
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -63,7 +63,7 @@ module VagrantSubutai
 
       # Get Subutai Console RH requests
       def self.requests(url, token)
-        uri = URI.parse(url + SubutaiConsoleAPI::V1::REQUESTS + token)
+        uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::REQUESTS + token)
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE

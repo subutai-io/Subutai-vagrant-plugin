@@ -96,13 +96,13 @@ module VagrantSubutai
     end
 
     def check_subutai_console_url(subutai_cli)
-      ip = subutai_cli.info(VagrantCommand::ARG_IP_ADDR)
+      ip = subutai_cli.info(Configs::VagrantCommand::ARG_IP_ADDR)
 
       if ip.nil?
         STDOUT.puts "We can't detect your Subutai Console ip address!"
         exit
       end
-      "https://#{ip}:#{SubutaiConsoleAPI::PORT}"
+      "https://#{ip}:#{Configs::SubutaiConsoleAPI::PORT}"
     end
 
     def cli_info
