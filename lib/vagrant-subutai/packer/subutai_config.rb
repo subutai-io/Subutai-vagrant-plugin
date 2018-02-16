@@ -51,6 +51,7 @@ module SubutaiConfig
     _ALT_MANAGEMENT_MD5_LAST
     _DISK_SIZE
     _DISK_PORT
+    _REGISTERED
   ].freeze
 
   # Used for testing
@@ -225,14 +226,14 @@ module SubutaiConfig
   # Stores ONLY generated configuration from YAML files
   def self.store
     FileUtils.mkdir_p(PARENT_DIR) unless Dir.exist?(PARENT_DIR)
-    stringified = Hash[@generated.map { |k, v| [k.to_s, v.to_s] }]
+    stringified = Hash[@generated.map { |k, v| [k.to_s, v] }]
     File.open(GENERATED_FILE, 'w') { |f| f.write stringified.to_yaml }
 
     stringified = Hash.new
     @config.map do |k, v|
       unless generated?(k)
         if !k.nil? && !v.nil?
-          stringified.store(k.to_s, v.to_s)
+          stringified.store(k.to_s, v)
         end
       end
     end
@@ -306,6 +307,11 @@ module SubutaiConfig
 
     # Load overrides from the environment, and generated configurations
     ENV.each do |key, value|
+      if value == 'true'
+        value = true
+      elsif value == 'false'
+        value = false
+      end
       put(key.to_sym, value, false) if USER_PARAMETERS.include? key.to_sym
     end
     do_handlers

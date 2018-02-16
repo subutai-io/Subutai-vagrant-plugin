@@ -1,9 +1,7 @@
 require_relative '../vagrant-subutai'
-require_relative 'command'
 require 'net/https'
 require 'io/console'
 require 'fileutils'
-require_relative 'rh_controller'
 
 module VagrantSubutai
   class Commands < Vagrant.plugin('2', :command)
@@ -50,100 +48,34 @@ module VagrantSubutai
     end
 
     # register Subutai Peer to Hub
-    def register(username, password)
+    def register(username, password, url)
       username, password = get_input_token if username.nil? && password.nil?
-      response = VagrantSubutai::Rest::SubutaiConsole.token($SUBUTAI_CONSOLE_URL, username, password)
+      response = Rest::SubutaiConsole.token(url, username, password)
 
       case response
         when Net::HTTPOK
           STDOUT.puts "Successfully you signed Subutai Console"
           hub_email, hub_password, peer_name, peer_scope = get_input_register
-          response = VagrantSubutai::Rest::SubutaiConsole.register(response.body, $SUBUTAI_CONSOLE_URL, hub_email, hub_password, peer_name, peer_scope)
+          response = Rest::SubutaiConsole.register(response.body, url, hub_email, hub_password, peer_name, peer_scope)
 
           case response
             when Net::HTTPOK
+              STDOUT.puts "Body: #{response.body}"
               STDOUT.puts "You peer: \"#{peer_name}\" successfully registered to hub."
+              SubutaiConfig.put(:_REGISTERED, true, true)
             else
               STDOUT.puts "Try again! #{response.body}\n"
-              register(username, password)
+              register(username, password, url)
           end
         else
           STDERR.puts "Try again! #{response.body}\n"
-          register(nil, nil)
-      end
-    end
-
-    # Add new RH to Peer
-    def add(peer_path, rh_name)
-      # TODO peer_path also be fixed(this path must work on all platforms)
-      peer_path = peer_path + "/#{VagrantSubutai::Subutai::RH_FOLDER_NAME}/#{rh_name}"
-
-      # create RH folder your_peer_path/RH/rh_name
-      unless File.exists?(peer_path)
-        FileUtils.mkdir_p(peer_path)
-
-        # 1. create RH
-        Dir.chdir(peer_path){
-          unless system(VagrantCommand::INIT + " " + $SUBUTAI_BOX_NAME)
-            raise "#{VagrantCommand::INIT} command failed."
-          end
-        }
-
-        # 2. vagrant up
-        Dir.chdir(peer_path){
-          unless system(VagrantCommand::RH_UP)
-            raise "#{VagrantCommand::RH_UP} command failed."
-          end
-        }
-
-        # 3. vagrant provision
-        Dir.chdir(peer_path){
-          unless system(VagrantCommand::PROVISION)
-            raise "#{VagrantCommand::PROVISION} command failed."
-          end
-        }
-
-        # 4. TODO set Subutai Console host and fingerprint in RH agent config
-        fingerprint = VagrantSubutai::Rest::SubutaiConsole.fingerprint($SUBUTAI_CONSOLE_URL).body
-        ip = info(VagrantCommand::ARG_IP_ADDR)
-
-        STDOUT.puts "Subutai Console(Peer)"
-        STDOUT.puts "ip: #{ip}"
-        STDOUT.puts "fingerprint: #{fingerprint}"
-
-        # 5. Check is RH request exist in Subutai Console
-        # then approve
-        rhs = []
-        # Get RH requests from Subutai Console
-        rhs = VagrantSubutai::RhController.new.all(get_token)
-
-        # Get RH id
-        id = nil
-        Dir.chdir(peer_path){
-          r, w = IO.pipe
-
-          pid = spawn(VagrantCommand::SUBUTAI_ID, :out => w)
-
-          w.close
-          id = r.read
-        }
-
-        # Check is this RH request exist in Subutai Console
-        found = rhs.detect {|rh| rh.id == id}
-
-        if found.nil?
-          raise 'RH not send request to Subutai Console for approve'
-        else
-          # TODO send REST call for approve RH to Subutai Console
-        end
-
-        STDOUT.puts "Your RH path: #{peer_path}"
+          register(nil, nil, url)
       end
     end
 
     # Show Subutai Console finger print
     def fingerprint(url)
-      response = VagrantSubutai::Rest::SubutaiConsole.fingerprint(url)
+      response = Rest::SubutaiConsole.fingerprint(url)
 
       case response
         when Net::HTTPOK
@@ -165,15 +97,15 @@ module VagrantSubutai
     end
 
     # gets token
-    def get_token
+    def get_token(url)
       username, password = get_input_token
-      response = VagrantSubutai::Rest::SubutaiConsole.token($SUBUTAI_CONSOLE_URL, username, password)
+      response = Rest::SubutaiConsole.token(url, username, password)
 
       case response
         when Net::HTTPOK
           return response.body
         else
-          get_token
+          get_token(url)
       end
     end
 
@@ -204,6 +136,12 @@ module VagrantSubutai
 
     def list(arg)
       ssh(base + "#{SubutaiAgentCommand::LIST} #{arg}")
+    end
+
+    def blueprint
+      variable = Blueprint::VariablesController.new("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}")
+      hash = variable.user_variables
+      STDOUT.puts hash
     end
 
     def ssh(command)
