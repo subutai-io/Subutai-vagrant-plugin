@@ -139,15 +139,8 @@ module VagrantSubutai
     end
 
     def blueprint
-      hash = {}
       variable = Blueprint::VariablesController.new("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}")
-      user_variables = variable.user_variables
-      keys = user_variables.keys
-
-      keys.each do |key|
-        hash[key] = variable.get_input(user_variables[key])
-      end
-
+      hash = variable.user_variables
       STDOUT.puts hash
     end
 

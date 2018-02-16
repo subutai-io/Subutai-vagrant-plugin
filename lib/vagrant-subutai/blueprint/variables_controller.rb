@@ -14,7 +14,16 @@ module VagrantSubutai
       # Gives Subutai.json user variables
       # returns json object
       def user_variables
-        @json['user-variables']
+        hash = {}
+
+        user_variables = @json['user-variables']
+        keys = user_variables.keys
+
+        keys.each do |key|
+          hash[key] = get_input(user_variables[key])
+        end
+
+        hash
       end
 
       # Gets input variable
