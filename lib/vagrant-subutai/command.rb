@@ -76,7 +76,7 @@ module VagrantSubutai
             end
           end.parse!
         when 'blueprint'
-          subutai_cli.blueprint
+          subutai_cli.blueprint(check_subutai_console_url(subutai_cli))
         when '-h'
           STDOUT.puts cli_info
         when '--help'

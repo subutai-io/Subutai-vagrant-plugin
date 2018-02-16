@@ -58,7 +58,14 @@ module VagrantSubutai
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
-        return https.request(request)
+        response = https.request(request)
+
+        case response
+          when Net::HTTPOK
+            response.body
+          else
+            raise "Try again! #{response.body}"
+        end
       end
 
       # Get Subutai Console RH requests
@@ -71,6 +78,10 @@ module VagrantSubutai
         request = Net::HTTP::Get.new(uri.request_uri)
 
         return https.request(request)
+      end
+
+      # Creates Environment
+      def self.environment
       end
     end
   end

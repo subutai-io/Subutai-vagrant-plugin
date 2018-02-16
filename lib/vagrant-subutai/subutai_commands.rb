@@ -35,7 +35,6 @@ module VagrantSubutai
         vm.communicate.sudo("#{base} #{Configs::SubutaiAgentCommand::INFO} #{arg}") do |type, data|
           if type == :stdout
             result = data.split(/[\r\n]+/)
-            STDOUT.puts result.first
             return result.first
           end
         end
@@ -75,14 +74,8 @@ module VagrantSubutai
 
     # Show Subutai Console finger print
     def fingerprint(url)
-      response = Rest::SubutaiConsole.fingerprint(url)
-
-      case response
-        when Net::HTTPOK
-          STDOUT.puts response.body
-        else
-          STDOUT.puts "Try again! #{response.body}"
-      end
+      peer_id = Rest::SubutaiConsole.fingerprint(url)
+      STDOUT.puts peer_id
     end
 
     # Get Subutai console credentials from input
@@ -94,19 +87,6 @@ module VagrantSubutai
       password = STDIN.noecho(&:gets).chomp
 
       [username, password]
-    end
-
-    # gets token
-    def get_token(url)
-      username, password = get_input_token
-      response = Rest::SubutaiConsole.token(url, username, password)
-
-      case response
-        when Net::HTTPOK
-          return response.body
-        else
-          get_token(url)
-      end
     end
 
     # Get Hub credentials and peer info
@@ -138,9 +118,13 @@ module VagrantSubutai
       ssh(base + "#{Configs::SubutaiAgentCommand::LIST} #{arg}")
     end
 
-    def blueprint
+    def blueprint(url)
       variable = Blueprint::VariablesController.new("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}")
       hash = variable.user_variables
+
+      rh_id = info('id')
+      peer_id = Rest::SubutaiConsole.fingerprint(url)
+      STDOUT.puts "RH_ID: #{rh_id}, PEER_ID: #{peer_id}"
       STDOUT.puts hash
     end
 
