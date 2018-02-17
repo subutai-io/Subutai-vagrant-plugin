@@ -4,6 +4,8 @@ require 'vagrant-subutai/blueprint/variables_controller'
 
 require 'vagrant-subutai/configs/configs'
 
+require 'vagrant-subutai/models/container'
+require 'vagrant-subutai/models/environment'
 require 'vagrant-subutai/models/resource_host'
 
 require 'vagrant-subutai/packer/subutai_config'

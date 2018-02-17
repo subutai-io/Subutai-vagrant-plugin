@@ -49,6 +49,7 @@ module VagrantSubutai
         env = VagrantSubutai::Models::Environment.new
         env.name = value(@json['name'])
         env.containers = containers
+        env
       end
 
       # Containers

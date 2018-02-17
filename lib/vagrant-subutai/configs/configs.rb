@@ -20,6 +20,10 @@ module VagrantSubutai
       end
     end
 
+    module Gorjun
+      INFO = 'https://cdn.subut.ai:8338/kurjun/rest/template/info'.freeze
+    end
+
     module Blueprint
       FILE_NAME = 'Subutai.json'.freeze
     end
