@@ -10,7 +10,7 @@ module VagrantSubutai
     end
 
     def finalize!
-      @url = "" if @url == UNSET_VALUE
+      @url = '' if @url == UNSET_VALUE
     end
   end
 end

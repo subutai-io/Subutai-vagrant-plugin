@@ -17,8 +17,8 @@ module VagrantSubutai
             rh.id = data['id']
             rh.hostname = data['hostname']
             rh.status = data['status']
-            rh.isConnected = data['isConnected']
-            rh.isManagement = data['isManagement']
+            rh.is_connected = data['isConnected']
+            rh.is_management = data['isManagement']
             rhs << rh
           end
         else

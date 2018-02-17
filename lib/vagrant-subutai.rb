@@ -11,11 +11,12 @@ require 'vagrant-subutai/packer/subutai_hooks'
 require 'vagrant-subutai/packer/subutai_net'
 require 'vagrant-subutai/packer/subutai_disk'
 
+require 'vagrant-subutai/rest/gorjun'
+require 'vagrant-subutai/rest/subutai_console'
 
 require 'vagrant-subutai/command'
 require 'vagrant-subutai/config'
 require 'vagrant-subutai/plugin'
-require 'vagrant-subutai/rest'
 require 'vagrant-subutai/rh_controller'
 require 'vagrant-subutai/subutai_commands'
 require 'vagrant-subutai/version'

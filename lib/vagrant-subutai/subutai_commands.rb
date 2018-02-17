@@ -21,7 +21,7 @@ module VagrantSubutai
       if env.nil?
         Configs::SubutaiAgentCommand::BASE
       else
-        if env.to_s == "prod"
+        if env.to_s == 'prod'
           Configs::SubutaiAgentCommand::BASE
         else
           "sudo /snap/bin/subutai-#{env.to_s}"
@@ -53,7 +53,7 @@ module VagrantSubutai
 
       case response
         when Net::HTTPOK
-          STDOUT.puts "Successfully you signed Subutai Console"
+          STDOUT.puts 'Successfully you signed Subutai Console'
           hub_email, hub_password, peer_name, peer_scope = get_input_register
           response = Rest::SubutaiConsole.register(response.body, url, hub_email, hub_password, peer_name, peer_scope)
 
@@ -80,10 +80,10 @@ module VagrantSubutai
 
     # Get Subutai console credentials from input
     def get_input_token
-      STDOUT.puts "\nPlease enter credentials Subutai Console:\n"
-      STDOUT.puts "username: "
+      STDOUT.puts '\nPlease enter credentials Subutai Console:\n'
+      STDOUT.puts 'username: '
       username = STDIN.gets.chomp
-      puts "password: "
+      puts 'password: '
       password = STDIN.noecho(&:gets).chomp
 
       [username, password]
@@ -91,24 +91,24 @@ module VagrantSubutai
 
     # Get Hub credentials and peer info
     def get_input_register
-      STDOUT.puts "\nRegister your peer to HUB:\n"
+      STDOUT.puts '\nRegister your peer to HUB:\n'
 
       # Hub email
-      STDOUT.puts "Enter Hub email: "
+      STDOUT.puts 'Enter Hub email: '
       hub_email = STDIN.gets.chomp
 
       # Hub password
-      STDOUT.puts "Enter Hub password: "
+      STDOUT.puts 'Enter Hub password: '
       hub_password = STDIN.noecho(&:gets).chomp
 
       # Peer name
-      STDOUT.puts "Enter peer name: "
+      STDOUT.puts 'Enter peer name: '
       peer_name = STDIN.gets.chomp
 
       # Peer scope
-      STDOUT.puts "1. Public"
-      STDOUT.puts "2. Private"
-      STDOUT.puts "Choose your peer scope (1 or 2): "
+      STDOUT.puts '1. Public'
+      STDOUT.puts '2. Private'
+      STDOUT.puts 'Choose your peer scope (1 or 2): '
       peer_scope = STDIN.gets.chomp.to_i
 
       [hub_email, hub_password, peer_name, peer_scope]
