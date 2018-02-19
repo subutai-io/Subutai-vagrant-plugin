@@ -28,8 +28,8 @@ module VagrantSubutai
       end
 
       def params(rh_id, peer_id)
-        environment = environment
-        containers = environment.containers
+        env = environment
+        containers = env.containers
 
         hash = {}
         nodes = []
@@ -44,11 +44,11 @@ module VagrantSubutai
           nodes << node
         end
 
-        hash['name'] = environment.name
+        hash['name'] = env.name
         hash['sshKey'] = ""
         hash['nodes'] = nodes
 
-        hash
+        hash.to_json
       end
 
       def value(variable)

@@ -119,11 +119,19 @@ module VagrantSubutai
     end
 
     def blueprint(url)
-      rh_id = info('id')
-      peer_id = Rest::SubutaiConsole.fingerprint(url)
+      username, password = get_input_token if username.nil? && password.nil?
+      response = Rest::SubutaiConsole.token(url, username, password)
 
-      env = Blueprint::EnvironmentController.new
-      STDOUT.puts env.build(rh_id, peer_id)
+      case response
+        when Net::HTTPOK
+          rh_id = info('id')
+          peer_id = Rest::SubutaiConsole.fingerprint(url)
+
+          env = Blueprint::EnvironmentController.new
+          env.build(url, response.body, rh_id, peer_id)
+        else
+          STDERR.puts " Invalid Subutai Console credentials"
+      end
     end
 
     def ssh(command)
