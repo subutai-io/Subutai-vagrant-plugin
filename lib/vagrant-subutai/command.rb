@@ -31,38 +31,13 @@ module VagrantSubutai
             check_subutai_console_url(subutai_cli)
             subutai_cli.fingerprint($SUBUTAI_CONSOLE_URL)
           when 'disk'
-            OptionParser.new do |opt|
-              opt.banner = 'Usage: vagrant subutai disk [options]'
+            disk = SubutaiConfig.get(:DISK_SIZE)
 
-              opt.on('-s', '--size NUMBER', 'set your disk size') do |num|
-                disk = num.to_i
-
-                generated_disk = SubutaiConfig.get(:_DISK_SIZE)
-
-                if generated_disk.nil?
-                  grow_by = disk - 100 # default Subutai disk is 100 gigabytes
-                else
-                  grow_by = disk - (generated_disk.to_i + 100) # HERE Applied math BEDMAS rule
-                end
-
-                if grow_by > 0
-                  SubutaiConfig.put(:DISK_SIZE, num, true)
-                  STDOUT.puts "    \e[33mWarning the disk change cannot be applied until a restart of the VM.\e[0m"
-                else
-                  STDOUT.puts "    \e[33mWarning the operation will be ignored because it shrink operations are not supported.\e[0m"
-                end
-              end
-
-              opt.on('-i', '--info', 'shows Subutai disk capacity') do
-                disk = SubutaiConfig.get(:DISK_SIZE)
-
-                if disk.nil?
-                  STDOUT.puts "    \e[32mSubutai disk capacity is 100 gb.\e[0m"
-                else
-                  STDOUT.puts "    \e[32mSubutai disk capacity is #{disk} gb.\e[0m"
-                end
-              end
-            end.parse!
+            if disk.nil?
+              STDOUT.puts "    \e[32mSubutai disk capacity is 100 gb.\e[0m"
+            else
+              STDOUT.puts "    \e[32mSubutai disk capacity is #{disk} gb.\e[0m"
+            end
           when '-h'
             STDOUT.puts cli_info
           when '--help'
@@ -130,7 +105,7 @@ COMMANDS:
        vxlan                   - VXLAN tunnels operation
        register                - register Subutai Peer to Hub
        fingerprint             - shows fingerprint Subutai Console
-       disk                    - manage Subutai disk
+       disk                    - shows Subutai disk size
 
 GLOBAL OPTIONS:
        -h, --help              - show help
