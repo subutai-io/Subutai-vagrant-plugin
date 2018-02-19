@@ -44,7 +44,7 @@ COMMANDS:
        vxlan                   - VXLAN tunnels operation
        register                - register Subutai Peer to Hub
        fingerprint             - shows fingerprint Subutai Console
-       disk                    - manage Subutai disk
+       disk                    - shows Subutai disk size
 
 GLOBAL OPTIONS:
        -h, --help              - show help
