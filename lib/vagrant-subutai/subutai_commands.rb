@@ -21,7 +21,7 @@ module VagrantSubutai
       if env.nil?
         Configs::SubutaiAgentCommand::BASE
       else
-        if env.to_s == "prod"
+        if env.to_s == 'prod'
           Configs::SubutaiAgentCommand::BASE
         else
           "sudo /snap/bin/subutai-#{env.to_s}"
@@ -35,7 +35,6 @@ module VagrantSubutai
         vm.communicate.sudo("#{base} #{Configs::SubutaiAgentCommand::INFO} #{arg}") do |type, data|
           if type == :stdout
             result = data.split(/[\r\n]+/)
-            STDOUT.puts result.first
             return result.first
           end
         end
@@ -54,7 +53,7 @@ module VagrantSubutai
 
       case response
         when Net::HTTPOK
-          STDOUT.puts "Successfully you signed Subutai Console"
+          STDOUT.puts 'Successfully you signed Subutai Console'
           hub_email, hub_password, peer_name, peer_scope = get_input_register
           response = Rest::SubutaiConsole.register(response.body, url, hub_email, hub_password, peer_name, peer_scope)
 
@@ -75,60 +74,41 @@ module VagrantSubutai
 
     # Show Subutai Console finger print
     def fingerprint(url)
-      response = Rest::SubutaiConsole.fingerprint(url)
-
-      case response
-        when Net::HTTPOK
-          STDOUT.puts response.body
-        else
-          STDOUT.puts "Try again! #{response.body}"
-      end
+      peer_id = Rest::SubutaiConsole.fingerprint(url)
+      STDOUT.puts peer_id
     end
 
     # Get Subutai console credentials from input
     def get_input_token
-      STDOUT.puts "\nPlease enter credentials Subutai Console:\n"
-      STDOUT.puts "username: "
+      STDOUT.puts '\nPlease enter credentials Subutai Console:\n'
+      STDOUT.puts 'username: '
       username = STDIN.gets.chomp
-      puts "password: "
+      puts 'password: '
       password = STDIN.noecho(&:gets).chomp
 
       [username, password]
     end
 
-    # gets token
-    def get_token(url)
-      username, password = get_input_token
-      response = Rest::SubutaiConsole.token(url, username, password)
-
-      case response
-        when Net::HTTPOK
-          return response.body
-        else
-          get_token(url)
-      end
-    end
-
     # Get Hub credentials and peer info
     def get_input_register
-      STDOUT.puts "\nRegister your peer to HUB:\n"
+      STDOUT.puts '\nRegister your peer to HUB:\n'
 
       # Hub email
-      STDOUT.puts "Enter Hub email: "
+      STDOUT.puts 'Enter Hub email: '
       hub_email = STDIN.gets.chomp
 
       # Hub password
-      STDOUT.puts "Enter Hub password: "
+      STDOUT.puts 'Enter Hub password: '
       hub_password = STDIN.noecho(&:gets).chomp
 
       # Peer name
-      STDOUT.puts "Enter peer name: "
+      STDOUT.puts 'Enter peer name: '
       peer_name = STDIN.gets.chomp
 
       # Peer scope
-      STDOUT.puts "1. Public"
-      STDOUT.puts "2. Private"
-      STDOUT.puts "Choose your peer scope (1 or 2): "
+      STDOUT.puts '1. Public'
+      STDOUT.puts '2. Private'
+      STDOUT.puts 'Choose your peer scope (1 or 2): '
       peer_scope = STDIN.gets.chomp.to_i
 
       [hub_email, hub_password, peer_name, peer_scope]
@@ -138,10 +118,20 @@ module VagrantSubutai
       ssh(base + "#{Configs::SubutaiAgentCommand::LIST} #{arg}")
     end
 
-    def blueprint
-      variable = Blueprint::VariablesController.new("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}")
-      hash = variable.user_variables
-      STDOUT.puts hash
+    def blueprint(url)
+      username, password = get_input_token if username.nil? && password.nil?
+      response = Rest::SubutaiConsole.token(url, username, password)
+
+      case response
+        when Net::HTTPOK
+          rh_id = info('id')
+          peer_id = Rest::SubutaiConsole.fingerprint(url)
+
+          env = Blueprint::EnvironmentController.new
+          env.build(url, response.body, rh_id, peer_id)
+        else
+          STDERR.puts " Invalid Subutai Console credentials"
+      end
     end
 
     def ssh(command)

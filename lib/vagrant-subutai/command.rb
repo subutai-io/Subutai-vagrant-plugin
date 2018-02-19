@@ -36,7 +36,7 @@ module VagrantSubutai
           if options[:force]
             subutai_cli.register(nil, nil, check_subutai_console_url(subutai_cli))
           elsif SubutaiConfig.get(:_REGISTERED)
-            STDOUT.puts "Already registered peer to hub!"
+            STDOUT.puts 'Already registered peer to hub!'
           else
             subutai_cli.register(nil, nil, check_subutai_console_url(subutai_cli))
           end
@@ -59,9 +59,9 @@ module VagrantSubutai
 
               if grow_by > 0
                 SubutaiConfig.put(:DISK_SIZE, num, true)
-                STDOUT.puts "    \e[33mWarning the disk change cannot be applied until a restart of the VM.\e[0m"
+                STDOUT.puts '    \e[33mWarning the disk change cannot be applied until a restart of the VM.\e[0m'
               else
-                STDOUT.puts "    \e[33mWarning the operation will be ignored because it shrink operations are not supported.\e[0m"
+                STDOUT.puts '    \e[33mWarning the operation will be ignored because it shrink operations are not supported.\e[0m'
               end
             end
 
@@ -69,14 +69,14 @@ module VagrantSubutai
               disk = SubutaiConfig.get(:DISK_SIZE)
 
               if disk.nil?
-                STDOUT.puts "    \e[32mSubutai disk capacity is 100 gb.\e[0m"
+                STDOUT.puts '    \e[32mSubutai disk capacity is 100 gb.\e[0m'
               else
                 STDOUT.puts "    \e[32mSubutai disk capacity is #{disk} gb.\e[0m"
               end
             end
           end.parse!
         when 'blueprint'
-          subutai_cli.blueprint
+          subutai_cli.blueprint(check_subutai_console_url(subutai_cli))
         when '-h'
           STDOUT.puts cli_info
         when '--help'
@@ -99,7 +99,7 @@ module VagrantSubutai
       ip = subutai_cli.info(Configs::VagrantCommand::ARG_IP_ADDR)
 
       if ip.nil?
-        STDOUT.puts "We can't detect your Subutai Console ip address!"
+        STDOUT.puts 'We can\'t detect your Subutai Console ip address!'
         exit
       end
       "https://#{ip}:#{Configs::SubutaiConsoleAPI::PORT}"

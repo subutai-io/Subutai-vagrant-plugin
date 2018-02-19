@@ -1,6 +1,6 @@
 require 'net/https'
 require 'uri'
-require_relative '../vagrant-subutai'
+require_relative '../../vagrant-subutai'
 
 module VagrantSubutai
   module Rest
@@ -58,7 +58,14 @@ module VagrantSubutai
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
-        return https.request(request)
+        response = https.request(request)
+
+        case response
+          when Net::HTTPOK
+            response.body
+          else
+            raise "Try again! #{response.body}"
+        end
       end
 
       # Get Subutai Console RH requests
@@ -70,6 +77,20 @@ module VagrantSubutai
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
+        return https.request(request)
+      end
+
+      # Creates Environment
+      def self.environment(url, token, params)
+        uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::ENVIRONMENT + token)
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+
+        request = Net::HTTP::Post.new(uri.request_uri)
+        request.set_form_data({'topology' => params})
+
+        # returns response
         return https.request(request)
       end
     end
