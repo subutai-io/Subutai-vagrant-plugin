@@ -1,6 +1,7 @@
 require 'vagrant'
 
 require 'vagrant-subutai/blueprint/variables_controller'
+require 'vagrant-subutai/blueprint/environment_controller'
 
 require 'vagrant-subutai/configs/configs'
 

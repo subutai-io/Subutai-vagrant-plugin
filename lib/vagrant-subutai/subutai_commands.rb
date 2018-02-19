@@ -119,15 +119,11 @@ module VagrantSubutai
     end
 
     def blueprint(url)
-      variable = Blueprint::VariablesController.new("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}")
-      environment = variable.environment
-      puts environment.name
-      id = Rest::Gorjun.template_id('ruby-on-rails', 'ec54e1cff2341cdc55be5e961cfd15b4f97087e8')
-      puts id
-
       rh_id = info('id')
       peer_id = Rest::SubutaiConsole.fingerprint(url)
-      STDOUT.puts "RH_ID: #{rh_id}, PEER_ID: #{peer_id}"
+
+      env = Blueprint::EnvironmentController.new
+      STDOUT.puts env.build(rh_id, peer_id)
     end
 
     def ssh(command)

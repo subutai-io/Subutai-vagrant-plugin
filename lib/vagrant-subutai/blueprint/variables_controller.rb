@@ -27,6 +27,30 @@ module VagrantSubutai
         hash
       end
 
+      def params(rh_id, peer_id)
+        environment = environment
+        containers = environment.containers
+
+        hash = {}
+        nodes = []
+
+        containers.each do |container|
+          node = {}
+          node['hostname'] = container.hostname
+          node['quota'] = {'containerSize' => container.container_size}
+          node['templateId'] = Rest::Gorjun.template_id(container.name, container.owner)
+          node['resourceHostId'] = rh_id
+          node['peerId'] = peer_id
+          nodes << node
+        end
+
+        hash['name'] = environment.name
+        hash['sshKey'] = ""
+        hash['nodes'] = nodes
+
+        hash
+      end
+
       def value(variable)
         if is_variable?(variable)
           @variables[variable[/\${(.*?)}/, 1]]

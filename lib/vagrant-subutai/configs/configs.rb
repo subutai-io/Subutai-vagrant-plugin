@@ -17,6 +17,7 @@ module VagrantSubutai
         APPROVE = '/rest/v1/registration/requests'.freeze
         FINGERPRINT = '/rest/v1/security/keyman/getpublickeyfingerprint'.freeze
         REQUESTS = '/rest/v1/registration/requests?sptoken='.freeze
+        ENVIRONMENT = '/rest/v1/environments?sptoken='.freeze
       end
     end
 
