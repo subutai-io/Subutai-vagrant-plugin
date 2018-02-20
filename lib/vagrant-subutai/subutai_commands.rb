@@ -134,6 +134,17 @@ module VagrantSubutai
       end
     end
 
+    # opens browser
+    def open(link)
+      if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
+        system "start #{link}"
+      elsif RbConfig::CONFIG['host_os'] =~ /darwin/
+        system "open #{link}"
+      elsif RbConfig::CONFIG['host_os'] =~ /linux|bsd/
+        system "xdg-open #{link}"
+      end
+    end
+
     def ssh(command)
       with_target_vms(nil, single_target: true) do |vm|
         vm.action(:ssh_run, ssh_run_command: command, ssh_opts: {extra_args: ['-q']})

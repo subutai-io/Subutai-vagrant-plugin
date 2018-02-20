@@ -93,6 +93,12 @@ module VagrantSubutai
           arr << cont
         end
 
+        if @json.key?('ansible-configuration')
+          cont = VagrantSubutai::Models::Container.new
+          cont.ansible
+          arr << cont
+        end
+
         arr
       end
 

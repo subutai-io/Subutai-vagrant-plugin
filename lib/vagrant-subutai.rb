@@ -5,6 +5,9 @@ require 'vagrant-subutai/blueprint/environment_controller'
 
 require 'vagrant-subutai/configs/configs'
 
+require 'vagrant-subutai/models/console/container'
+require 'vagrant-subutai/models/console/environment'
+require 'vagrant-subutai/models/console/host'
 require 'vagrant-subutai/models/container'
 require 'vagrant-subutai/models/environment'
 require 'vagrant-subutai/models/resource_host'

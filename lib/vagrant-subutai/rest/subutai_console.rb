@@ -17,8 +17,7 @@ module VagrantSubutai
         request = Net::HTTP::Post.new(uri.request_uri)
         request.set_form_data('username' => username, 'password' => password)
 
-        # returns response
-        return http.request(request)
+        http.request(request)
       end
 
       # Subutai Hub credentials email, password
@@ -33,8 +32,7 @@ module VagrantSubutai
         request = Net::HTTP::Post.new(uri.request_uri)
         request.set_form_data({'email' => email, 'password' => password, 'peerName' => peer_name, 'peerScope' => peer_scope})
 
-        # returns response
-        return https.request(request)
+        https.request(request)
       end
 
       # Approves Resource Host
@@ -46,7 +44,7 @@ module VagrantSubutai
 
         request = Net::HTTP::Post.new(uri.request_uri)
 
-        return https.request(request)
+        https.request(request)
       end
 
       # Gets Finger print Subutai Console
@@ -77,10 +75,11 @@ module VagrantSubutai
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
-        return https.request(request)
+        https.request(request)
       end
 
       # Creates Environment
+      # method POST
       def self.environment(url, token, params)
         uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::ENVIRONMENT + token)
         https = Net::HTTP.new(uri.host, uri.port)
@@ -90,8 +89,21 @@ module VagrantSubutai
         request = Net::HTTP::Post.new(uri.request_uri)
         request.set_form_data({'topology' => params})
 
-        # returns response
-        return https.request(request)
+        https.request(request)
+      end
+
+      # List Environments
+      # method GET
+      def self.environments(url, token)
+
+        uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::ENVIRONMENTS + token)
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+
+        request = Net::HTTP::Get.new(uri.request_uri)
+
+        https.request(request)
       end
     end
   end
