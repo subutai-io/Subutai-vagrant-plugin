@@ -17,14 +17,46 @@ module VagrantSubutai
       def user_variables
         hash = {}
 
-        user_variables = @json['user-variables']
-        keys = user_variables.keys
+        if @json.key?('user-variables')
+          user_variables = @json['user-variables']
+          keys = user_variables.keys
 
-        keys.each do |key|
-          hash[key] = get_input(user_variables[key])
+          keys.each do |key|
+            hash[key] = get_input(user_variables[key])
+          end
         end
 
         hash
+      end
+
+      def has_ansible?
+        if @json.key?('ansible-configuration')
+          true
+        else
+          false
+        end
+      end
+
+      def ansible
+        if has_ansible?
+          ansible = VagrantSubutai::Models::Ansible.new
+          ansible_configuration = @json['ansible-configuration']
+
+          ansible.ansible_playbook = ansible_configuration['ansible-playbook']
+          ansible.source_url = ansible_configuration['source-url']
+          ansible.groups = ansible_configuration['groups']
+          ansible.extra_vars = []
+
+          if ansible_configuration.key?('extra-vars')
+            ansible_configuration['extra-vars'].each do |obj|
+              hash = {}
+              hash[obj['key']] = value(obj['value'])
+              ansible.extra_vars << hash
+            end
+          end
+
+          ansible
+        end
       end
 
       def params(rh_id, peer_id)

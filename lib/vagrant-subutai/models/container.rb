@@ -1,4 +1,3 @@
-
 module VagrantSubutai
   module Models
     class Container

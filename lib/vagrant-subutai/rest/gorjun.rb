@@ -7,6 +7,8 @@ module VagrantSubutai
   module Rest
     class Gorjun
       def self.template_id(name, owner)
+        puts name
+        puts owner
         uri = URI.parse("#{Configs::Gorjun::INFO}?name=#{name}&owner=#{owner}")
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true

@@ -11,6 +11,7 @@ module VagrantSubutai
 
     module SubutaiConsoleAPI
       PORT = '8443'.freeze
+      COMMAND = '/rest/ui/commands?sptoken='.freeze
       module V1
         TOKEN = '/rest/v1/identity/gettoken'.freeze
         REGISTER_HUB = '/rest/v1/hub/register?sptoken='.freeze
@@ -20,11 +21,12 @@ module VagrantSubutai
         ENVIRONMENT = '/rest/v1/environments?sptoken='.freeze
         HOSTS = '/rest/v1/hosts?sptoken='.freeze
         ENVIRONMENTS = '/rest/v1/environments?sptoken='.freeze
+        LOG = '/rest/v1/tracker/operations/ENVIRONMENT%20MANAGER/'.freeze
       end
     end
 
     module Gorjun
-      INFO = 'https://cdn.subut.ai:8338/kurjun/rest/template/info'.freeze
+      INFO = 'https://sysnetcdn.subut.ai:8338/kurjun/rest/template/info'.freeze
     end
 
     module Blueprint
