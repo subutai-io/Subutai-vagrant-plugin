@@ -137,15 +137,15 @@ module VagrantSubutai
       # Gets input variable
       # @params variable json object
       def get_input(variable_json)
-        STDOUT.puts "\e[33m#{variable_json['description']}: (Ex: #{variable_json['default']})\e[0m"
+        Put.warn "#{variable_json['description']}: (Ex: #{variable_json['default']})"
 
         if variable_json['type'] == 'enum'
-          STDOUT.puts "\e[33mEnter your container size (Ex: #{variable_json['default']}):\e[0m"
+          Put.warn "Enter your container size (Ex: #{variable_json['default']}): "
           validations = variable_json['validation'].split(',')
           validations.each_with_index do |validation, index|
-            STDOUT.puts "   \e[33m #{index}. #{validation}:\e[0m"
+            Put.warn "    #{index}. #{validation}"
           end
-          STDOUT.puts "\e[33mChoose your container size between ( 0 to n)\e[0m"
+          Put.warn "Choose your container size between ( 0 to n): "
           input = STDIN.gets.strip.to_i
           validations[input]
         else
