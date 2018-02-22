@@ -80,7 +80,7 @@ module VagrantSubutai
         hash['sshKey'] = ""
         hash['nodes'] = nodes
 
-        hash.to_json
+        hash
       end
 
       def value(variable)

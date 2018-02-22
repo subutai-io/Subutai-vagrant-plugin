@@ -4,7 +4,11 @@ require 'base64'
 module VagrantSubutai
   module Blueprint
     class EnvironmentController
-      attr_accessor :name, :ansible, :log
+      attr_accessor :name,        # Environment name
+                    :ansible,     # Environment ansible configurations
+                    :log,         # Environment build logs
+                    :id,          # Environment build id
+                    :tracker_id   # Environment logs tracker id
 
       def build(url,token, rh_id, peer_id)
         variable = Blueprint::VariablesController.new("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}")
@@ -14,45 +18,55 @@ module VagrantSubutai
         end
 
         params = variable.params(rh_id, peer_id)
-        puts "topology: #{params}"
         @name = params['name']
 
-        response = Rest::SubutaiConsole.environment(url, token, params)
+        response = Rest::SubutaiConsole.environment(url, token, params.to_json)
 
         case response
           when Net::HTTPAccepted
             json = JSON.parse(response.body)
-            environment_id = json['environmentId']
-            tracker_id = json['trackerId']
 
-            puts "tracker_id: " + tracker_id
-            puts "environment_id: " + environment_id
+            @id          = json['environmentId']
+            @tracker_id  = json['trackerId']
 
-            @log = VagrantSubutai::Rest::SubutaiConsole.log(url, token, tracker_id)
+            @log = VagrantSubutai::Rest::SubutaiConsole.log(url, token, @tracker_id)
             @log = JSON.parse(@log.body)
-            puts "#{@log['state']}"
+
             decoded_log = Base64.decode64(@log['log'])
-            puts decoded_log
+            logs = decoded_log.split(/\{(.*?)\}\,/)
 
-            until @log['state'] == "SUCCEEDED" || @log['state'] == "FAILED"
+            @logs_last_index = nil # this saves last logs index (for not showing duplicated logs)
+            @temp_last_index = nil
 
-              #puts "id: #{log['id']}"
-              #puts "description: #{log['description']}"
-              #puts "#{decoded_log}"
-              puts "state: #{@log['state']}"
-              #puts "createDate: #{log['createDate']}"
-              #puts "source: #{log['source']}"
-              @log = VagrantSubutai::Rest::SubutaiConsole.log(url, token, tracker_id)
-              @log = JSON.parse(@log.body)
-              decoded_log = Base64.decode64(@log['log'])
-              puts "while: #{decoded_log}"
+            logs.each_with_index do |v, i|
+              STDOUT.puts v
+              @temp_last_index = i
             end
 
-            puts "Successfully build blueprint!"
-            puts "Resonse body: #{json}"
-            #puts "Ansible: #{@ansible.context}"
+            @logs_last_index = @temp_last_index
+
+            until @log['state'] == Configs::EnvironmentState::SUCCEEDED || @log['state'] == Configs::EnvironmentState::FAILED
+
+              @log = VagrantSubutai::Rest::SubutaiConsole.log(url, token, @tracker_id)
+              @log = JSON.parse(@log.body)
+
+              decoded_log = Base64.decode64(@log['log'])
+              logs = decoded_log.split(/\{(.*?)\}\,/)
+
+              logs.each_with_index do |v, i|
+                if @logs_last_index < i
+                  STDOUT.puts v
+                end
+                @temp_last_index = i
+              end
+
+
+              @logs_last_index = @temp_last_index
+            end
+
+            STDOUT.puts "\nBlueprint environment #{@name} state: #{@log['state']}"
           else
-            puts STDERR.puts "Error: #{response.body}"
+            STDOUT.puts STDERR.puts "Error: #{response.body}"
         end
       end
     end

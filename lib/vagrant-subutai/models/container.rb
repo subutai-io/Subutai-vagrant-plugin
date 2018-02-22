@@ -21,6 +21,7 @@ module VagrantSubutai
         @template
       end
 
+      # TODO should be fixed this only works prod ansible
       def ansible
         @hostname = "ansible"
         @container_size = "TINY"

@@ -26,11 +26,17 @@ module VagrantSubutai
     end
 
     module Gorjun
+      # TODO this also be fixed URL cdn by peer environment
       INFO = 'https://sysnetcdn.subut.ai:8338/kurjun/rest/template/info'.freeze
     end
 
     module Blueprint
       FILE_NAME = 'Subutai.json'.freeze
+    end
+
+    module EnvironmentState
+      FAILED = 'FAILED'.freeze
+      SUCCEEDED = 'SUCCEEDED'.freeze
     end
 
     module SubutaiAgentCommand

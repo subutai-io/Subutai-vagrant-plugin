@@ -11,7 +11,6 @@ require 'vagrant-subutai/models/console/host'
 require 'vagrant-subutai/models/ansible'
 require 'vagrant-subutai/models/container'
 require 'vagrant-subutai/models/environment'
-require 'vagrant-subutai/models/resource_host'
 
 require 'vagrant-subutai/packer/subutai_config'
 require 'vagrant-subutai/packer/subutai_hooks'
@@ -24,7 +23,13 @@ require 'vagrant-subutai/rest/subutai_console'
 require 'vagrant-subutai/command'
 require 'vagrant-subutai/config'
 require 'vagrant-subutai/plugin'
-require 'vagrant-subutai/rh_controller'
 require 'vagrant-subutai/subutai_commands'
 require 'vagrant-subutai/version'
+
+
+
+
+
+
+
 
