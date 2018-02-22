@@ -23,6 +23,7 @@ require 'vagrant-subutai/rest/subutai_console'
 require 'vagrant-subutai/command'
 require 'vagrant-subutai/config'
 require 'vagrant-subutai/plugin'
+require 'vagrant-subutai/put'
 require 'vagrant-subutai/subutai_commands'
 require 'vagrant-subutai/version'
 

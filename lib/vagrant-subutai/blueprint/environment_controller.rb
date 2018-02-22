@@ -26,6 +26,8 @@ module VagrantSubutai
           when Net::HTTPAccepted
             json = JSON.parse(response.body)
 
+            Put.warn "\nStarted \"#{@name}\" environment building ...... \n"
+
             @id          = json['environmentId']
             @tracker_id  = json['trackerId']
 
@@ -39,7 +41,9 @@ module VagrantSubutai
             @temp_last_index = nil
 
             logs.each_with_index do |v, i|
-              STDOUT.puts v
+              v = v.split(',')
+              v.shift
+              Put.info "#{v[1]}  #{v[0]}" unless v.empty?
               @temp_last_index = i
             end
 
@@ -55,7 +59,9 @@ module VagrantSubutai
 
               logs.each_with_index do |v, i|
                 if @logs_last_index < i
-                  STDOUT.puts v
+                  v = v.split(',')
+                  v.shift
+                  Put.info "#{v[1]}  #{v[0]}" unless v.empty?
                 end
                 @temp_last_index = i
               end
@@ -64,9 +70,13 @@ module VagrantSubutai
               @logs_last_index = @temp_last_index
             end
 
-            STDOUT.puts "\nBlueprint environment #{@name} state: #{@log['state']}"
+            if @log['state'] == Configs::EnvironmentState::SUCCEEDED
+              Put.success "\nEnvironment State: #{@log['state']}"
+            else
+              Put.error "\nEnvironment State: #{@log['state']}"
+            end
           else
-            STDOUT.puts STDERR.puts "Error: #{response.body}"
+            Put.error "Error: #{response.body}"
         end
       end
     end
