@@ -229,15 +229,6 @@ module SubutaiConfig
     stringified = Hash[@generated.map { |k, v| [k.to_s, v] }]
     File.open(GENERATED_FILE, 'w') { |f| f.write stringified.to_yaml }
 
-    stringified = Hash.new
-    @config.map do |k, v|
-      unless generated?(k)
-        if !k.nil? && !v.nil?
-          stringified.store(k.to_s, v)
-        end
-      end
-    end
-    File.open(CONF_FILE, 'w') { |f| f.write stringified.to_yaml }
     true
   end
 

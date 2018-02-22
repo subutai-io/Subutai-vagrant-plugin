@@ -24,6 +24,7 @@ module VagrantSubutai
 
         case response
           when Net::HTTPAccepted
+            Put.warn "Environment response #{response.body}"
             json = JSON.parse(response.body)
 
             Put.warn "\nStarted \"#{@name}\" environment building ...... \n"
@@ -72,6 +73,7 @@ module VagrantSubutai
 
             if @log['state'] == Configs::EnvironmentState::SUCCEEDED
               Put.success "\nEnvironment State: #{@log['state']}"
+
             else
               Put.error "\nEnvironment State: #{@log['state']}"
             end
