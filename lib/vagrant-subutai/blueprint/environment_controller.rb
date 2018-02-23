@@ -76,11 +76,10 @@ module VagrantSubutai
 
               if variable.has_ansible?
                 env = list(url, token)
-                ansible = VagrantSubutai::Blueprint::AnsibleController.new(@ansible, env)
+                ansible = VagrantSubutai::Blueprint::AnsibleController.new(@ansible, env, url, token)
                 ansible.hosts
+                ansible.download
                 ansible.run
-
-                Put.warn @ansible.context
               end
             else
               Put.error "\nEnvironment State: #{@log['state']}"
@@ -113,24 +112,24 @@ module VagrantSubutai
                   else
                     cont = VagrantSubutai::Models::Console::Container.new
                     cont.id            = container['id']
-                    cont.hostId        = container['hostId']
-                    cont.hostname      = container['hostName']
-                    cont.arch          = container['arch']
-                    cont.containerName = container['containerName']
-                    cont.ip            = container['ip']
-                    cont.templateId    = container['templateId']
-                    cont.templateName  = container['templateName']
-                    cont.quota         = container['quota']
                     cont.environmentId = container['environmentId']
+                    cont.hostname      = container['hostname']
+                    cont.ip            = container['ip']
+                    cont.templateName  = container['templateName']
+                    cont.templateId    = container['templateId']
+                    cont.type          = container['type']
+                    cont.arch          = container['arch']
                     cont.peerId        = container['peerId']
-                    cont.dataSource    = container['dataSource']
+                    cont.hostId        = container['hostId']
                     cont.local         = container['local']
                     cont.state         = container['state']
                     cont.rhId          = container['rhId']
-                    cont.type          = container['type']
-                  end
+                    cont.quota         = container['quota']
+                    cont.dataSource    = container['dataSource']
+                    cont.containerName = container['containerName']
 
-                  env.containers << cont
+                    env.containers << cont
+                  end
                 end
               end
             end
