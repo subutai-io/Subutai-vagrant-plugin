@@ -9,6 +9,10 @@ module VagrantSubutai
       ARG_IP_ADDR = 'ipaddr'.freeze
     end
 
+    module Ansible
+      TEMPLATE_NAME = 'generic-ansible'.freeze
+    end
+
     module Environment
       PROD   = 'prod'.freeze
       DEV    = 'dev'.freeze
@@ -34,7 +38,6 @@ module VagrantSubutai
     end
 
     module Gorjun
-      INFO_SYSNET = 'https://sysnetcdn.subut.ai:8338/kurjun/rest/template/info'.freeze
       INFO_DEV    = 'https://devcdn.subut.ai:8338/kurjun/rest/template/info'.freeze
       INFO_MASTER = 'https://mastercdn.subut.ai:8338/kurjun/rest/template/info'.freeze
       INFO_PROD   = 'https://cdn.subut.ai:8338/kurjun/rest/template/info'.freeze

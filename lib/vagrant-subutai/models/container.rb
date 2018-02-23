@@ -1,3 +1,5 @@
+# Blueprint container model
+
 module VagrantSubutai
   module Models
     class Container
@@ -21,12 +23,11 @@ module VagrantSubutai
         @template
       end
 
-      # TODO should be fixed this only works prod ansible
       def ansible
         @hostname = "ansible"
         @container_size = "TINY"
         @name = "generic-ansible"
-        @owner = "280dcda67a67d071970ff838d0331c33c0c04710"
+        @owner = "subutai"
       end
     end
   end

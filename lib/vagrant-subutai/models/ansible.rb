@@ -1,3 +1,5 @@
+# Blueprint ansible model
+
 module VagrantSubutai
   module Models
     class Ansible

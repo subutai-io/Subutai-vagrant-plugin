@@ -1,3 +1,5 @@
+# Subutai Console REST API container model
+
 module VagrantSubutai
   module Models
     module Console

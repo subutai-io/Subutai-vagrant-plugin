@@ -1,5 +1,6 @@
 require_relative '../../vagrant-subutai'
 require 'base64'
+require 'json'
 
 module VagrantSubutai
   module Blueprint
@@ -24,7 +25,6 @@ module VagrantSubutai
 
         case response
           when Net::HTTPAccepted
-            Put.warn "Environment response #{response.body}"
             json = JSON.parse(response.body)
 
             Put.warn "\nStarted \"#{@name}\" environment building ...... \n"
@@ -74,12 +74,72 @@ module VagrantSubutai
             if @log['state'] == Configs::EnvironmentState::SUCCEEDED
               Put.success "\nEnvironment State: #{@log['state']}"
 
+              if variable.has_ansible?
+                env = list(url, token)
+                ansible = VagrantSubutai::Blueprint::AnsibleController.new(@ansible, env)
+                ansible.hosts
+                ansible.run
+
+                Put.warn @ansible.context
+              end
             else
               Put.error "\nEnvironment State: #{@log['state']}"
             end
           else
             Put.error "Error: #{response.body}"
         end
+      end
+
+      # Gets Environment from Subutai Console REST API
+      def list(url, token)
+        env = VagrantSubutai::Models::Console::Environment.new
+        response = VagrantSubutai::Rest::SubutaiConsole.environments(url, token)
+
+        case response
+          when Net:: HTTPOK
+            environments = JSON.parse(response.body)
+            environments.each do |environment|
+              if environment['id'] == @id
+                env.id = @id
+                env.name = environment['name']
+                env.status = environment['status']
+                env.containers = []
+
+                environment['containers'].each do |container|
+
+                  if container['templateName'] == VagrantSubutai::Configs::Ansible::TEMPLATE_NAME
+                    env.ansible_host_id         = container['id']
+                    env.ansible_container_state = container['state']
+                  else
+                    cont = VagrantSubutai::Models::Console::Container.new
+                    cont.id            = container['id']
+                    cont.hostId        = container['hostId']
+                    cont.hostname      = container['hostName']
+                    cont.arch          = container['arch']
+                    cont.containerName = container['containerName']
+                    cont.ip            = container['ip']
+                    cont.templateId    = container['templateId']
+                    cont.templateName  = container['templateName']
+                    cont.quota         = container['quota']
+                    cont.environmentId = container['environmentId']
+                    cont.peerId        = container['peerId']
+                    cont.dataSource    = container['dataSource']
+                    cont.local         = container['local']
+                    cont.state         = container['state']
+                    cont.rhId          = container['rhId']
+                    cont.type          = container['type']
+                  end
+
+                  env.containers << cont
+                end
+              end
+            end
+          else
+            Put.error response.body
+            raise 'Can\'t get Environment lists from Subutai Console'
+        end
+
+        env
       end
     end
   end

@@ -25,13 +25,12 @@ module VagrantSubutai
 
       def self.url
         env = SubutaiConfig.get(:SUBUTAI_ENV)
+        env = env.to_s
 
         if env == VagrantSubutai::Configs::Environment::PROD
           return VagrantSubutai::Configs::Gorjun::INFO_PROD
         elsif env == VagrantSubutai::Configs::Environment::MASTER
           return VagrantSubutai::Configs::Gorjun::INFO_MASTER
-        elsif env == VagrantSubutai::Configs::Environment::SYSNET
-          return VagrantSubutai::Configs::Gorjun::INFO_SYSNET
         elsif env == VagrantSubutai::Configs::Environment::DEV
           return VagrantSubutai::Configs::Gorjun::INFO_DEV
         end
