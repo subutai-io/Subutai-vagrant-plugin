@@ -1,3 +1,5 @@
+# Blueprint environment model
+
 module VagrantSubutai
   module Models
     class Environment

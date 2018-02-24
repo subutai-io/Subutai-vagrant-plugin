@@ -1,3 +1,4 @@
+# Blueprint container model
 
 module VagrantSubutai
   module Models
@@ -20,6 +21,13 @@ module VagrantSubutai
 
       def template
         @template
+      end
+
+      def ansible
+        @hostname = "ansible"
+        @container_size = "TINY"
+        @name = "generic-ansible"
+        @owner = "subutai"
       end
     end
   end

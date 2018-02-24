@@ -75,6 +75,8 @@ module VagrantSubutai
               end
             end
           end.parse!
+        when 'open'
+          subutai_cli.open(check_subutai_console_url(subutai_cli))
         when 'blueprint'
           subutai_cli.blueprint(check_subutai_console_url(subutai_cli))
         when '-h'
@@ -146,6 +148,7 @@ COMMANDS:
      fingerprint             - shows fingerprint Subutai Console
      disk                    - manage Subutai disk
      blueprint               - build Blueprint
+     open                    - open Subutai Console
 
 GLOBAL OPTIONS:
      -h, --help              - show help

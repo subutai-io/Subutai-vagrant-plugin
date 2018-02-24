@@ -53,21 +53,20 @@ module VagrantSubutai
 
       case response
         when Net::HTTPOK
-          STDOUT.puts 'Successfully you signed Subutai Console'
           hub_email, hub_password, peer_name, peer_scope = get_input_register
           response = Rest::SubutaiConsole.register(response.body, url, hub_email, hub_password, peer_name, peer_scope)
 
           case response
             when Net::HTTPOK
-              STDOUT.puts "Body: #{response.body}"
-              STDOUT.puts "You peer: \"#{peer_name}\" successfully registered to hub."
+              Put.success response.body
+              Put.success "\"#{peer_name}\" successfully registered to hub."
               SubutaiConfig.put(:_REGISTERED, true, true)
             else
-              STDOUT.puts "Try again! #{response.body}\n"
+              Put.error "Error: #{response.body}\n"
               register(username, password, url)
           end
         else
-          STDERR.puts "Try again! #{response.body}\n"
+          Put.error "Error: #{response.body}\n"
           register(nil, nil, url)
       end
     end
@@ -75,15 +74,15 @@ module VagrantSubutai
     # Show Subutai Console finger print
     def fingerprint(url)
       peer_id = Rest::SubutaiConsole.fingerprint(url)
-      STDOUT.puts peer_id
+      Put.info peer_id
     end
 
     # Get Subutai console credentials from input
     def get_input_token
-      STDOUT.puts '\nPlease enter credentials Subutai Console:\n'
-      STDOUT.puts 'username: '
+      Put.warn "\nPlease enter credentials Subutai Console:\n"
+      Put.info "\nusername: "
       username = STDIN.gets.chomp
-      puts 'password: '
+      Put.info "\npassword: "
       password = STDIN.noecho(&:gets).chomp
 
       [username, password]
@@ -91,24 +90,24 @@ module VagrantSubutai
 
     # Get Hub credentials and peer info
     def get_input_register
-      STDOUT.puts '\nRegister your peer to HUB:\n'
+      Put.warn "\nRegister your peer to HUB:\n"
 
       # Hub email
-      STDOUT.puts 'Enter Hub email: '
+      Put.info "\nEnter Hub email: "
       hub_email = STDIN.gets.chomp
 
       # Hub password
-      STDOUT.puts 'Enter Hub password: '
+      Put.info "\nEnter Hub password: "
       hub_password = STDIN.noecho(&:gets).chomp
 
       # Peer name
-      STDOUT.puts 'Enter peer name: '
+      Put.info "Enter peer name: "
       peer_name = STDIN.gets.chomp
 
       # Peer scope
-      STDOUT.puts '1. Public'
-      STDOUT.puts '2. Private'
-      STDOUT.puts 'Choose your peer scope (1 or 2): '
+      Put.info "1. Public"
+      Put.info "2. Private"
+      Put.info "Choose your peer scope (1 or 2): "
       peer_scope = STDIN.gets.chomp.to_i
 
       [hub_email, hub_password, peer_name, peer_scope]
@@ -130,7 +129,18 @@ module VagrantSubutai
           env = Blueprint::EnvironmentController.new
           env.build(url, response.body, rh_id, peer_id)
         else
-          STDERR.puts " Invalid Subutai Console credentials"
+          Put.error "Error: #{response.body}"
+      end
+    end
+
+    # opens browser
+    def open(link)
+      if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
+        system "start #{link}"
+      elsif RbConfig::CONFIG['host_os'] =~ /darwin/
+        system "open #{link}"
+      elsif RbConfig::CONFIG['host_os'] =~ /linux|bsd/
+        system "xdg-open #{link}"
       end
     end
 

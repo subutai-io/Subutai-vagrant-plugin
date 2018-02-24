@@ -45,6 +45,7 @@ COMMANDS:
        register                - register Subutai Peer to Hub
        fingerprint             - shows fingerprint Subutai Console
        disk                    - manage Subutai disk
+       open                    - open Subutai Console
 
 GLOBAL OPTIONS:
        -h, --help              - show help
