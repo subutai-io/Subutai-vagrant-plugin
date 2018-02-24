@@ -44,8 +44,20 @@ module VagrantSubutai
 
           ansible.ansible_playbook = ansible_configuration['ansible-playbook']
           ansible.source_url = ansible_configuration['source-url']
-          ansible.groups = ansible_configuration['groups']
           ansible.extra_vars = []
+
+          groups = []
+          ansible_configuration['groups'].each do |group|
+            temp = group
+            temp['hostnames'] = []
+
+            group['hostnames'].each do |host|
+              temp['hostnames'] << value(host)
+            end
+            groups << temp
+          end
+
+          ansible.groups = groups
 
           if ansible_configuration.key?('extra-vars')
             ansible_configuration['extra-vars'].each do |obj|

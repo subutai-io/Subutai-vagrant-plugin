@@ -16,6 +16,7 @@ module VagrantSubutai
 
         if variable.has_ansible?
           @ansible = variable.ansible
+          Put.warn @ansible.context
         end
 
         params = variable.params(rh_id, peer_id)
@@ -51,24 +52,26 @@ module VagrantSubutai
             @logs_last_index = @temp_last_index
 
             until @log['state'] == Configs::EnvironmentState::SUCCEEDED || @log['state'] == Configs::EnvironmentState::FAILED
-
               @log = VagrantSubutai::Rest::SubutaiConsole.log(url, token, @tracker_id)
-              @log = JSON.parse(@log.body)
 
-              decoded_log = Base64.decode64(@log['log'])
-              logs = decoded_log.split(/\{(.*?)\}\,/)
+              begin
+                @log = JSON.parse(@log.body)
+                decoded_log = Base64.decode64(@log['log'])
+                logs = decoded_log.split(/\{(.*?)\}\,/)
 
-              logs.each_with_index do |v, i|
-                if @logs_last_index < i
-                  v = v.split(',')
-                  v.shift
-                  Put.info "#{v[1]}  #{v[0]}" unless v.empty?
+                logs.each_with_index do |v, i|
+                  if @logs_last_index < i
+                    v = v.split(',')
+                    v.shift
+                    Put.info "#{v[1]}  #{v[0]}" unless v.empty?
+                  end
+                  @temp_last_index = i
                 end
-                @temp_last_index = i
+
+                @logs_last_index = @temp_last_index
+              rescue JSON::ParserError
+                Put.error @log.body
               end
-
-
-              @logs_last_index = @temp_last_index
             end
 
             if @log['state'] == Configs::EnvironmentState::SUCCEEDED
@@ -105,7 +108,6 @@ module VagrantSubutai
                 env.containers = []
 
                 environment['containers'].each do |container|
-
                   if container['templateName'] == VagrantSubutai::Configs::Ansible::TEMPLATE_NAME
                     env.ansible_host_id         = container['id']
                     env.ansible_container_state = container['state']
