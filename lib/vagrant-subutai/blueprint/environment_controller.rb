@@ -16,7 +16,6 @@ module VagrantSubutai
 
         if variable.has_ansible?
           @ansible = variable.ansible
-          Put.warn @ansible.context
         end
 
         params = variable.params(rh_id, peer_id)

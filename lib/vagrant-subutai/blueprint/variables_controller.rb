@@ -8,8 +8,12 @@ module VagrantSubutai
 
       # @params path
       def initialize(path)
-        @json = JSON.parse(File.read(path))
-        @variables = user_variables
+        begin
+          @json = JSON.parse(File.read(path))
+          @variables = user_variables
+        rescue JSON::ParserError => e
+          Put.error e
+        end
       end
 
       # Gives Subutai.json user variables
@@ -45,19 +49,18 @@ module VagrantSubutai
           ansible.ansible_playbook = ansible_configuration['ansible-playbook']
           ansible.source_url = ansible_configuration['source-url']
           ansible.extra_vars = []
+          ansible.groups = []
 
-          groups = []
           ansible_configuration['groups'].each do |group|
             temp = group
-            temp['hostnames'] = []
+            hostnames = []
 
-            group['hostnames'].each do |host|
-              temp['hostnames'] << value(host)
+            group['hostnames'].each do |hostname|
+              hostnames << value(hostname)
             end
-            groups << temp
+            temp['hostnames'] = hostnames
+            ansible.groups << temp
           end
-
-          ansible.groups = groups
 
           if ansible_configuration.key?('extra-vars')
             ansible_configuration['extra-vars'].each do |obj|

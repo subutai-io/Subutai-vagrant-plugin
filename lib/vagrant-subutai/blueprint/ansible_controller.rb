@@ -37,22 +37,24 @@ module VagrantSubutai
       # Downloads ansible source
       def download
         Put.info "\nStarted downloading ansible source url...."
-        response = Rest::SubutaiConsole.command("bash /root/get_unzip.sh #{@ansible.source_url}", @environment.ansible_host_id, "/root","1000", @url, @token)
+        response = Rest::SubutaiConsole.command("ansible-playbook download.json -e 'ansible_python_interpreter=/usr/bin/python3' --extra-vars '{ \"source_url\": \"#{@ansible.source_url}\"}'", @environment.ansible_host_id, "/root","1000", @url, @token)
         status(response)
       end
 
       # Runs ansible playbook
       def run
-        Put.info "\nStarted running ansible playbook...."
+        Put.info "\nStarted running ansible playbook may be take too long time please wait......."
         if @ansible.extra_vars.empty?
-          response = Rest::SubutaiConsole.command("cd *-*;ansible-playbook #{@ansible.ansible_playbook} -e 'ansible_python_interpreter=/usr/bin/python3'", @environment.ansible_host_id, "/root","1000", @url, @token)
+          Put.warn "cd /root/master/*/;ansible-playbook #{@ansible.ansible_playbook} -e 'ansible_python_interpreter=/usr/bin/python3'"
+          response = Rest::SubutaiConsole.command("cd /root/master/*/;ansible-playbook #{@ansible.ansible_playbook} -e 'ansible_python_interpreter=/usr/bin/python3'", @environment.ansible_host_id, "/root","1000", @url, @token)
           status(response)
         else
           extra_vars = {}
           @ansible.extra_vars.each do |extra_var|
             extra_var.map {|k, v| extra_vars[k] = v }
           end
-          response = Rest::SubutaiConsole.command("cd *-*;ansible-playbook #{@ansible.ansible_playbook} -e 'ansible_python_interpreter=/usr/bin/python3' --extra-vars #{extra_vars.to_json}", @environment.ansible_host_id, "/root","10000", @url, @token)
+          Put.warn "cd /root/master/*/;ansible-playbook #{@ansible.ansible_playbook} -e 'ansible_python_interpreter=/usr/bin/python3' --extra-vars '#{extra_vars.to_json}'"
+          response = Rest::SubutaiConsole.command("cd /root/master/*/;ansible-playbook #{@ansible.ansible_playbook} -e 'ansible_python_interpreter=/usr/bin/python3' --extra-vars '#{extra_vars.to_json}'", @environment.ansible_host_id, "/root","10000", @url, @token)
           status(response)
         end
       end

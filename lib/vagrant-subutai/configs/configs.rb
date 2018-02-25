@@ -10,7 +10,7 @@ module VagrantSubutai
     end
 
     module Ansible
-      TEMPLATE_NAME = 'generic-ansible'.freeze
+      TEMPLATE_NAME = 'ansible'.freeze
     end
 
     module Environment
