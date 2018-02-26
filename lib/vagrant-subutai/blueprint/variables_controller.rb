@@ -4,10 +4,20 @@ require 'json'
 module VagrantSubutai
   module Blueprint
     class VariablesController
-      attr_accessor :json, :variables
+      attr_accessor :json,
+                    :variables,
+                    :required_ram,        # sum of all containers ram size required (in unit GB)
+                    :required_disk,       # sum of all containers disk size required (in unit GB)
+                    :available_ram,       # available peer ram size (in unit GB)
+                    :available_disk       # available peer disk size (in unit GB)
 
       # @params path
-      def initialize(path)
+      def initialize(path, available_ram, available_disk)
+        @available_disk = available_disk
+        @available_ram = available_ram
+        @required_ram   = 0
+        @required_disk  = 0
+
         begin
           @json = JSON.parse(File.read(path))
           @variables = user_variables
@@ -89,6 +99,9 @@ module VagrantSubutai
           node['resourceHostId'] = rh_id
           node['peerId'] = peer_id
           nodes << node
+
+          @required_ram  += VagrantSubutai::Configs::Quota::RESOURCE[container.container_size]['RAM']
+          @required_disk += VagrantSubutai::Configs::Quota::RESOURCE[container.container_size]['DISK']
         end
 
         hash['name'] = env.name
@@ -158,9 +171,14 @@ module VagrantSubutai
           Put.info "\nEnter your container size (Ex: #{variable_json['default']}): "
           validations = variable_json['validation'].split(',')
           validations.each_with_index do |validation, index|
-            Put.info "    #{index}. #{validation}"
+            if @available_ram >= Configs::Quota::RESOURCE[validation]['RAM'] && @available_disk >= Configs::Quota::RESOURCE[validation]['DISK']
+              Put.warn "Available ram: #{@available_ram} >= #{Configs::Quota::RESOURCE[validation]['RAM']}"
+              Put.warn "Available disk: #{@available_disk} >= #{Configs::Quota::RESOURCE[validation]['DISK']}"
+
+              Put.info "    #{index}. #{validation}"
+            end
           end
-          Put.info "\nChoose your container size between ( 0 to n): "
+          Put.info "\nChoose your container size between ( 0 to #{validations.length-1}): "
           input = STDIN.gets.strip.to_i
           validations[input]
         else

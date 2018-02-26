@@ -93,6 +93,19 @@ module VagrantSubutai
         https.request(request)
       end
 
+      # Gets Peer Os resources (disk, ram and cpu)
+      # method GET
+      def self.resource(url, token)
+        uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::RESOURCES + token)
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+
+        request = Net::HTTP::Get.new(uri.request_uri)
+
+        https.request(request)
+      end
+
       # List Environments
       # method GET
       def self.environments(url, token)
