@@ -13,14 +13,11 @@ module VagrantSubutai
                     :free_ram,     # Peer free ram unit in GB
                     :free_disk     # Peer free disk size unit in GB
 
-      def build(url,token, rh_id, peer_id)
-        check_quota(peer_id, url, token)
-        Put.warn "free ram #{@free_ram}"
-        Put.warn "free disk #{@free_disk}"
-        variable = Blueprint::VariablesController.new("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}", @free_ram, @free_disk)
+      def build(url, token, rh_id, peer_id)
+        check_free_quota(peer_id, url, token)
 
-        variable.available_ram = @free_ram
-        variable.available_disk = @free_disk
+        variable = Blueprint::VariablesController.new("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}")
+        variable.check_required_quota
 
         if variable.has_ansible?
           @ansible = variable.ansible
@@ -99,12 +96,17 @@ module VagrantSubutai
               Put.error "Error: #{response.body}"
           end
         else
-          Put.warn "No available resource on this peer"
+          Put.error "No available resources on the Peer Os"
+          Put.info "---------------------"
+          Put.warn "RAM:  available = #{@free_ram} gb, required minimum = #{variable.required_ram}"
+          Put.warn "DISK: available = #{@free_disk} gb, required minimum = #{variable.required_disk}"
+          Put.info "---------------------"
+
         end
       end
 
       # Checks peer available resource ram, disk
-      def check_quota(peer_id, url, token)
+      def check_free_quota(peer_id, url, token)
         response = VagrantSubutai::Rest::SubutaiConsole.resource(url, token)
         case response
           when Net::HTTPOK
