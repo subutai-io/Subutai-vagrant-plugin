@@ -16,17 +16,17 @@ module VagrantSubutai
       def build(url, token, rh_id, peer_id)
         check_free_quota(peer_id, url, token)
 
-        variable = Blueprint::VariablesController.new("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}")
+        variable = VagrantSubutai::Blueprint::VariablesController.new(@free_ram, @free_disk)
         variable.check_required_quota
 
-        if variable.has_ansible?
-          @ansible = variable.ansible
-        end
-
-        params = variable.params(rh_id, peer_id)
-        @name = params['name']
-
         if @free_ram >= variable.required_ram && @free_disk >= variable.required_disk
+          if variable.has_ansible?
+            @ansible = variable.ansible
+          end
+
+          params = variable.params(rh_id, peer_id)
+          @name = params['name']
+
           response = Rest::SubutaiConsole.environment(url, token, params.to_json)
 
           case response
@@ -96,12 +96,20 @@ module VagrantSubutai
               Put.error "Error: #{response.body}"
           end
         else
-          Put.error "No available resources on the Peer Os"
-          Put.info "---------------------"
-          Put.warn "RAM:  available = #{@free_ram} gb, required minimum = #{variable.required_ram}"
-          Put.warn "DISK: available = #{@free_disk} gb, required minimum = #{variable.required_disk}"
-          Put.info "---------------------"
+          Put.error "\nNo available resources on the Peer Os\n"
+          Put.info "--------------------------------------------------------------------"
+          if @free_ram >= variable.required_ram
+            Put.info "RAM:  available = #{@free_ram} gb, required minimum = #{variable.required_ram} gb"
+          else
+            Put.error "RAM:  available = #{@free_ram} gb, required minimum = #{variable.required_ram} gb"
+          end
 
+          if @free_disk >= variable.required_disk
+            Put.info "DISK:  available = #{@free_disk} gb, required minimum = #{variable.required_disk} gb"
+          else
+            Put.error "DISK:  available = #{@free_disk} gb, required minimum = #{variable.required_disk} gb"
+          end
+          Put.info "--------------------------------------------------------------------"
         end
       end
 
