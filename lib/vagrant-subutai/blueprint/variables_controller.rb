@@ -20,7 +20,7 @@ module VagrantSubutai
 
         begin
           @json = JSON.parse(File.read("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}"))
-        rescue JSON::ParserError => e
+        rescue => e
           Put.error e
         end
       end
@@ -54,6 +54,9 @@ module VagrantSubutai
               @required_disk += VagrantSubutai::Configs::Quota::RESOURCE[user_variables[key]['default']]['DISK']
             end
           end
+
+          @required_ram  += VagrantSubutai::Configs::Quota::RESOURCE['TINY']['RAM'] if @json.key?('ansible-configuration')  # default ansible container ram
+          @required_disk += VagrantSubutai::Configs::Quota::RESOURCE['TINY']['DISK'] if @json.key?('ansible-configuration') # default ansible container disk
         end
       end
 
@@ -202,12 +205,17 @@ module VagrantSubutai
 
       # Validate variable
       # @params var, type, validation
-      def validate(var, variable_json)
+      def validate_variable(var, variable_json)
         if (var =~ /#{Regexp.quote(variable_json['validation'])}/).nil?
           false
         else
           true
         end
+      end
+
+      # Validates Subutai.json file
+      def validate
+
       end
     end
   end
