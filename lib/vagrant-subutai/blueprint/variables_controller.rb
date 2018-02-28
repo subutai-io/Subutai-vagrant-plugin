@@ -215,6 +215,26 @@ module VagrantSubutai
 
       # Validates Subutai.json file
       def validate
+        scheme = Configs::Blueprint::SCHEME
+
+        # Check keys
+        @json.keys.each do |key|
+          unless scheme.key?(key.to_sym)
+            Put.error "Undefined key \"#{key}\""
+            return false
+          end
+        end
+
+        scheme_container = scheme[:containers].first
+        # Check container keys
+        @json['containers'].each do |container|
+          container.keys.each do |key|
+            unless scheme_container.key?(key.to_sym)
+              Put.error "Undefined key \"#{key}\""
+            end
+          end
+        end
+
 
       end
     end

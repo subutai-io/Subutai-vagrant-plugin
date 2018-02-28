@@ -118,6 +118,7 @@ module VagrantSubutai
     end
 
     def blueprint(url)
+=begin
       username, password = get_input_token if username.nil? && password.nil?
       response = Rest::SubutaiConsole.token(url, username, password)
 
@@ -131,6 +132,9 @@ module VagrantSubutai
         else
           Put.error "Error: #{response.body}"
       end
+=end
+      env = Blueprint::EnvironmentController.new
+      env.build(url, nil, nil, nil)
     end
 
     # opens browser

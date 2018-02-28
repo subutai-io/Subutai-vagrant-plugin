@@ -14,12 +14,62 @@ module VagrantSubutai
     end
 
     module Quota
-      RESOURCE = { 'TINY'   => {'CPU' => 10,  'RAM' => 0.25, 'DISK' => 4},
-                   'SMALL'  => {'CPU' => 25,  'RAM' => 0.5,  'DISK' => 10},
-                   'MEDIUM' => {'CPU' => 50,  'RAM' => 1,    'DISK' => 20},
-                   'LARGE'  => {'CPU' => 75,  'RAM' => 2,    'DISK' => 40},
-                   'HUGE'   => {'CPU' => 100, 'RAM' => 4,    'DISK' => 100}
+      # CPU       percentage %
+      # RAM, DISK unit Gigabytes
+      RESOURCE = {
+                   TINY:    { CPU: 10,  RAM: 0.25, DISK: 4 },
+                   SMALL:   { CPU: 25,  RAM: 0.5,  DISK: 10 },
+                   MEDIUM:  { CPU: 50,  RAM: 1,    DISK: 20 },
+                   LARGE:   { CPU: 75,  RAM: 2,    DISK: 40 },
+                   HUGE:    { CPU: 100, RAM: 4,    DISK: 100 }
                   }.freeze
+    end
+
+    module Blueprint
+      SCHEME = {
+                 name:            'name',
+                 description:     'My static website',
+                 containers:      [
+                                   {
+                                     hostname:   'www',
+                                     template:   'apache',
+                                     size:       'TINY',
+                                     'peer-criteria':   'HTTP-GROUP',
+                                     'port-mapping':     [
+                                                          {
+                                                            protocol:      'http',
+                                                            domain:        '${domain}',
+                                                            'internal-port' => '80',
+                                                            'external-port' => '80'
+                                                          },
+                                                          {
+                                                            protocol:       'tcp',
+                                                            domain:         '${domain}',
+                                                            'internal-port' => '22',
+                                                            'external-port' => '4040'
+                                                          }
+                                                        ]
+                                   }
+                                  ],
+                 'peer-criteria':   [
+                                     {
+                                       name:                   'HTTP-GROUP',
+                                       'max-price':            '5',
+                                       'avg-cpu-load':         '50',
+                                       'min-free-ram':         '128',
+                                       'min-free-disk-space':  '10'
+                                     }
+                                    ],
+                 'user-variables':  {
+                                       domain: {
+                                                 description: 'Select your domain or create new one',
+                                                 type:        'domain',
+                                                 default:     'site.env.subutai.cloud',
+                                                 validation:  '[a-zA-Z0-9.-]+'
+                                               }
+                                     }
+               }.freeze
+      CONTAINER_SIZES = %w(TINY SMALL MEDIUM LARGE HUGE).freeze
     end
 
     module Environment
