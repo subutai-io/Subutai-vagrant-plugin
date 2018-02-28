@@ -4,12 +4,25 @@ require 'json'
 module VagrantSubutai
   module Blueprint
     class VariablesController
-      attr_accessor :json, :variables
+      attr_accessor :json,
+                    :variables,
+                    :required_ram,         # sum of all containers ram size required (in unit GB)
+                    :required_disk,        # sum of all containers disk size required (in unit GB)
+                    :available_ram,        # sum of all containers ram size free (in unit GB)
+                    :available_disk        # sum of all containers disk size free (in unit GB)
 
       # @params path
-      def initialize(path)
-        @json = JSON.parse(File.read(path))
-        @variables = user_variables
+      def initialize(available_ram, available_disk)
+        @required_ram   = 0
+        @required_disk  = 0
+        @available_ram = available_ram
+        @available_disk = available_disk
+
+        begin
+          @json = JSON.parse(File.read("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}"))
+        rescue => e
+          Put.error e
+        end
       end
 
       # Gives Subutai.json user variables
@@ -29,6 +42,24 @@ module VagrantSubutai
         hash
       end
 
+      # This counts how mach quota(ram, disk) required for building environment from the Peer Os
+      def check_required_quota
+        if @json.key?('user-variables')
+          user_variables = @json['user-variables']
+          keys = user_variables.keys
+
+          keys.each do |key|
+            if user_variables[key]['type'] == 'enum'
+              @required_ram  += VagrantSubutai::Configs::Quota::RESOURCE[user_variables[key]['default']]['RAM']
+              @required_disk += VagrantSubutai::Configs::Quota::RESOURCE[user_variables[key]['default']]['DISK']
+            end
+          end
+
+          @required_ram  += VagrantSubutai::Configs::Quota::RESOURCE['TINY']['RAM'] if @json.key?('ansible-configuration')  # default ansible container ram
+          @required_disk += VagrantSubutai::Configs::Quota::RESOURCE['TINY']['DISK'] if @json.key?('ansible-configuration') # default ansible container disk
+        end
+      end
+
       def has_ansible?
         if @json.key?('ansible-configuration')
           true
@@ -38,14 +69,27 @@ module VagrantSubutai
       end
 
       def ansible
+        @variables = user_variables
+
         if has_ansible?
           ansible = VagrantSubutai::Models::Ansible.new
           ansible_configuration = @json['ansible-configuration']
 
           ansible.ansible_playbook = ansible_configuration['ansible-playbook']
           ansible.source_url = ansible_configuration['source-url']
-          ansible.groups = ansible_configuration['groups']
           ansible.extra_vars = []
+          ansible.groups = []
+
+          ansible_configuration['groups'].each do |group|
+            temp = group
+            hostnames = []
+
+            group['hostnames'].each do |hostname|
+              hostnames << value(hostname)
+            end
+            temp['hostnames'] = hostnames
+            ansible.groups << temp
+          end
 
           if ansible_configuration.key?('extra-vars')
             ansible_configuration['extra-vars'].each do |obj|
@@ -142,10 +186,16 @@ module VagrantSubutai
         if variable_json['type'] == 'enum'
           Put.info "\nEnter your container size (Ex: #{variable_json['default']}): "
           validations = variable_json['validation'].split(',')
+
+          temp = nil
           validations.each_with_index do |validation, index|
-            Put.info "    #{index}. #{validation}"
+            if @available_ram >= Configs::Quota::RESOURCE[validation]['RAM'] && @available_disk >= Configs::Quota::RESOURCE[validation]['DISK']
+              Put.info "    #{index}. #{validation}"
+              temp = index
+            end
           end
-          Put.info "\nChoose your container size between ( 0 to n): "
+
+          Put.info "\nChoose your container size between ( 0 to #{temp}): "
           input = STDIN.gets.strip.to_i
           validations[input]
         else
@@ -155,12 +205,17 @@ module VagrantSubutai
 
       # Validate variable
       # @params var, type, validation
-      def validate(var, variable_json)
+      def validate_variable(var, variable_json)
         if (var =~ /#{Regexp.quote(variable_json['validation'])}/).nil?
           false
         else
           true
         end
+      end
+
+      # Validates Subutai.json file
+      def validate
+
       end
     end
   end

@@ -10,7 +10,16 @@ module VagrantSubutai
     end
 
     module Ansible
-      TEMPLATE_NAME = 'generic-ansible'.freeze
+      TEMPLATE_NAME = 'ansible'.freeze
+    end
+
+    module Quota
+      RESOURCE = { 'TINY'   => {'CPU' => 10,  'RAM' => 0.25, 'DISK' => 4},
+                   'SMALL'  => {'CPU' => 25,  'RAM' => 0.5,  'DISK' => 10},
+                   'MEDIUM' => {'CPU' => 50,  'RAM' => 1,    'DISK' => 20},
+                   'LARGE'  => {'CPU' => 75,  'RAM' => 2,    'DISK' => 40},
+                   'HUGE'   => {'CPU' => 100, 'RAM' => 4,    'DISK' => 100}
+                  }.freeze
     end
 
     module Environment
@@ -34,6 +43,7 @@ module VagrantSubutai
         HOSTS        = '/rest/v1/hosts?sptoken='.freeze
         ENVIRONMENTS = '/rest/v1/environments?sptoken='.freeze
         LOG          = '/rest/v1/tracker/operations/ENVIRONMENT%20MANAGER/'.freeze
+        RESOURCES    = '/rest/v1/peer/resources?sptoken='.freeze
       end
     end
 

@@ -59,7 +59,7 @@ module VagrantSubutai
           case response
             when Net::HTTPOK
               Put.success response.body
-              Put.success "\"#{peer_name}\" successfully registered to hub."
+              Put.success "\"#{peer_name}\" successfully registered to Bazaar."
               SubutaiConfig.put(:_REGISTERED, true, true)
             else
               Put.error "Error: #{response.body}\n"
@@ -79,7 +79,7 @@ module VagrantSubutai
 
     # Get Subutai console credentials from input
     def get_input_token
-      Put.warn "\nPlease enter credentials Subutai Console:\n"
+      Put.warn "\nPlease enter credentials Subutai Peer Os:\n"
       Put.info "\nusername: "
       username = STDIN.gets.chomp
       Put.info "\npassword: "
@@ -90,24 +90,24 @@ module VagrantSubutai
 
     # Get Hub credentials and peer info
     def get_input_register
-      Put.warn "\nRegister your peer to HUB:\n"
+      Put.warn "\nRegister your peer to Bazaar:\n"
 
       # Hub email
-      Put.info "\nEnter Hub email: "
+      Put.info "\nEnter Bazaar email: "
       hub_email = STDIN.gets.chomp
 
       # Hub password
-      Put.info "\nEnter Hub password: "
+      Put.info "\nEnter Bazaar password: "
       hub_password = STDIN.noecho(&:gets).chomp
 
       # Peer name
-      Put.info "Enter peer name: "
+      Put.info "\nEnter Peer Os name: "
       peer_name = STDIN.gets.chomp
 
       # Peer scope
-      Put.info "1. Public"
+      Put.info "\n1. Public"
       Put.info "2. Private"
-      Put.info "Choose your peer scope (1 or 2): "
+      Put.info "\nChoose your Peer Os scope (1 or 2): "
       peer_scope = STDIN.gets.chomp.to_i
 
       [hub_email, hub_password, peer_name, peer_scope]
