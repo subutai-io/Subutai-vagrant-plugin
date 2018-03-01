@@ -221,7 +221,7 @@ module VagrantSubutai
 
           temp = nil
           validations.each_with_index do |validation, index|
-            if @available_ram >= Configs::Quota::RESOURCE[validation]['RAM'] && @available_disk >= Configs::Quota::RESOURCE[validation]['DISK']
+            if @available_ram >= Configs::Quota::RESOURCE[validation.to_sym][:RAM] && @available_disk >= Configs::Quota::RESOURCE[validation.to_sym][:DISK]
               Put.info "    #{index}. #{validation}"
               temp = index
             end
