@@ -29,6 +29,8 @@ module VagrantSubutai
       SCHEME = {
                  name:            'name',
                  description:     'My static website',
+                 version:         'Blueprint version',
+                 'author':        'Author',
                  containers:      [
                                    {
                                      hostname:   'www',

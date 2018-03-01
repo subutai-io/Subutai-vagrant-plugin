@@ -82,13 +82,13 @@ module VagrantSubutai
 
           keys.each do |key|
             if user_variables[key][KEYS[:type]] == 'enum'
-              @required_ram  += VagrantSubutai::Configs::Quota::RESOURCE[user_variables[key]['default']]['RAM']
-              @required_disk += VagrantSubutai::Configs::Quota::RESOURCE[user_variables[key]['default']]['DISK']
+              @required_ram  += (VagrantSubutai::Configs::Quota::RESOURCE[(user_variables[key][KEYS[:default]]).to_sym][:RAM])
+              @required_disk += (VagrantSubutai::Configs::Quota::RESOURCE[(user_variables[key][KEYS[:default]]).to_sym][:DISK])
             end
           end
 
-          @required_ram  += VagrantSubutai::Configs::Quota::RESOURCE['TINY']['RAM'] if @json.key?(KEYS[:ansible_configuration])  # default ansible container ram
-          @required_disk += VagrantSubutai::Configs::Quota::RESOURCE['TINY']['DISK'] if @json.key?(KEYS[:ansible_configuration]) # default ansible container disk
+          @required_ram  += VagrantSubutai::Configs::Quota::RESOURCE[:TINY][:RAM] if @json.key?(KEYS[:ansible_configuration])  # default ansible container ram
+          @required_disk += VagrantSubutai::Configs::Quota::RESOURCE[:TINY][:DISK] if @json.key?(KEYS[:ansible_configuration]) # default ansible container disk
         end
       end
 
@@ -267,18 +267,20 @@ module VagrantSubutai
               return false
             end
 
-            if key == KEYS[:size]
+            if key == KEYS[:size] && !is_variable?(container[KEYS[:size]])
               unless Configs::Blueprint::CONTAINER_SIZES.include?(container[KEYS[:size]])
                 Put.error "Undefined container size: #{container[KEYS[:size]]}"
                 return false
               end
             end
 
-            container[KEYS[:port_mapping]].each do |port_map|
-              port_map.keys.each do |key|
-                unless scheme_port_mapping.key?(key.to_sym)
-                  Put.error "Undefined port-mapping key: #{key}"
-                  return false
+            if container.key?(KEYS[:port_mapping])
+              container[KEYS[:port_mapping]].each do |port_map|
+                port_map.keys.each do |key|
+                  unless scheme_port_mapping.key?(key.to_sym)
+                    Put.error "Undefined port-mapping key: #{key}"
+                    return false
+                  end
                 end
               end
             end
@@ -354,6 +356,8 @@ module VagrantSubutai
             end
           end
         end
+
+        true
       end
     end
   end

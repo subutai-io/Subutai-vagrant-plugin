@@ -14,12 +14,7 @@ module VagrantSubutai
                     :free_disk     # Peer free disk size unit in GB
 
       def build(url, token, rh_id, peer_id)
-        #check_free_quota(peer_id, url, token)
-
-        variable = VagrantSubutai::Blueprint::VariablesController.new(@free_ram, @free_disk)
-        variable.validate
-
-=begin
+        check_free_quota(peer_id, url, token)
 
         variable = VagrantSubutai::Blueprint::VariablesController.new(@free_ram, @free_disk)
         variable.check_required_quota
@@ -116,7 +111,6 @@ module VagrantSubutai
           end
           Put.info "--------------------------------------------------------------------"
         end
-=end
       end
 
       # Checks peer available resource ram, disk
