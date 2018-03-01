@@ -39,16 +39,16 @@ module VagrantSubutai
                                                           {
                                                             protocol:      'http',
                                                             domain:        '${domain}',
-                                                            'internal-port' => '80',
-                                                            'external-port' => '80'
+                                                            'internal-port':  '80',
+                                                            'external-port':  '80'
                                                           },
                                                           {
                                                             protocol:       'tcp',
                                                             domain:         '${domain}',
-                                                            'internal-port' => '22',
-                                                            'external-port' => '4040'
+                                                            'internal-port':  '22',
+                                                            'external-port':  '4040'
                                                           }
-                                                        ]
+                                                         ]
                                    }
                                   ],
                  'peer-criteria':   [
@@ -60,8 +60,26 @@ module VagrantSubutai
                                        'min-free-disk-space':  '10'
                                      }
                                     ],
+                 'ansible-configuration': {
+                     'source-url': 'zip_file_url',
+                     'ansible-playbook': 'any_name',
+                     'extra-vars': [
+                         {
+                             'key': 'any_name',
+                             'value': 'any_name_value'
+                         }
+                     ],
+                     'groups': [
+                         {
+                             'name': 'any_name',
+                             'hostnames': [
+                                 'hostname_of_container'
+                             ]
+                         }
+                     ]
+                 },
                  'user-variables':  {
-                                       domain: {
+                                       any_name: {
                                                  description: 'Select your domain or create new one',
                                                  type:        'domain',
                                                  default:     'site.env.subutai.cloud',
