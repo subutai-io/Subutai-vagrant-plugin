@@ -11,17 +11,49 @@ module VagrantSubutai
                     :available_ram,        # sum of all containers ram size free (in unit GB)
                     :available_disk        # sum of all containers disk size free (in unit GB)
 
-      # @params path
+      KEYS = {
+               name:                  'name',
+               description:           'description',
+               containers:            'containers',
+               hostname:              'hostname',
+               template:              'template',
+               size:                  'size',
+               peer_criteria:         'peer-criteria',
+               port_mapping:          'port-mapping',
+               protocol:              'protocol',
+               domain:                'domain',
+               internal_port:         'internal-port',
+               external_port:         'external-port',
+               max_price:             'max-price',
+               avg_cpu_load:          'avg-cpu-load',
+               min_free_ram:          'min-free-ram',
+               min_free_disk_space:   'min-free-disk-space',
+               user_variables:        'user-variables',
+               type:                  'type',
+               default:               'default',
+               validation:            'validation',
+               ansible_configuration: 'ansible-configuration',
+               extra_vars:            'extra-vars',
+               key:                   'key',
+               value:                 'value',
+               source_url:            'source-url',
+               ansible_playbook:      'ansible-playbook',
+               groups:                'groups',
+               hostnames:             'hostnames'
+             }.freeze
+
+      # @params available_ram, available_disk
       def initialize(available_ram, available_disk)
         @required_ram   = 0
         @required_disk  = 0
-        @available_ram = available_ram
+        @available_ram  = available_ram
         @available_disk = available_disk
 
         begin
           @json = JSON.parse(File.read("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}"))
         rescue => e
           Put.error e
+          exit!
         end
       end
 
@@ -30,8 +62,8 @@ module VagrantSubutai
       def user_variables
         hash = {}
 
-        if @json.key?('user-variables')
-          user_variables = @json['user-variables']
+        if @json.key?(KEYS[:user_variables])
+          user_variables = @json[KEYS[:user_variables]]
           keys = user_variables.keys
 
           keys.each do |key|
@@ -44,24 +76,24 @@ module VagrantSubutai
 
       # This counts how mach quota(ram, disk) required for building environment from the Peer Os
       def check_required_quota
-        if @json.key?('user-variables')
-          user_variables = @json['user-variables']
+        if @json.key?(KEYS[:user_variables])
+          user_variables = @json[KEYS[:user_variables]]
           keys = user_variables.keys
 
           keys.each do |key|
-            if user_variables[key]['type'] == 'enum'
-              @required_ram  += VagrantSubutai::Configs::Quota::RESOURCE[user_variables[key]['default']]['RAM']
-              @required_disk += VagrantSubutai::Configs::Quota::RESOURCE[user_variables[key]['default']]['DISK']
+            if user_variables[key][KEYS[:type]] == 'enum'
+              @required_ram  += (VagrantSubutai::Configs::Quota::RESOURCE[(user_variables[key][KEYS[:default]]).to_sym][:RAM])
+              @required_disk += (VagrantSubutai::Configs::Quota::RESOURCE[(user_variables[key][KEYS[:default]]).to_sym][:DISK])
             end
           end
 
-          @required_ram  += VagrantSubutai::Configs::Quota::RESOURCE['TINY']['RAM'] if @json.key?('ansible-configuration')  # default ansible container ram
-          @required_disk += VagrantSubutai::Configs::Quota::RESOURCE['TINY']['DISK'] if @json.key?('ansible-configuration') # default ansible container disk
+          @required_ram  += VagrantSubutai::Configs::Quota::RESOURCE[:TINY][:RAM] if @json.key?(KEYS[:ansible_configuration])  # default ansible container ram
+          @required_disk += VagrantSubutai::Configs::Quota::RESOURCE[:TINY][:DISK] if @json.key?(KEYS[:ansible_configuration]) # default ansible container disk
         end
       end
 
       def has_ansible?
-        if @json.key?('ansible-configuration')
+        if @json.key?(KEYS[:ansible_configuration])
           true
         else
           false
@@ -73,28 +105,28 @@ module VagrantSubutai
 
         if has_ansible?
           ansible = VagrantSubutai::Models::Ansible.new
-          ansible_configuration = @json['ansible-configuration']
+          ansible_configuration = @json[KEYS[:ansible_configuration]]
 
-          ansible.ansible_playbook = ansible_configuration['ansible-playbook']
-          ansible.source_url = ansible_configuration['source-url']
+          ansible.ansible_playbook = ansible_configuration[KEYS[:ansible_playbook]]
+          ansible.source_url = ansible_configuration[KEYS[:source_url]]
           ansible.extra_vars = []
           ansible.groups = []
 
-          ansible_configuration['groups'].each do |group|
+          ansible_configuration[KEYS[:groups]].each do |group|
             temp = group
             hostnames = []
 
-            group['hostnames'].each do |hostname|
+            group[KEYS[:hostnames]].each do |hostname|
               hostnames << value(hostname)
             end
-            temp['hostnames'] = hostnames
+            temp[KEYS[:hostnames]] = hostnames
             ansible.groups << temp
           end
 
-          if ansible_configuration.key?('extra-vars')
-            ansible_configuration['extra-vars'].each do |obj|
+          if ansible_configuration.key?(KEYS[:extra_vars])
+            ansible_configuration[KEYS[:extra_vars]].each do |obj|
               hash = {}
-              hash[obj['key']] = value(obj['value'])
+              hash[obj[KEYS[:key]]] = value(obj[KEYS[:value]])
               ansible.extra_vars << hash
             end
           end
@@ -147,7 +179,7 @@ module VagrantSubutai
       # @return Environment model
       def environment
         env = VagrantSubutai::Models::Environment.new
-        env.name = value(@json['name'])
+        env.name = value(@json[KEYS[:name]])
         env.containers = containers
         env
       end
@@ -157,19 +189,19 @@ module VagrantSubutai
       def containers
         arr = []
 
-        @json['containers'].each do |container|
+        @json[KEYS[:containers]].each do |container|
           cont = VagrantSubutai::Models::Container.new
 
-          cont.hostname = value(container['hostname'])
-          cont.container_size = value(container['size'])
-          cont.template = container['template']
-          cont.peer_criteria = container['peer-criteria']
-          cont.port_mapping = container['port-mapping']
+          cont.hostname = value(container[KEYS[:hostname]])
+          cont.container_size = value(container[KEYS[:size]])
+          cont.template = container[KEYS[:template]]
+          cont.peer_criteria = container[KEYS[:peer_criteria]]
+          cont.port_mapping = container[KEYS[:port_mapping]]
 
           arr << cont
         end
 
-        if @json.key?('ansible-configuration')
+        if @json.key?(KEYS[:ansible_configuration])
           cont = VagrantSubutai::Models::Container.new
           cont.ansible
           arr << cont
@@ -181,15 +213,15 @@ module VagrantSubutai
       # Gets input variable
       # @params variable json object
       def get_input(variable_json)
-        Put.info "\n#{variable_json['description']}: (Ex: #{variable_json['default']})"
+        Put.info "\n#{variable_json[KEYS[:description]]}: (Ex: #{variable_json[KEYS[:default]]})"
 
-        if variable_json['type'] == 'enum'
-          Put.info "\nEnter your container size (Ex: #{variable_json['default']}): "
-          validations = variable_json['validation'].split(',')
+        if variable_json[KEYS[:type]] == 'enum'
+          Put.info "\nEnter your container size (Ex: #{variable_json[KEYS[:default]]}): "
+          validations = variable_json[KEYS[:validation]].split(',')
 
           temp = nil
           validations.each_with_index do |validation, index|
-            if @available_ram >= Configs::Quota::RESOURCE[validation]['RAM'] && @available_disk >= Configs::Quota::RESOURCE[validation]['DISK']
+            if @available_ram >= Configs::Quota::RESOURCE[validation.to_sym][:RAM] && @available_disk >= Configs::Quota::RESOURCE[validation.to_sym][:DISK]
               Put.info "    #{index}. #{validation}"
               temp = index
             end
@@ -206,7 +238,7 @@ module VagrantSubutai
       # Validate variable
       # @params var, type, validation
       def validate_variable(var, variable_json)
-        if (var =~ /#{Regexp.quote(variable_json['validation'])}/).nil?
+        if (var =~ /#{Regexp.quote(variable_json[KEYS[:validation]])}/).nil?
           false
         else
           true
@@ -215,7 +247,117 @@ module VagrantSubutai
 
       # Validates Subutai.json file
       def validate
+        scheme = Configs::Blueprint::SCHEME
 
+        # Check keys
+        @json.keys.each do |key|
+          unless scheme.key?(key.to_sym)
+            Put.error "Undefined key: \"#{key}\""
+            return false
+          end
+        end
+
+        scheme_container = scheme[:containers].first
+        scheme_port_mapping = scheme_container[KEYS[:port_mapping].to_sym].first
+        # Check container keys
+        @json[KEYS[:containers]].each do |container|
+          container.keys.each do |key|
+            unless scheme_container.key?(key.to_sym)
+              Put.error "Undefined key: \"#{key}\""
+              return false
+            end
+
+            if key == KEYS[:size] && !is_variable?(container[KEYS[:size]])
+              unless Configs::Blueprint::CONTAINER_SIZES.include?(container[KEYS[:size]])
+                Put.error "Undefined container size: #{container[KEYS[:size]]}"
+                return false
+              end
+            end
+
+            if container.key?(KEYS[:port_mapping])
+              container[KEYS[:port_mapping]].each do |port_map|
+                port_map.keys.each do |key|
+                  unless scheme_port_mapping.key?(key.to_sym)
+                    Put.error "Undefined port-mapping key: #{key}"
+                    return false
+                  end
+                end
+              end
+            end
+          end
+        end
+
+        # Check ansible configuration
+        if @json.key?(KEYS[:ansible_configuration])
+          @json[KEYS[:ansible_configuration]].keys.each do |key|
+            unless scheme[KEYS[:ansible_configuration].to_sym].key?(key.to_sym)
+              Put.error "Undefined ansible-configuration key: #{key}"
+              return false
+            end
+          end
+
+          # check extra-vars
+          if @json[KEYS[:ansible_configuration]].key?(KEYS[:extra_vars])
+            unless @json[KEYS[:ansible_configuration]][KEYS[:extra_vars]].kind_of?(Array)
+              Put.error "ansible-configuration extra-vals should be JSON array \"[]\""
+              return false
+            end
+
+            @json[KEYS[:ansible_configuration]][KEYS[:extra_vars]].each do |extra_var|
+              unless extra_var.key?(KEYS[:key])
+                Put.error "ansible-configuration extra-vals has no \"key\" key"
+                return false
+              end
+
+              unless extra_var.key?(KEYS[:value])
+                Put.error "ansible-configuration extra-vals has no \"value\" key"
+                return false
+              end
+            end
+          end
+
+          # check groups
+          if @json[KEYS[:ansible_configuration]].key?(KEYS[:groups])
+            unless @json[KEYS[:ansible_configuration]][KEYS[:groups]].kind_of?(Array)
+              Put.error "groups should be JSON array"
+              return false
+            end
+
+            @json[KEYS[:ansible_configuration]][KEYS[:groups]].each do |group|
+              group.keys.each do |key|
+                unless scheme[KEYS[:ansible_configuration].to_sym][KEYS[:groups].to_sym].first.key?(key.to_sym)
+                  Put.error "Undefined groups key: #{key}"
+                  return false
+                end
+              end
+            end
+          end
+        end
+
+        # check peer criteria
+        @json[KEYS[:peer_criteria]].each do |peer_criteria|
+          peer_criteria.keys.each do |key|
+            unless scheme[KEYS[:peer_criteria].to_sym].first.key?(key.to_sym)
+              Put.error "Undefined peer-criteria key: #{key}"
+              return false
+            end
+          end
+        end
+
+        # check user-variables
+        if @json.key?(KEYS[:user_variables])
+          @json[KEYS[:user_variables]].keys.each do |key|
+            user_variable = @json[KEYS[:user_variables]][key]
+            user_variable.keys.each do |key|
+              unless scheme[KEYS[:user_variables].to_sym][:any_name].key?(key.to_sym)
+                Put.error "Undefined user-variables key: #{key}"
+                return false
+              end
+            end
+          end
+        end
+
+        true
       end
     end
   end

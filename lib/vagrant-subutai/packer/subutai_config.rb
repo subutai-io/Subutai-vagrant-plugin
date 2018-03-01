@@ -363,6 +363,7 @@ module SubutaiConfig
     end
   end
 
+  # TODO remove Openssl verify (if certificate expired in cdn this code will be crashed)
   def self.get_latest_id_artifact(owner, artifact_name)
     url = url_of_cdn + '/raw/info?owner=' + owner + '&name=' + artifact_name
     uri = URI(url)

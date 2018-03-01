@@ -118,18 +118,22 @@ module VagrantSubutai
     end
 
     def blueprint(url)
-      username, password = get_input_token if username.nil? && password.nil?
-      response = Rest::SubutaiConsole.token(url, username, password)
+      variable = VagrantSubutai::Blueprint::VariablesController.new(0, 0)
 
-      case response
-        when Net::HTTPOK
-          rh_id = info('id')
-          peer_id = Rest::SubutaiConsole.fingerprint(url)
+      if variable.validate
+        username, password = get_input_token if username.nil? && password.nil?
+        response = Rest::SubutaiConsole.token(url, username, password)
 
-          env = Blueprint::EnvironmentController.new
-          env.build(url, response.body, rh_id, peer_id)
-        else
-          Put.error "Error: #{response.body}"
+        case response
+          when Net::HTTPOK
+            rh_id = info('id')
+            peer_id = Rest::SubutaiConsole.fingerprint(url)
+
+            env = Blueprint::EnvironmentController.new
+            env.build(url, response.body, rh_id, peer_id)
+          else
+            Put.error "Error: #{response.body}"
+        end
       end
     end
 
