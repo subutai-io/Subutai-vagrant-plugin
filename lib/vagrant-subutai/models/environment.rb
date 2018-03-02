@@ -4,7 +4,7 @@ module VagrantSubutai
   module Models
     class Environment
       attr_accessor :name,
-                    :containers
+                    :containers # Model 'Container'
     end
   end
 end

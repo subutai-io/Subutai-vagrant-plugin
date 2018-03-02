@@ -114,6 +114,7 @@ module VagrantSubutai
         ENVIRONMENTS = '/rest/v1/environments?sptoken='.freeze
         LOG          = '/rest/v1/tracker/operations/ENVIRONMENT%20MANAGER/'.freeze
         RESOURCES    = '/rest/v1/peer/resources?sptoken='.freeze
+        DOMAIN       = '/rest/ui/environments/{ENV_ID}/domains?sptoken='.freeze
       end
     end
 

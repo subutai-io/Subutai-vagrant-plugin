@@ -81,13 +81,35 @@ module VagrantSubutai
 
               if @log['state'] == Configs::EnvironmentState::SUCCEEDED
                 Put.success "\nEnvironment State: #{@log['state']}"
+              
+                #if variable.has_ansible?
+                #  env = list(url, token)
+                #  ansible = VagrantSubutai::Blueprint::AnsibleController.new(@ansible, env, url, token)
+                #  ansible.hosts
+                #  ansible.download
+                #  ansible.run
+                #end
 
-                if variable.has_ansible?
-                  env = list(url, token)
-                  ansible = VagrantSubutai::Blueprint::AnsibleController.new(@ansible, env, url, token)
-                  ansible.hosts
-                  ansible.download
-                  ansible.run
+                domain = variable.domain
+                unless domain.nil?
+                  response = VagrantSubutai::Rest::SubutaiConsole.domain(url, token, @id, domain.name)
+                  case response
+                    when Net::HTTPOK
+                      if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
+                        Put.info "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{url.delete('https://')} in your C:\Windows\System32\drivers\etc\hosts file or to your local DNS."                        
+                      else
+                        Put.info "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{url.delete('https://')} in your /etc/hosts file or to your local DNS."                        
+                      end
+                    else
+                      Put.error response.body
+                  end         
+                  Put.warn '------------------------'
+                  Put.info domain.name
+                  Put.info domain.protocol
+                  Put.info domain.internal_port
+                  Put.info domain.external_port
+                  Put.warn '------------------------'                
+                  # TODO MESSAGE You're environment has been setup for a *local* ${domain}. You can map this domain to the IP address ${ip_addr} in your /etc/hosts file or to your local DNS.
                 end
               else
                 Put.error "\nEnvironment State: #{@log['state']}"

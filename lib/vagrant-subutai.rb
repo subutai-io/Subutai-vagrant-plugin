@@ -10,6 +10,7 @@ require 'vagrant-subutai/models/console/container'
 require 'vagrant-subutai/models/console/environment'
 require 'vagrant-subutai/models/ansible'
 require 'vagrant-subutai/models/container'
+require 'vagrant-subutai/models/domain'
 require 'vagrant-subutai/models/environment'
 
 require 'vagrant-subutai/packer/subutai_config'

@@ -13,7 +13,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 1 # 1 hour
+        https.read_timeout = 60 * 60 * 1 # an hour
 
         request = Net::HTTP::Post.new(uri.request_uri)
         request.set_form_data('username' => username, 'password' => password)
@@ -29,7 +29,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 1 # 1 hour
+        https.read_timeout = 60 * 60 * 1 # an hour
 
         request = Net::HTTP::Post.new(uri.request_uri)
         request.set_form_data({'email' => email, 'password' => password, 'peerName' => peer_name, 'peerScope' => peer_scope})
@@ -43,7 +43,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 1 # 1 hour
+        https.read_timeout = 60 * 60 * 1 # an hour
 
         request = Net::HTTP::Post.new(uri.request_uri)
 
@@ -56,7 +56,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 1 # 1 hour
+        https.read_timeout = 60 * 60 * 1 # an hour
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
@@ -77,7 +77,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 1 # 1 hour
+        https.read_timeout = 60 * 60 * 1 # an hour
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
@@ -106,7 +106,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 1 # 1 hour
+        https.read_timeout = 60 * 60 * 1 # an hour
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
@@ -120,7 +120,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 1 # 1 hour
+        https.read_timeout = 60 * 60 * 1 # an hour
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
@@ -152,6 +152,20 @@ module VagrantSubutai
         https.read_timeout = 60 * 60 * 6 # 6 hours
 
         request = Net::HTTP::Get.new(uri.request_uri)
+
+        https.request(request)
+      end
+
+      # Add domain to Environment
+      def self.domain(url, token, env_id, domain)
+        uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::DOMAIN.gsub('{ENV_ID}', env_id) + token)
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 60 * 60 * 1 # an hour
+
+        request = Net::HTTP::Post.new(uri.request_uri)
+        request.set_form_data({'hostName' => domain, 'strategy' => 'NONE', 'file' => ''})
 
         https.request(request)
       end
