@@ -10,15 +10,15 @@ module VagrantSubutai
       # login methods gets token
       def self.token(url, username, password)
         uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::TOKEN)
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        http.read_timeout = 60 * 60 * 6 # 6 hours
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 60 * 60 * 1 # 1 hour
 
         request = Net::HTTP::Post.new(uri.request_uri)
         request.set_form_data('username' => username, 'password' => password)
 
-        http.request(request)
+        https.request(request)
       end
 
       # Subutai Hub credentials email, password
@@ -29,6 +29,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 60 * 60 * 1 # 1 hour
 
         request = Net::HTTP::Post.new(uri.request_uri)
         request.set_form_data({'email' => email, 'password' => password, 'peerName' => peer_name, 'peerScope' => peer_scope})
@@ -42,6 +43,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 60 * 60 * 1 # 1 hour
 
         request = Net::HTTP::Post.new(uri.request_uri)
 
@@ -54,6 +56,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 60 * 60 * 1 # 1 hour
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
@@ -74,6 +77,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 60 * 60 * 1 # 1 hour
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
@@ -102,6 +106,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 60 * 60 * 1 # 1 hour
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
@@ -115,6 +120,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 60 * 60 * 1 # 1 hour
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
