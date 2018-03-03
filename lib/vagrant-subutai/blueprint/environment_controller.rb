@@ -81,7 +81,7 @@ module VagrantSubutai
 
               if @log['state'] == Configs::EnvironmentState::SUCCEEDED
                 Put.success "\nEnvironment State: #{@log['state']}"
-              
+=begin
                 if variable.has_ansible?
                   env = list(url, token)
                   ansible = VagrantSubutai::Blueprint::AnsibleController.new(@ansible, env, url, token)
@@ -89,8 +89,7 @@ module VagrantSubutai
                   ansible.download
                   ansible.run
                 end
-
-=begin
+=end
                 domain = variable.domain
                 unless domain.nil?
                   response = VagrantSubutai::Rest::SubutaiConsole.domain(url, token, @id, domain.name)
@@ -112,7 +111,6 @@ module VagrantSubutai
                   Put.warn '------------------------'                
                   # TODO MESSAGE You're environment has been setup for a *local* ${domain}. You can map this domain to the IP address ${ip_addr} in your /etc/hosts file or to your local DNS.
                 end
-=end
               else
                 Put.error "\nEnvironment State: #{@log['state']}"
               end
