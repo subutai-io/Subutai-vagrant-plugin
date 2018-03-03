@@ -54,13 +54,13 @@ module VagrantSubutai
       case response
         when Net::HTTPOK
           hub_email, hub_password, peer_name, peer_scope = get_input_register
+          peer_scope = peer_scope == 1 ? 'Public':'Private'
           response = Rest::SubutaiConsole.register(response.body, url, hub_email, hub_password, peer_name, peer_scope)
 
           case response
             when Net::HTTPOK
               Put.success response.body
               Put.success "\"#{peer_name}\" successfully registered to Bazaar."
-              SubutaiConfig.put(:_REGISTERED, true, true)
             else
               Put.error "Error: #{response.body}\n"
               register(username, password, url)
@@ -128,9 +128,13 @@ module VagrantSubutai
           when Net::HTTPOK
             rh_id = info('id')
             peer_id = Rest::SubutaiConsole.fingerprint(url)
+            response = VagrantSubutai::Rest::SubutaiConsole.test(url, response.body, 'edf7dc66-d712-4631-abb8-b7c8d30d5635', "check.kg")
+            Put.info response.body
+            Put.info response.code
+            Put.info response.message
 
-            env = Blueprint::EnvironmentController.new
-            env.build(url, response.body, rh_id, peer_id)
+            #env = Blueprint::EnvironmentController.new
+            #env.build(url, response.body, rh_id, peer_id)
           else
             Put.error "Error: #{response.body}"
         end

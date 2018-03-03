@@ -92,7 +92,13 @@ module VagrantSubutai
 =end
                 domain = variable.domain
                 unless domain.nil?
+                  Put.info "Environment id: #{@id}"
+                  Put.info "URL: #{url}"
+                  Put.info "Token: #{token}"
+                  Put.info "domain name: #{domain.name}"
+
                   response = VagrantSubutai::Rest::SubutaiConsole.domain(url, token, @id, domain.name)
+                  Put.info response.body
                   case response
                     when Net::HTTPOK
                       if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/

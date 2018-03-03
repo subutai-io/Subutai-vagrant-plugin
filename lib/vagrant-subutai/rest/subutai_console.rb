@@ -1,6 +1,8 @@
 require 'net/https'
 require 'uri'
 require_relative '../../vagrant-subutai'
+require 'mime/types'
+require 'json'
 
 module VagrantSubutai
   module Rest
@@ -11,8 +13,9 @@ module VagrantSubutai
       def self.token(url, username, password)
         uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::TOKEN)
         https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 1 # an hour
+        https.read_timeout = 3600 # an hour
 
         request = Net::HTTP::Post.new(uri.request_uri)
         request.set_form_data('username' => username, 'password' => password)
@@ -26,8 +29,9 @@ module VagrantSubutai
       def self.register(token, url, email, password, peer_name, peer_scope)
         uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::REGISTER_HUB + token)
         https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 1 # an hour
+        https.read_timeout = 3600 # an hour
 
         request = Net::HTTP::Post.new(uri.request_uri)
         request.set_form_data({'email' => email, 'password' => password, 'peerName' => peer_name, 'peerScope' => peer_scope})
@@ -41,7 +45,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 1 # an hour
+        https.read_timeout = 3600 # an hour
 
         request = Net::HTTP::Post.new(uri.request_uri)
 
@@ -54,7 +58,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 1 # an hour
+        https.read_timeout = 3600 # an hour
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
@@ -75,7 +79,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 1 # an hour
+        https.read_timeout = 3600 # an hour
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
@@ -89,7 +93,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 6 # 6 hours
+        https.read_timeout = 21600 # 6 hours
 
         request = Net::HTTP::Post.new(uri.request_uri)
         request.set_form_data({'topology' => params})
@@ -104,7 +108,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 1 # an hour
+        https.read_timeout = 3600 # an hour
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
@@ -118,7 +122,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 1 # an hour
+        https.read_timeout = 3600 # an hour
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
@@ -132,7 +136,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 6 # 6 hours
+        https.read_timeout = 21600 # 6 hours
 
         request = Net::HTTP::Post.new(uri.request_uri)
         request.set_form_data({'command' => cmd, 'hostId' => hostId, 'path' => path, 'timeOut' => timeOut})
@@ -147,7 +151,7 @@ module VagrantSubutai
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 6 # 6 hours
+        https.read_timeout = 21600 # 6 hours
 
         request = Net::HTTP::Get.new(uri.request_uri)
 
@@ -156,16 +160,40 @@ module VagrantSubutai
 
       # Add domain to Environment
       def self.domain(url, token, env_id, domain)
-        uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::DOMAIN.gsub('{ENV_ID}', env_id) + token)
+        Put.warn "#{url}#{Configs::SubutaiConsoleAPI::V1::DOMAIN}#{env_id}/domains?sptoken=#{token}"
+        uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::DOMAIN + "#{env_id}/domains?sptoken=#{token}")
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 60 * 60 * 1 # an hour
+        https.read_timeout = 3600 # an hour
 
         request = Net::HTTP::Post.new(uri.request_uri)
-        request.set_form_data({'hostName' => domain, 'strategy' => 'NONE', 'file' => ''})
+        request.content_type = "multipart/form-data, boundary=AaB03x"
+        request.body = [{'hostName' => domain, 'strategy' => 'NONE', 'file' => ''}].to_json
 
         https.request(request)
+      end
+
+      def self.test(url, token, env_id, domain)
+        uri = URI.parse("#{url}#{Configs::SubutaiConsoleAPI::V1::DOMAIN}#{env_id}/domains?sptoken=#{token}")
+
+        boundary = "56895652659859"
+        header = {"Content-Type": "multipart/form-data, boundary=#{boundary}"}
+        data = { 'hostName' => domain, 'strategy' => 'NONE' }
+
+        post_body = []
+
+        post_body << "--#{boundary}\r\n"
+        post_body << "Content-Disposition: form-data; name=\"file\"; filename=\"\"\r\n"
+
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = true
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        request = Net::HTTP::Post.new(uri.request_uri, header)
+        request.body = post_body.join
+        request.set_form_data(data)
+
+        http.request(request)
       end
     end
   end

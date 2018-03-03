@@ -114,13 +114,14 @@ module VagrantSubutai
         ENVIRONMENTS = '/rest/v1/environments?sptoken='.freeze
         LOG          = '/rest/v1/tracker/operations/ENVIRONMENT%20MANAGER/'.freeze
         RESOURCES    = '/rest/v1/peer/resources?sptoken='.freeze
-        DOMAIN       = '/rest/ui/environments/{ENV_ID}/domains?sptoken='.freeze
+        DOMAIN       = '/rest/ui/environments/'.freeze
       end
     end
 
     module Gorjun
-      INFO_DEV    = 'https://devcdn.subut.ai:8338/kurjun/rest/template/info'.freeze
-      INFO_MASTER = 'https://mastercdn.subut.ai:8338/kurjun/rest/template/info'.freeze
+      INFO_DEV    = 'https://devcdn.subutai.io:8338/kurjun/rest/template/info'.freeze
+      INFO_MASTER = 'https://mastercdn.subutai.io:8338/kurjun/rest/template/info'.freeze
+      # TODO change https://cdn.subutai.io:8338/kurjun/rest/template/info
       INFO_PROD   = 'https://cdn.subut.ai:8338/kurjun/rest/template/info'.freeze
     end
 
