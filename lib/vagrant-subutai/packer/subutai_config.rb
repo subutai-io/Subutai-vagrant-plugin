@@ -89,6 +89,7 @@ module SubutaiConfig
 
   @bridged = false
 
+  # TODO change url to cdn.subutai.io
   @url_of_cdn = 'https://cdn.subut.ai:8338/kurjun/rest'
 
   def self.write?

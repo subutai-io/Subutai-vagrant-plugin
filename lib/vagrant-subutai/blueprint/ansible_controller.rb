@@ -36,7 +36,7 @@ module VagrantSubutai
 
       # Downloads ansible source
       def download
-        Put.info "\nStarted downloading ansible source url...."
+        Put.info "\nStarted downloading ansible source...."
         response = Rest::SubutaiConsole.command("ansible-playbook download.json -e 'ansible_python_interpreter=/usr/bin/python3' --extra-vars '{ \"source_url\": \"#{@ansible.source_url}\"}'", @environment.ansible_host_id, "/root","360000", @url, @token)
         status(response)
       end
