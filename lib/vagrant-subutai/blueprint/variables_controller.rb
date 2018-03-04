@@ -210,6 +210,30 @@ module VagrantSubutai
         arr
       end
 
+      # Domain
+      # @return Domain Model or nil
+      def domain
+        @json[KEYS[:containers]].each do |container|
+          if container.key?(KEYS[:port_mapping])
+            container[KEYS[:port_mapping]].each do |port_map|
+              if port_map[KEYS[:protocol]] == 'HTTP' || port_map[KEYS[:protocol]] == 'http'
+                domain = VagrantSubutai::Models::Domain.new
+
+                domain.protocol = port_map[KEYS[:protocol]]
+                domain.name = value(port_map[KEYS[:domain]])
+                domain.internal_port = port_map[KEYS[:internal_port]]
+                domain.external_port = port_map[KEYS[:external_port]]
+                domain.container_hostname = value(container[KEYS[:hostname]])
+
+                return domain
+              end
+            end
+          end
+        end
+
+        nil
+      end
+
       # Gets input variable
       # @params variable json object
       def get_input(variable_json)

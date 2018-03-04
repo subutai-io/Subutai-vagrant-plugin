@@ -54,13 +54,13 @@ module VagrantSubutai
       case response
         when Net::HTTPOK
           hub_email, hub_password, peer_name, peer_scope = get_input_register
+          peer_scope = peer_scope == 1 ? 'Public':'Private'
           response = Rest::SubutaiConsole.register(response.body, url, hub_email, hub_password, peer_name, peer_scope)
 
           case response
             when Net::HTTPOK
               Put.success response.body
               Put.success "\"#{peer_name}\" successfully registered to Bazaar."
-              SubutaiConfig.put(:_REGISTERED, true, true)
             else
               Put.error "Error: #{response.body}\n"
               register(username, password, url)

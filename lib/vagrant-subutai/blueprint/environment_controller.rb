@@ -11,7 +11,8 @@ module VagrantSubutai
                     :id,           # Environment build id
                     :tracker_id,   # Environment logs tracker id
                     :free_ram,     # Peer free ram unit in GB
-                    :free_disk     # Peer free disk size unit in GB
+                    :free_disk,    # Peer free disk size unit in GB
+                    :container_ids # Container Hash {'hostname' => id}
 
       def build(url, token, rh_id, peer_id)
         check_free_quota(peer_id, url, token)
@@ -82,12 +83,39 @@ module VagrantSubutai
               if @log['state'] == Configs::EnvironmentState::SUCCEEDED
                 Put.success "\nEnvironment State: #{@log['state']}"
 
+                env = list(url, token)
+
                 if variable.has_ansible?
-                  env = list(url, token)
                   ansible = VagrantSubutai::Blueprint::AnsibleController.new(@ansible, env, url, token)
                   ansible.hosts
                   ansible.download
                   ansible.run
+                end
+
+                domain = variable.domain
+                unless domain.nil?
+                  response = VagrantSubutai::Rest::SubutaiConsole.domain(url, token, @id, domain.name)
+
+                  case response
+                    when Net::HTTPOK
+
+                      response = VagrantSubutai::Rest::SubutaiConsole.port(url, token, @id, @container_ids[domain.container_hostname], domain.internal_port)
+
+                      unless response.code == 200 || response.code == 202
+                        Put.error response.message
+                        Put.error response.body
+                      end
+
+                      if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
+                        Put.warn "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{url.delete('https://')} in your C:\Windows\System32\drivers\etc\hosts file or to your local DNS."
+                      else
+                        Put.warn "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{url.delete('https://')} in your /etc/hosts file or to your local DNS."
+                      end
+                    else
+                      Put.error response.body
+                      Put.error response.code
+                      Put.error response.message
+                  end
                 end
               else
                 Put.error "\nEnvironment State: #{@log['state']}"
@@ -143,6 +171,8 @@ module VagrantSubutai
         env = VagrantSubutai::Models::Console::Environment.new
         response = VagrantSubutai::Rest::SubutaiConsole.environments(url, token)
 
+        @container_ids = {}
+
         case response
           when Net:: HTTPOK
             environments = JSON.parse(response.body)
@@ -175,6 +205,7 @@ module VagrantSubutai
                     cont.quota         = container['quota']
                     cont.dataSource    = container['dataSource']
                     cont.containerName = container['containerName']
+                    @container_ids[cont.hostname] = cont.id
 
                     env.containers << cont
                   end
