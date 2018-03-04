@@ -128,7 +128,7 @@ module VagrantSubutai
           when Net::HTTPOK
             rh_id = info('id')
             peer_id = Rest::SubutaiConsole.fingerprint(url)
-            response = VagrantSubutai::Rest::SubutaiConsole.test(url, response.body, 'edf7dc66-d712-4631-abb8-b7c8d30d5635', "check.kg")
+            response = VagrantSubutai::Rest::SubutaiConsole.test1(url, response.body, 'edf7dc66-d712-4631-abb8-b7c8d30d5635', "check.kg")
             Put.info response.body
             Put.info response.code
             Put.info response.message
