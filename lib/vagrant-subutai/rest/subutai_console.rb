@@ -160,43 +160,6 @@ module VagrantSubutai
 
       # Add domain to Environment
       def self.domain(url, token, env_id, domain)
-        Put.warn "#{url}#{Configs::SubutaiConsoleAPI::V1::DOMAIN}#{env_id}/domains?sptoken=#{token}"
-        uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::DOMAIN + "#{env_id}/domains?sptoken=#{token}")
-        https = Net::HTTP.new(uri.host, uri.port)
-        https.use_ssl = true
-        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        https.read_timeout = 3600 # an hour
-
-        request = Net::HTTP::Post.new(uri.request_uri)
-        request.content_type = "multipart/form-data, boundary=AaB03x"
-        request.body = [{'hostName' => domain, 'strategy' => 'NONE', 'file' => ''}].to_json
-
-        https.request(request)
-      end
-
-      def self.test(url, token, env_id, domain)
-        uri = URI.parse("#{url}#{Configs::SubutaiConsoleAPI::V1::DOMAIN}#{env_id}/domains?sptoken=#{token}")
-
-        boundary = "56895652659859"
-        header = {"Content-Type": "multipart/form-data, boundary=#{boundary}"}
-        data = { 'hostName' => domain, 'strategy' => 'NONE' }
-
-        post_body = []
-
-        post_body << "--#{boundary}\r\n"
-        post_body << "Content-Disposition: form-data; name=\"file\"; filename=\"\"\r\n"
-
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        request = Net::HTTP::Post.new(uri.request_uri, header)
-        request.body = post_body.join
-        request.set_form_data(data)
-
-        http.request(request)
-      end
-
-      def self.test1(url, token, env_id, domain)
         uri = URI.parse("#{url}#{Configs::SubutaiConsoleAPI::V1::DOMAIN}#{env_id}/domains?sptoken=#{token}")
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true

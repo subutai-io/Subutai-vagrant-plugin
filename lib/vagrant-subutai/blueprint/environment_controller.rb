@@ -81,7 +81,7 @@ module VagrantSubutai
 
               if @log['state'] == Configs::EnvironmentState::SUCCEEDED
                 Put.success "\nEnvironment State: #{@log['state']}"
-=begin
+
                 if variable.has_ansible?
                   env = list(url, token)
                   ansible = VagrantSubutai::Blueprint::AnsibleController.new(@ansible, env, url, token)
@@ -89,7 +89,7 @@ module VagrantSubutai
                   ansible.download
                   ansible.run
                 end
-=end
+
                 domain = variable.domain
                 unless domain.nil?
                   Put.info "Environment id: #{@id}"
@@ -98,7 +98,6 @@ module VagrantSubutai
                   Put.info "domain name: #{domain.name}"
 
                   response = VagrantSubutai::Rest::SubutaiConsole.domain(url, token, @id, domain.name)
-                  Put.info response.body
                   case response
                     when Net::HTTPOK
                       if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
@@ -108,6 +107,8 @@ module VagrantSubutai
                       end
                     else
                       Put.error response.body
+                      Put.error response.code
+                      Put.error response.message
                   end         
                   Put.warn '------------------------'
                   Put.info domain.name
