@@ -74,6 +74,7 @@ module VagrantSubutai
                      'groups': [
                          {
                              'name': 'any_name',
+                             'python-interpreter': '/usr/bin/python3',
                              'hostnames': [
                                  'hostname_of_container'
                              ]

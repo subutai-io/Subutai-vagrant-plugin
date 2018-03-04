@@ -101,15 +101,17 @@ module VagrantSubutai
 
                       response = VagrantSubutai::Rest::SubutaiConsole.port(url, token, @id, @container_ids[domain.container_hostname], domain.internal_port)
 
-                      unless response.code == 200 || response.code == 202
+                      unless response.code == 200
                         Put.error response.message
                         Put.error response.body
                       end
+                      ip = url.gsub("https://", "")
+                      ip = ip.gsub(':8443', '')
 
                       if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
-                        Put.warn "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{url.delete('https://')} in your C:\Windows\System32\drivers\etc\hosts file or to your local DNS."
+                        Put.warn "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{ip} in your C:\Windows\System32\drivers\etc\hosts file or to your local DNS."
                       else
-                        Put.warn "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{url.delete('https://')} in your /etc/hosts file or to your local DNS."
+                        Put.warn "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{ip} in your /etc/hosts file or to your local DNS."
                       end
                     else
                       Put.error response.body
