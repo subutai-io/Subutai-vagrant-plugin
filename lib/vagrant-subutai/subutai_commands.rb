@@ -46,28 +46,49 @@ module VagrantSubutai
       ssh(base + Configs::SubutaiAgentCommand::UPDATE + " #{name}")
     end
 
-    # register Subutai Peer to Hub
-    def register(username, password, url)
-      username, password = get_input_token if username.nil? && password.nil?
-      response = Rest::SubutaiConsole.token(url, username, password)
+    # checks The Peer Os registered or not registered to Bazaar
+    def registered?(url)
+      fingerprint = Rest::SubutaiConsole.fingerprint(url)
+      response = Rest::Bazaar.registered(fingerprint)
 
       case response
         when Net::HTTPOK
-          hub_email, hub_password, peer_name, peer_scope = get_input_register
-          peer_scope = peer_scope == 1 ? 'Public':'Private'
-          response = Rest::SubutaiConsole.register(response.body, url, hub_email, hub_password, peer_name, peer_scope)
-
-          case response
-            when Net::HTTPOK
-              Put.success response.body
-              Put.success "\"#{peer_name}\" successfully registered to Bazaar."
-            else
-              Put.error "Error: #{response.body}\n"
-              register(username, password, url)
-          end
+          return true
+        when Net::HTTPNotFound
+          return false
         else
-          Put.error "Error: #{response.body}\n"
-          register(nil, nil, url)
+          Put.error response.body
+          Put.error response.message
+          exit
+      end
+    end
+
+    # register Subutai Peer Os to Bazaar
+    def register(username, password, url)
+      if registered?(url)
+        Put.warn "\nThe Peer Os already registered to Bazaar.\n"
+      else
+        username, password = get_input_token if username.nil? && password.nil?
+        response = Rest::SubutaiConsole.token(url, username, password)
+
+        case response
+          when Net::HTTPOK
+            hub_email, hub_password, peer_name, peer_scope = get_input_register
+            peer_scope = peer_scope == 1 ? 'Public':'Private'
+            response = Rest::SubutaiConsole.register(response.body, url, hub_email, hub_password, peer_name, peer_scope)
+
+            case response
+              when Net::HTTPOK
+                Put.success response.body
+                Put.success "\"#{peer_name}\" successfully registered to Bazaar."
+              else
+                Put.error "Error: #{response.body}\n"
+                register(username, password, url)
+            end
+          else
+            Put.error "Error: #{response.body}\n"
+            register(nil, nil, url)
+        end
       end
     end
 
@@ -121,20 +142,53 @@ module VagrantSubutai
       variable = VagrantSubutai::Blueprint::VariablesController.new(0, 0)
 
       if variable.validate
-        username, password = get_input_token if username.nil? && password.nil?
-        response = Rest::SubutaiConsole.token(url, username, password)
+        mode = SubutaiConfig.get(:SUBUTAI_ENV_TYPE)
 
-        case response
-          when Net::HTTPOK
-            rh_id = info('id')
-            peer_id = Rest::SubutaiConsole.fingerprint(url)
+        if mode.nil?
+          # check smart defaults
+          fingerprint = Rest::SubutaiConsole.fingerprint(url)
+          response = Rest::Bazaar.registered(fingerprint)
 
-            env = Blueprint::EnvironmentController.new
-            env.build(url, response.body, rh_id, peer_id)
-          else
-            Put.error "Error: #{response.body}"
+          case response
+            when Net::HTTPOK
+              # [MODE] The blueprint provisioning via Bazaar
+              bazaar(url)
+            when Net::HTTPNotFound
+              # [MODE] blueprint provisioning via Peer Os (local)
+              peer(url)
+            else
+              Put.error response.message
+              Put.error response.body
+          end
+        elsif mode == Configs::Blueprint::MODE::PEER
+          # [MODE] blueprint provisioning via Peer Os (local)
+          peer(url)
+        elsif mode == Configs::Blueprint::MODE::BAZAAR
+          # [MODE] The blueprint provisioning via Bazaar
+          bazaar(url)
         end
       end
+    end
+
+    def peer(url)
+      username, password = get_input_token if username.nil? && password.nil?
+      response = Rest::SubutaiConsole.token(url, username, password)
+
+      case response
+        when Net::HTTPOK
+          rh_id = info('id')
+          peer_id = Rest::SubutaiConsole.fingerprint(url)
+
+          env = Blueprint::EnvironmentController.new
+          env.build(url, response.body, rh_id, peer_id)
+        else
+          Put.error "Error: #{response.body}"
+      end
+    end
+
+    def bazaar(url)
+      # TODO blueprint provisioning via Bazaar
+      Put.info "TODO build environment via Bazaar"
     end
 
     # opens browser
