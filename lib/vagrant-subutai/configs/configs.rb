@@ -137,7 +137,9 @@ module VagrantSubutai
       BASE_PROD   = 'https://bazaar.subutai.io'.freeze
 
       module V1
-        PEER = '/rest/v1/tray/peers/{FINGERPRINT}'.freeze
+        PEER  = '/rest/v1/tray/peers/{FINGERPRINT}'.freeze
+        LOGIN = '/rest/v1/client/login'.freeze
+        ENVIRONMENTS = '/rest/v1/client/environments'.freeze
       end
     end
 

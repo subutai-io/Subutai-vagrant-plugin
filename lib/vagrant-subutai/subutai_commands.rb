@@ -98,7 +98,7 @@ module VagrantSubutai
       Put.info peer_id
     end
 
-    # Get Subutai console credentials from input
+    # Get Subutai Peer Os credentials from input
     def get_input_token
       Put.warn "\nPlease enter credentials Subutai Peer Os:\n"
       Put.info "\nusername: "
@@ -107,6 +107,17 @@ module VagrantSubutai
       password = STDIN.noecho(&:gets).chomp
 
       [username, password]
+    end
+
+    # Get Bazaar credentials from input
+    def get_input_login
+      Put.warn "\nPlease enter credentials Bazaar:\n"
+      Put.info "\nemail: "
+      email = STDIN.gets.chomp
+      Put.info "\npassword: "
+      password = STDIN.noecho(&:gets).chomp
+
+      [email, password]
     end
 
     # Get Hub credentials and peer info
@@ -139,7 +150,7 @@ module VagrantSubutai
     end
 
     def blueprint(url)
-      variable = VagrantSubutai::Blueprint::VariablesController.new(0, 0)
+      variable = VagrantSubutai::Blueprint::VariablesController.new(0, 0, nil)
 
       if variable.validate
         mode = SubutaiConfig.get(:SUBUTAI_ENV_TYPE)
@@ -177,18 +188,40 @@ module VagrantSubutai
       case response
         when Net::HTTPOK
           rh_id = info('id')
+          resource = info('system')
           peer_id = Rest::SubutaiConsole.fingerprint(url)
 
           env = Blueprint::EnvironmentController.new
-          env.build(url, response.body, rh_id, peer_id)
+          env.check_free_quota(resource)
+          env.build(url, response.body, rh_id, peer_id, Configs::Blueprint::MODE::PEER)
         else
           Put.error "Error: #{response.body}"
       end
     end
 
     def bazaar(url)
-      # TODO blueprint provisioning via Bazaar
-      Put.info "TODO build environment via Bazaar"
+      email, password = get_input_login
+      response = Rest::Bazaar.login(email, password)
+
+      case response
+        when Net::HTTPOK
+          all_cookies = response.get_fields('set-cookie')
+          cookies_array = Array.new
+          all_cookies.each { | cookie |
+            cookies_array.push(cookie.split('; ')[0])
+          }
+          cookies = cookies_array.join('; ')
+
+          rh_id = info('id')
+          resource = info('system')
+          peer_id = Rest::SubutaiConsole.fingerprint(url)
+
+          env = Blueprint::EnvironmentController.new
+          env.check_free_quota(resource)
+          env.build(url, cookies, rh_id, peer_id, Configs::Blueprint::MODE::BAZAAR)
+        else
+          Put.error response.body
+      end
     end
 
     # opens browser
