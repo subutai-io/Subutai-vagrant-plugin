@@ -88,7 +88,7 @@ module SubutaiConfig
 
   @bridged = false
 
-  @url_of_cdn = 'https://cdn.subut.ai:8338/kurjun/rest'
+  @url_of_cdn = 'https://cdn.subutai.io:8338/kurjun/rest'
 
   def self.write?
     raise 'SubutaiConfig.cmd not set' if @cmd.nil?
