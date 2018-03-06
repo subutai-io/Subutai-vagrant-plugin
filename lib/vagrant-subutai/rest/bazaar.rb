@@ -73,6 +73,18 @@ module VagrantSubutai
         https.request(request)
       end
 
+      # Reserve domain
+      def self.reserve(cookies, domain)
+        uri = URI.parse(url + Configs::Bazaar::V1::DOMAIN_RESERVE.gsub('{DOMAIN}', domain))
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 3600 # an hour
+
+        request = Net::HTTP::Put.new(uri.request_uri, {'Cookie' => cookies})
+        https.request(request)
+      end
+
       def self.url
         env = SubutaiConfig.get(:SUBUTAI_ENV)
         env = env.to_s

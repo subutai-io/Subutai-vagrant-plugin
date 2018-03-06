@@ -10,7 +10,8 @@ module VagrantSubutai
                     :required_disk,        # sum of all containers disk size required (in unit GB)
                     :available_ram,        # sum of all containers ram size free (in unit GB)
                     :available_disk,       # sum of all containers disk size free (in unit GB)
-                    :mode                  # Environment build mode (peer, bazaar)
+                    :mode,                 # Environment build mode (peer, bazaar)
+                    :cookies               # Bazaar cookies(for reserving domain)
 
       KEYS = {
                name:                  'name',
@@ -258,8 +259,6 @@ module VagrantSubutai
       # Gets input variable
       # @params variable json object
       def get_input(variable_json)
-        Put.info "\n#{variable_json[KEYS[:description]]}: (Ex: #{variable_json[KEYS[:default]]})"
-
         if variable_json[KEYS[:type]] == 'enum'
           Put.info "\nEnter your container size (Ex: #{variable_json[KEYS[:default]]}): "
           validations = variable_json[KEYS[:validation]].split(',')
@@ -275,9 +274,33 @@ module VagrantSubutai
           Put.info "\nChoose your container size between ( 0 to #{temp}): "
           input = STDIN.gets.strip.to_i
           validations[input]
+        elsif mode == Configs::Blueprint::MODE::BAZAAR && variable_json[KEYS[:type]] == 'domain'
+          Put.info "\n#Create a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
+          reserve
         else
+          Put.info "\n#{variable_json[KEYS[:description]]}: (Ex: #{variable_json[KEYS[:default]]})"
+
           STDIN.gets.strip
         end
+      end
+
+      def reserve
+        @domain = STDIN.gets.strip
+        @response = Rest::Bazaar.reserve(cookies, domain)
+
+        until @response.code == 200
+          if response.code == 400
+            Put.error 'Requested sub-domain already exists'
+          elsif @response.code != 200
+            Put.error response.body
+            exit
+          end
+
+          @domain = STDIN.gets.strip
+          @response = Rest::Bazaar.reserve(cookies, domain)
+        end
+
+        @domain
       end
 
       # Validate variable

@@ -140,6 +140,7 @@ module VagrantSubutai
         LOGIN = '/rest/v1/client/login'.freeze
         ENVIRONMENTS = '/rest/v1/client/environments'.freeze
         LOG = '/rest/v1/client/environments/{SUBUTAI_ID}'.freeze
+        DOMAIN_RESERVE = '/rest/v1/client/domains/{DOMAIN}'
       end
     end
 
