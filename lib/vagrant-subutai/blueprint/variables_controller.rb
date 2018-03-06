@@ -276,7 +276,8 @@ module VagrantSubutai
           validations[input]
         elsif mode == Configs::Blueprint::MODE::BAZAAR && variable_json[KEYS[:type]] == 'domain'
           Put.info "\n#Create a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
-          reserve
+          #reserve
+          STDIN.gets.strip
         else
           Put.info "\n#{variable_json[KEYS[:description]]}: (Ex: #{variable_json[KEYS[:default]]})"
 
