@@ -6,14 +6,15 @@ require 'json'
 module VagrantSubutai
   module Blueprint
     class EnvironmentController
-      attr_accessor :name,         # Environment name
-                    :ansible,      # Environment ansible configurations
-                    :log,          # Environment build logs
-                    :id,           # Environment build id
-                    :tracker_id,   # Environment logs tracker id
-                    :free_ram,     # Peer free ram unit in GB
-                    :free_disk,    # Peer free disk size unit in GB
-                    :container_ids # Container Hash {'hostname' => id}
+      attr_accessor :name,          # Environment name
+                    :ansible,       # Environment ansible configurations
+                    :log,           # Environment build logs
+                    :id,            # Environment build id
+                    :tracker_id,    # Environment logs tracker id
+                    :free_ram,      # Peer free ram unit in GB
+                    :free_disk,     # Peer free disk size unit in GB
+                    :container_ids, # Container Hash {'hostname' => id}
+                    :peer_os_token  # Peer Os token
 
       def build(url, token, rh_id, peer_id, mode)
 
@@ -78,8 +79,8 @@ module VagrantSubutai
                     end
 
                     @logs_last_index = @temp_last_index
-                  rescue JSON::ParserError
-                    Put.error @log.body
+                  rescue JSON::ParserError => e
+                    Put.error e
                   end
 
                   sleep 3 # sleep 3 seconds
@@ -131,12 +132,62 @@ module VagrantSubutai
                 Put.error "Error: #{response.body}"
             end
           elsif mode == Configs::Blueprint::MODE::BAZAAR
+            @name = params['environmentName']
+
             response = Rest::Bazaar.environment(token, params)
+            json = JSON.parse(response.body)
+            hub_id = json['hubId']
+            subutai_id = json['subutaiId']
+            @id = subutai_id
 
             case response
               when Net::HTTPAccepted
-                # TODO track logs
-                Put.info "Track logs"
+
+                Put.warn "\nStarted \"#{@name}\" environment building ...... \n"
+
+                # Track environment create state logs
+                @log = Rest::Bazaar.log(token, subutai_id)
+                @log = JSON.parse(@log.body)
+                timer = Time.now + (10 * 60) # minutes
+                @message = nil
+
+                until (@log['environment_status'] == Configs::EnvironmentState::HEALTHY || @log['environment_status'] == Configs::EnvironmentState::UNHEALTHY) && Time.now <= timer
+                  @log = Rest::Bazaar.log(token, subutai_id)
+
+                  begin
+                    @log = JSON.parse(@log.body)
+
+                    # this prevents duplicate environment_status_desc
+                    if @message != @log['environment_status_desc']
+                      Put.info @log['environment_status_desc']
+                    end
+                    @message = @log['environment_status_desc']
+                  rescue JSON::ParserError => e
+                    Put.error e
+                  end
+
+                  sleep 5 # sleep 5 seconds
+                end
+
+                if @log['environment_status'] == Configs::EnvironmentState::HEALTHY
+                  Put.success "\nEnvironment State: #{@log['environment_status']}"
+
+                  env = list(url, peer_os_token)
+
+                  if variable.has_ansible?
+                    ansible = VagrantSubutai::Blueprint::AnsibleController.new(@ansible, env, url, peer_os_token)
+                    ansible.hosts
+                    ansible.download
+                    ansible.run
+                  end
+
+                elsif @log['environment_status'] == Configs::EnvironmentState::UNHEALTHY
+                  Put.error "\nEnvironment State: #{@log['environment_status']}"
+                elsif timer < Time.now
+                  Put.error "\nEnvironment State: Timeout environment creating"
+                else
+                  Put.error "\nEnvironment State: #{@log['environment_status']}"
+                end
               else
                 Put.error response.body
             end
@@ -177,6 +228,7 @@ module VagrantSubutai
         case response
           when Net:: HTTPOK
             environments = JSON.parse(response.body)
+
             environments.each do |environment|
               if environment['id'] == @id
                 env.id = @id

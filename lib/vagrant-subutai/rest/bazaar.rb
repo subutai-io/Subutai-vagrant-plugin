@@ -33,7 +33,7 @@ module VagrantSubutai
       end
 
       # Creates Environment
-      def self.environment(token, params)
+      def self.environment(cookies, params)
         uri = URI.parse(url + Configs::Bazaar::V1::ENVIRONMENTS)
 
         https = Net::HTTP.new(uri.host, uri.port)
@@ -41,8 +41,22 @@ module VagrantSubutai
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
         https.read_timeout = 21600 # 6 hours
 
-        request = Net::HTTP::Post.new(uri.request_uri, {'Cookie' => token,  'Content-Type' => 'application/json'})
+        request = Net::HTTP::Post.new(uri.request_uri, {'Cookie' => cookies,  'Content-Type' => 'application/json'})
         request.body = params.to_json
+
+        https.request(request)
+      end
+
+      # Tracks environment create state logs
+      def self.log(cookies, subutai_id)
+        uri = URI.parse(url + Configs::Bazaar::V1::LOG.gsub('{SUBUTAI_ID}', subutai_id))
+
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 3600 # an hour
+
+        request = Net::HTTP::Get.new(uri.request_uri, {'Cookie' => cookies,  'Content-Type' => 'application/json'})
 
         https.request(request)
       end

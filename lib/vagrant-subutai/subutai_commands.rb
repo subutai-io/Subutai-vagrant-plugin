@@ -182,6 +182,7 @@ module VagrantSubutai
     end
 
     def peer(url)
+      Put.info "\nBlueprint provisioning via Peer Os\n"
       username, password = get_input_token if username.nil? && password.nil?
       response = Rest::SubutaiConsole.token(url, username, password)
 
@@ -200,27 +201,38 @@ module VagrantSubutai
     end
 
     def bazaar(url)
-      email, password = get_input_login
-      response = Rest::Bazaar.login(email, password)
+      Put.info "\nBlueprint provisioning via Bazaar\n"
+      username, password = get_input_token if username.nil? && password.nil?
+      response = Rest::SubutaiConsole.token(url, username, password)
 
       case response
         when Net::HTTPOK
-          all_cookies = response.get_fields('set-cookie')
-          cookies_array = Array.new
-          all_cookies.each { | cookie |
-            cookies_array.push(cookie.split('; ')[0])
-          }
-          cookies = cookies_array.join('; ')
+          token = response.body
+          email, password = get_input_login
+          response = Rest::Bazaar.login(email, password)
 
-          rh_id = info('id')
-          resource = info('system')
-          peer_id = Rest::SubutaiConsole.fingerprint(url)
+          case response
+            when Net::HTTPOK
+              all_cookies = response.get_fields('set-cookie')
+              cookies_array = Array.new
+              all_cookies.each { | cookie |
+                cookies_array.push(cookie.split('; ')[0])
+              }
+              cookies = cookies_array.join('; ')
 
-          env = Blueprint::EnvironmentController.new
-          env.check_free_quota(resource)
-          env.build(url, cookies, rh_id, peer_id, Configs::Blueprint::MODE::BAZAAR)
+              rh_id = info('id')
+              resource = info('system')
+              peer_id = Rest::SubutaiConsole.fingerprint(url)
+
+              env = Blueprint::EnvironmentController.new
+              env.peer_os_token = token
+              env.check_free_quota(resource)
+              env.build(url, cookies, rh_id, peer_id, Configs::Blueprint::MODE::BAZAAR)
+            else
+              Put.error response.body
+          end
         else
-          Put.error response.body
+          Put.error "Error: #{response.body}"
       end
     end
 
