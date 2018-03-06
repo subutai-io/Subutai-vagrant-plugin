@@ -24,10 +24,10 @@ module VagrantSubutai
       end
 
       def ansible
-        @hostname = "ansible"
+        @hostname = "generic-ansible"
         @container_size = "TINY"
-        @name = "ansible"
-        @owner = "ec54e1cff2341cdc55be5e961cfd15b4f97087e8"
+        @name = "generic-ansible"
+        @owner = "subutai" # ec54e1cff2341cdc55be5e961cfd15b4f97087e8
       end
     end
   end

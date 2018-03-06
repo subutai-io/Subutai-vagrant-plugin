@@ -10,7 +10,7 @@ module VagrantSubutai
     end
 
     module Ansible
-      TEMPLATE_NAME = 'ansible'.freeze
+      TEMPLATE_NAME = 'generic-ansible'.freeze
     end
 
     module Quota
@@ -91,6 +91,11 @@ module VagrantSubutai
                                      }
                }.freeze
       CONTAINER_SIZES = %w(TINY SMALL MEDIUM LARGE HUGE).freeze
+
+      module MODE
+        PEER   = 'peer'.freeze
+        BAZAAR = 'bazaar'.freeze
+      end
     end
 
     module Environment
@@ -122,8 +127,20 @@ module VagrantSubutai
     module Gorjun
       INFO_DEV    = 'https://devcdn.subutai.io:8338/kurjun/rest/template/info'.freeze
       INFO_MASTER = 'https://mastercdn.subutai.io:8338/kurjun/rest/template/info'.freeze
-      # TODO change https://cdn.subutai.io:8338/kurjun/rest/template/info
-      INFO_PROD   = 'https://cdn.subut.ai:8338/kurjun/rest/template/info'.freeze
+      INFO_PROD   = 'https://cdn.subutai.io:8338/kurjun/rest/template/info'.freeze
+    end
+
+    module Bazaar
+      BASE_DEV    = 'https://devbazaar.subutai.io'.freeze
+      BASE_MASTER = 'https://masterbazaar.subutai.io'.freeze
+      BASE_PROD   = 'https://bazaar.subutai.io'.freeze
+
+      module V1
+        PEER  = '/rest/v1/tray/peers/{FINGERPRINT}'.freeze
+        LOGIN = '/rest/v1/client/login'.freeze
+        ENVIRONMENTS = '/rest/v1/client/environments'.freeze
+        LOG = '/rest/v1/client/environments/{SUBUTAI_ID}'.freeze
+      end
     end
 
     module Blueprint
@@ -133,6 +150,8 @@ module VagrantSubutai
     module EnvironmentState
       FAILED    = 'FAILED'.freeze
       SUCCEEDED = 'SUCCEEDED'.freeze
+      HEALTHY   = 'HEALTHY'.freeze
+      UNHEALTHY = 'UNHEALTHY'.freeze
     end
 
     module SubutaiAgentCommand

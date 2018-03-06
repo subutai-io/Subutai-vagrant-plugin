@@ -35,6 +35,7 @@ module SubutaiConfig
     AUTHORIZED_KEYS
     PASSWORD_OVERRIDE
     DISK_SIZE
+    SUBUTAI_ENV_TYPE
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -51,7 +52,6 @@ module SubutaiConfig
     _ALT_MANAGEMENT_MD5_LAST
     _DISK_SIZE
     _DISK_PORT
-    _REGISTERED
   ].freeze
 
   # Used for testing
@@ -89,8 +89,7 @@ module SubutaiConfig
 
   @bridged = false
 
-  # TODO change url to cdn.subutai.io
-  @url_of_cdn = 'https://cdn.subut.ai:8338/kurjun/rest'
+  @url_of_cdn = 'https://cdn.subutai.io:8338/kurjun/rest'
 
   def self.write?
     raise 'SubutaiConfig.cmd not set' if @cmd.nil?

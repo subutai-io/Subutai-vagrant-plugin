@@ -9,7 +9,8 @@ module VagrantSubutai
                     :required_ram,         # sum of all containers ram size required (in unit GB)
                     :required_disk,        # sum of all containers disk size required (in unit GB)
                     :available_ram,        # sum of all containers ram size free (in unit GB)
-                    :available_disk        # sum of all containers disk size free (in unit GB)
+                    :available_disk,       # sum of all containers disk size free (in unit GB)
+                    :mode                  # Environment build mode (peer, bazaar)
 
       KEYS = {
                name:                  'name',
@@ -43,11 +44,12 @@ module VagrantSubutai
              }.freeze
 
       # @params available_ram, available_disk
-      def initialize(available_ram, available_disk)
+      def initialize(available_ram, available_disk, mode)
         @required_ram   = 0
         @required_disk  = 0
         @available_ram  = available_ram
         @available_disk = available_disk
+        @mode = mode
 
         begin
           @json = JSON.parse(File.read("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}"))
@@ -142,19 +144,38 @@ module VagrantSubutai
         hash = {}
         nodes = []
 
-        containers.each do |container|
-          node = {}
-          node['hostname'] = container.hostname
-          node['quota'] = {'containerSize' => container.container_size}
-          node['templateId'] = Rest::Gorjun.template_id(container.name, container.owner)
-          node['resourceHostId'] = rh_id
-          node['peerId'] = peer_id
-          nodes << node
+        if mode == Configs::Blueprint::MODE::PEER
+          containers.each do |container|
+            node = {}
+            node['hostname'] = container.hostname
+            node['quota'] = {'containerSize' => container.container_size}
+            node['templateId'] = Rest::Gorjun.template_id(container.name, container.owner)
+            node['resourceHostId'] = rh_id
+            node['peerId'] = peer_id
+            nodes << node
+          end
+
+          hash['name'] = env.name
+          hash['sshKey'] = ""
+          hash['nodes'] = nodes
+        elsif mode == Configs::Blueprint::MODE::BAZAAR
+          containers.each do |container|
+            node = {}
+            node['hostname'] = container.hostname
+            node['quota'] = {'containerSize' => container.container_size}
+            node['templateId'] = Rest::Gorjun.template_id(container.name, container.owner)
+            node['resourceHostId'] = rh_id
+            node['templateName'] = container.name
+            node['peerId'] = peer_id
+            nodes << node
+          end
+
+          hash['environmentName'] = env.name
+          hash['exchangeSshKeys'] = true
+          hash['registerHosts'] = true
+          hash['nodes'] = nodes
         end
 
-        hash['name'] = env.name
-        hash['sshKey'] = ""
-        hash['nodes'] = nodes
 
         hash
       end
