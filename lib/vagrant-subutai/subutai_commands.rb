@@ -63,7 +63,7 @@ module VagrantSubutai
       end
     end
 
-    # register Subutai Peer Os to Bazaar
+    # register Subutai Peer Os to Bazaar by username and password
     def register(username, password, url)
       if registered?(url)
         Put.warn "\nThe Peer Os already registered to Bazaar.\n"
@@ -89,6 +89,23 @@ module VagrantSubutai
             Put.error "Error: #{response.body}\n"
             register(nil, nil, url)
         end
+      end
+    end
+
+    # register Subutai Peer Os to Bazaar by token
+    def register_by_token(token, url)
+      hub_email, hub_password, peer_name, peer_scope = get_input_register
+      peer_scope = peer_scope == 1 ? 'Public':'Private'
+      response = Rest::SubutaiConsole.register(token, url, hub_email, hub_password, peer_name, peer_scope)
+
+      case response
+        when Net::HTTPOK
+          Put.success response.body
+          Put.success "\"#{peer_name}\" successfully registered to Bazaar."
+          [hub_email, hub_password]
+        else
+          Put.error "Error: #{response.body}\n"
+          register_by_token(token, url)
       end
     end
 
@@ -163,7 +180,7 @@ module VagrantSubutai
           case response
             when Net::HTTPOK
               # [MODE] The blueprint provisioning via Bazaar
-              bazaar(url)
+              bazaar(url, variable.has_ansible?)
             when Net::HTTPNotFound
               # [MODE] blueprint provisioning via Peer Os (local)
               peer(url)
@@ -176,7 +193,7 @@ module VagrantSubutai
           peer(url)
         elsif mode == Configs::Blueprint::MODE::BAZAAR
           # [MODE] The blueprint provisioning via Bazaar
-          bazaar(url)
+          bazaar(url, variable.has_ansible?)
         end
       end
     end
@@ -200,39 +217,79 @@ module VagrantSubutai
       end
     end
 
-    def bazaar(url)
+    def bazaar(url, has_ansible)
       Put.info "\nBlueprint provisioning via Bazaar\n"
-      username, password = get_input_token if username.nil? && password.nil?
-      response = Rest::SubutaiConsole.token(url, username, password)
 
-      case response
-        when Net::HTTPOK
-          token = response.body
-          email, password = get_input_login
-          response = Rest::Bazaar.login(email, password)
+      if has_ansible
+        username, password = get_input_token if username.nil? && password.nil?
+        response = Rest::SubutaiConsole.token(url, username, password)
 
-          case response
-            when Net::HTTPOK
-              all_cookies = response.get_fields('set-cookie')
-              cookies_array = Array.new
-              all_cookies.each { | cookie |
-                cookies_array.push(cookie.split('; ')[0])
-              }
-              cookies = cookies_array.join('; ')
+        case response
+          when Net::HTTPOK
+            token = response.body
+            email = nil
+            password = nil
 
-              rh_id = info('id')
-              resource = info('system')
-              peer_id = Rest::SubutaiConsole.fingerprint(url)
+            # Register Peer Os to Bazaar
+            unless registered?(url)
+              email, password = register_by_token(token, url)
+            end
 
-              env = Blueprint::EnvironmentController.new
-              env.peer_os_token = token
-              env.check_free_quota(resource)
-              env.build(url, cookies, rh_id, peer_id, Configs::Blueprint::MODE::BAZAAR)
-            else
-              Put.error response.body
-          end
-        else
-          Put.error "Error: #{response.body}"
+            email, password = get_input_login if email.nil? && password.nil?
+            response = Rest::Bazaar.login(email, password)
+
+            case response
+              when Net::HTTPOK
+                all_cookies = response.get_fields('set-cookie')
+                cookies_array = Array.new
+                all_cookies.each { | cookie |
+                  cookies_array.push(cookie.split('; ')[0])
+                }
+                cookies = cookies_array.join('; ')
+
+                rh_id = info('id')
+                resource = info('system')
+                peer_id = Rest::SubutaiConsole.fingerprint(url)
+
+                env = Blueprint::EnvironmentController.new
+                env.peer_os_token = token
+                env.check_free_quota(resource)
+                env.build(url, cookies, rh_id, peer_id, Configs::Blueprint::MODE::BAZAAR)
+              else
+                Put.error response.body
+            end
+          else
+            Put.error "Error: #{response.body}"
+        end
+      else
+        # Register Peer Os to Bazaar
+        unless registered?(url)
+          email, password = register(nil, nil, url)
+        end
+
+        email, password = get_input_login if email.nil? && password.nil?
+        response = Rest::Bazaar.login(email, password)
+
+        case response
+          when Net::HTTPOK
+            all_cookies = response.get_fields('set-cookie')
+            cookies_array = Array.new
+            all_cookies.each { | cookie |
+              cookies_array.push(cookie.split('; ')[0])
+            }
+            cookies = cookies_array.join('; ')
+
+            rh_id = info('id')
+            resource = info('system')
+            peer_id = Rest::SubutaiConsole.fingerprint(url)
+
+            env = Blueprint::EnvironmentController.new
+            env.peer_os_token = token
+            env.check_free_quota(resource)
+            env.build(url, cookies, rh_id, peer_id, Configs::Blueprint::MODE::BAZAAR)
+          else
+            Put.error response.body
+        end
       end
     end
 

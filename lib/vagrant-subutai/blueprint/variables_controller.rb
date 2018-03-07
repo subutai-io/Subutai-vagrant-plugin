@@ -289,7 +289,11 @@ module VagrantSubutai
         @response = VagrantSubutai::Rest::Bazaar.reserve(@cookies, @temp)
 
         until @response.kind_of?(Net::HTTPOK)
-          Put.warn 'Requested sub-domain already exists'
+          Put.warn "\n-------------------------------------------------------------------"
+          Put.warn "Requested \"#{@temp}.envs.subutai.cloud\" sub-domain already exists"
+          Put.warn '-------------------------------------------------------------------'
+
+          Put.info "\n#Create a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
           @temp = STDIN.gets.strip
           @response = VagrantSubutai::Rest::Bazaar.reserve(@cookies, @temp)
         end

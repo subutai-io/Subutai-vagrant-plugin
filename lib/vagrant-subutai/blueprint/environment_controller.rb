@@ -89,9 +89,9 @@ module VagrantSubutai
                 if @log['state'] == Configs::EnvironmentState::SUCCEEDED
                   Put.success "\nEnvironment State: #{@log['state']}"
 
-                  env = list(url, token)
-
                   if variable.has_ansible?
+                    env = list(url, token)
+
                     ansible = VagrantSubutai::Blueprint::AnsibleController.new(@ansible, env, url, token)
                     ansible.hosts
                     ansible.download
@@ -115,7 +115,7 @@ module VagrantSubutai
                         ip = ip.gsub(':8443', '')
 
                         if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
-                          Put.warn "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{ip} in your C:\Windows\System32\drivers\etc\hosts file or to your local DNS."
+                          Put.warn "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{ip} in your C:\\Windows\\System32\\drivers\\etc\\hosts file or to your local DNS."
                         else
                           Put.warn "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{ip} in your /etc/hosts file or to your local DNS."
                         end
@@ -172,9 +172,9 @@ module VagrantSubutai
                 if @log['environment_status'] == Configs::EnvironmentState::HEALTHY
                   Put.success "\nEnvironment State: #{@log['environment_status']}"
 
-                  env = list(url, peer_os_token)
-
                   if variable.has_ansible?
+                    env = list(url, peer_os_token)
+
                     ansible = VagrantSubutai::Blueprint::AnsibleController.new(@ansible, env, url, peer_os_token)
                     ansible.hosts
                     ansible.download
