@@ -19,7 +19,7 @@ module VagrantSubutai
             response = JSON.parse(response.body)
             response[0]['id']
           else
-            raise "Try again! #{response.body}"
+            Put.error "Try again! #{response.body} template name #{name}, owner #{owner}"
         end
       end
 

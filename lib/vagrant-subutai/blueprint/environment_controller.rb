@@ -19,6 +19,7 @@ module VagrantSubutai
       def build(url, token, rh_id, peer_id, mode)
 
         variable = VagrantSubutai::Blueprint::VariablesController.new(@free_ram, @free_disk, mode)
+        variable.cookies = token       # needs cookies while reserving domain to Bazaar
         variable.check_required_quota
 
         if @free_ram >= variable.required_ram && @free_disk >= variable.required_disk
@@ -27,7 +28,6 @@ module VagrantSubutai
           end
 
           params = variable.params(rh_id, peer_id)
-
 
           if mode == Configs::Blueprint::MODE::PEER
             @name = params['name']
@@ -230,6 +230,7 @@ module VagrantSubutai
             environments = JSON.parse(response.body)
 
             environments.each do |environment|
+
               if environment['id'] == @id
                 env.id = @id
                 env.name = environment['name']
