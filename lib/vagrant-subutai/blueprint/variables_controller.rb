@@ -276,8 +276,7 @@ module VagrantSubutai
           validations[input]
         elsif mode == Configs::Blueprint::MODE::BAZAAR && variable_json[KEYS[:type]] == 'domain'
           Put.info "\n#Create a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
-          #reserve
-          STDIN.gets.strip
+          reserve
         else
           Put.info "\n#{variable_json[KEYS[:description]]}: (Ex: #{variable_json[KEYS[:default]]})"
 
@@ -286,22 +285,16 @@ module VagrantSubutai
       end
 
       def reserve
-        @domain = STDIN.gets.strip
-        @response = Rest::Bazaar.reserve(cookies, domain)
+        @temp = STDIN.gets.strip
+        @response = VagrantSubutai::Rest::Bazaar.reserve(@cookies, @temp)
 
-        until @response.code == 200
-          if response.code == 400
-            Put.error 'Requested sub-domain already exists'
-          elsif @response.code != 200
-            Put.error response.body
-            exit
-          end
-
-          @domain = STDIN.gets.strip
-          @response = Rest::Bazaar.reserve(cookies, domain)
+        until @response.kind_of?(Net::HTTPOK)
+          Put.warn 'Requested sub-domain already exists'
+          @temp = STDIN.gets.strip
+          @response = VagrantSubutai::Rest::Bazaar.reserve(@cookies, @temp)
         end
 
-        @domain
+        @temp
       end
 
       # Validate variable
