@@ -63,7 +63,7 @@ module VagrantSubutai
       end
     end
 
-    # register Subutai Peer Os to Bazaar
+    # register Subutai Peer Os to Bazaar by username and password
     def register(username, password, url)
       if registered?(url)
         Put.warn "\nThe Peer Os already registered to Bazaar.\n"
@@ -89,6 +89,23 @@ module VagrantSubutai
             Put.error "Error: #{response.body}\n"
             register(nil, nil, url)
         end
+      end
+    end
+
+    # register Subutai Peer Os to Bazaar by token
+    def register_by_token(token, url)
+      hub_email, hub_password, peer_name, peer_scope = get_input_register
+      peer_scope = peer_scope == 1 ? 'Public':'Private'
+      response = Rest::SubutaiConsole.register(token, url, hub_email, hub_password, peer_name, peer_scope)
+
+      case response
+        when Net::HTTPOK
+          Put.success response.body
+          Put.success "\"#{peer_name}\" successfully registered to Bazaar."
+          [hub_email, hub_password]
+        else
+          Put.error "Error: #{response.body}\n"
+          register_by_token(token, url)
       end
     end
 
@@ -202,13 +219,22 @@ module VagrantSubutai
 
     def bazaar(url)
       Put.info "\nBlueprint provisioning via Bazaar\n"
+
       username, password = get_input_token if username.nil? && password.nil?
       response = Rest::SubutaiConsole.token(url, username, password)
 
       case response
         when Net::HTTPOK
           token = response.body
-          email, password = get_input_login
+          email = nil
+          password = nil
+
+          # Register Peer Os to Bazaar
+          unless registered?(url)
+            email, password = register_by_token(token, url)
+          end
+
+          email, password = get_input_login if email.nil? && password.nil?
           response = Rest::Bazaar.login(email, password)
 
           case response
