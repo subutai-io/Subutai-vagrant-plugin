@@ -23,13 +23,13 @@ module VagrantSubutai
         variable.check_required_quota
 
         if @free_ram >= variable.required_ram && @free_disk >= variable.required_disk
-          if variable.has_ansible?
-            @ansible = variable.ansible
-          end
-
-          params = variable.params(rh_id, peer_id)
 
           if mode == Configs::Blueprint::MODE::PEER
+            if variable.has_ansible?
+              @ansible = variable.ansible
+            end
+
+            params = variable.params(rh_id, peer_id)
             @name = params['name']
 
             response = Rest::SubutaiConsole.environment(url, token, params.to_json)
@@ -132,64 +132,33 @@ module VagrantSubutai
                 Put.error "Error: #{response.body}"
             end
           elsif mode == Configs::Blueprint::MODE::BAZAAR
-            @name = params['environmentName']
-
-            response = Rest::Bazaar.environment(token, params)
-            json = JSON.parse(response.body)
-            hub_id = json['hubId']
-            subutai_id = json['subutaiId']
-            @id = subutai_id
+            # TODO implement Bazaar new REST API to build blueprint provisioning
+            response = VagrantSubutai::Rest::Bazaar.variables(variable.json, peer_id, token)
 
             case response
-              when Net::HTTPAccepted
+              when Net::HTTPOK
+                variables = JSON.parse(response.body)
+                params = []
 
-                Put.warn "\nStarted \"#{@name}\" environment building ...... \n"
-
-                # Track environment create state logs
-                @log = Rest::Bazaar.log(token, subutai_id)
-                @log = JSON.parse(@log.body)
-                timer = Time.now + (10 * 60) # minutes
-                @message = nil
-
-                until (@log['environment_status'] == Configs::EnvironmentState::HEALTHY || @log['environment_status'] == Configs::EnvironmentState::UNHEALTHY) && Time.now <= timer
-                  @log = Rest::Bazaar.log(token, subutai_id)
-
-                  begin
-                    @log = JSON.parse(@log.body)
-
-                    # this prevents duplicate environment_status_desc
-                    if @message != @log['environment_status_desc']
-                      Put.info @log['environment_status_desc']
-                    end
-                    @message = @log['environment_status_desc']
-                  rescue JSON::ParserError => e
-                    Put.error e
-                  end
-
-                  sleep 5 # sleep 5 seconds
+                variables.each do |var|
+                  temp = var
+                  temp['value'] = variable.get_input_bazaar(var)
+                  params << temp
                 end
 
-                if @log['environment_status'] == Configs::EnvironmentState::HEALTHY
-                  Put.success "\nEnvironment State: #{@log['environment_status']}"
+                response = Rest::Bazaar.blueprint(variable.json, params, peer_id, token)
 
-                  if variable.has_ansible?
-                    env = list(url, peer_os_token)
-
-                    ansible = VagrantSubutai::Blueprint::AnsibleController.new(@ansible, env, url, peer_os_token)
-                    ansible.hosts
-                    ansible.download
-                    ansible.run
-                  end
-
-                elsif @log['environment_status'] == Configs::EnvironmentState::UNHEALTHY
-                  Put.error "\nEnvironment State: #{@log['environment_status']}"
-                elsif timer < Time.now
-                  Put.error "\nEnvironment State: Timeout environment creating"
-                else
-                  Put.error "\nEnvironment State: #{@log['environment_status']}"
+                case response
+                  when Net::HTTPOK
+                    Put.success response.body
+                    Put.success response.code
+                  else
+                    Put.error response.body
+                    Put.error response.code
                 end
               else
                 Put.error response.body
+                Put.error response.message
             end
           end
         else

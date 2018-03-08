@@ -311,6 +311,53 @@ module VagrantSubutai
         end
       end
 
+      def bazaar_params(variables)
+        variables.each do |variable|
+          Put.info variable['label']
+        end
+      end
+
+      def get_input_bazaar(variable)
+        Put.info "\n#{variable['label']}"
+        if variable.key?('acceptableValues')
+          if variable['type'] == 'enum'
+            arr = variable['acceptableValues'].split(',')
+            temp = nil
+
+            arr.each_with_index do |val, index|
+              Put.info "     #{index}.  #{val}"
+              temp = index
+            end
+
+            Put.info "\nChoose your container size between ( 0 to #{temp}): "
+            input = STDIN.gets.strip.to_i
+            arr[input]
+          elsif variable['type'] == 'domain'
+            arr = variable['acceptableValues'].split(',')
+            temp = nil
+
+            arr.each_with_index do |val, index|
+              Put.info "     #{index}.  #{val}"
+              temp = index
+            end
+            Put.info "     #{temp+1}.  Create a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
+
+            Put.info "\nChoose options:  ( 0 to #{temp+1}) "
+            input = STDIN.gets.strip.to_i
+
+            if temp+1 == input
+              Put.info "\nCreate a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
+              reserve
+            else
+              arr[input]
+            end
+
+          end
+        else
+          STDIN.gets.strip
+        end
+      end
+
       # Validates Subutai.json file
       def validate
         scheme = Configs::Blueprint::SCHEME

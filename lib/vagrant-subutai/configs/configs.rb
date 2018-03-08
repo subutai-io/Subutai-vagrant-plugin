@@ -141,6 +141,8 @@ module VagrantSubutai
         ENVIRONMENTS = '/rest/v1/client/environments'.freeze
         LOG = '/rest/v1/client/environments/{SUBUTAI_ID}'.freeze
         DOMAIN_RESERVE = '/rest/v1/client/domains/{DOMAIN}'
+        VARIABLES = '/rest/v1/client/blueprint/variables'.freeze
+        BLUEPRINT = '/rest/v1/client/blueprint/build'.freeze
       end
     end
 
