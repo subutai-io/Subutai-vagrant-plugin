@@ -226,6 +226,7 @@ module VagrantSubutai
       end
 
       email, password = get_input_login if email.nil? && password.nil?
+
       response = Rest::Bazaar.login(email, password)
 
       case response

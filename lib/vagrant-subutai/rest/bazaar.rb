@@ -14,10 +14,7 @@ module VagrantSubutai
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
         https.read_timeout = 3600 # an hour
 
-        # TODO with cookies
-        # request = Net::HTTP::Put.new(uri.request_uri, {'Cookie' => cookies,  'Content-Type' => 'application/x-www-form-urlencoded'})
-
-        request = Net::HTTP::Put.new(uri.request_uri)
+        request = Net::HTTP::Put.new(uri.request_uri, {'Cookie' => cookies,  'Content-Type' => 'application/x-www-form-urlencoded'})
         request.set_form_data({'blueprint' => subutai_json.to_json, 'peers' => [peers_id]})
 
         https.request(request)
