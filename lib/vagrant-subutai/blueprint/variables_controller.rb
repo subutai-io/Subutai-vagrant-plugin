@@ -325,27 +325,31 @@ module VagrantSubutai
       end
 
       def reserve
-        @temp = STDIN.gets.strip
-        @response = VagrantSubutai::Rest::Bazaar.reserve(@cookies, @temp)
-
-        until @response.kind_of?(Net::HTTPOK)
-          Put.warn "\n-------------------------------------------------------------------"
-          Put.warn "Requested \"#{@temp}.envs.subutai.cloud\" sub-domain already exists"
-          Put.warn '-------------------------------------------------------------------'
-
-          Put.info "\n#Create a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
+        begin
           @temp = STDIN.gets.strip
           @response = VagrantSubutai::Rest::Bazaar.reserve(@cookies, @temp)
+
+          until @response.kind_of?(Net::HTTPOK)
+            Put.warn "\n-------------------------------------------------------------------"
+            Put.warn "Requested \"#{@temp}.envs.subutai.cloud\" sub-domain already exists"
+            Put.warn '-------------------------------------------------------------------'
+
+            Put.info "\n#Create a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
+            @temp = STDIN.gets.strip
+            @response = VagrantSubutai::Rest::Bazaar.reserve(@cookies, @temp)
+          end
+
+          res = VagrantSubutai::Rest::Bazaar.domains(@cookies)
+          json = JSON.parse(res.body)
+
+          json = json.find {|domain| domain['name'].split('.').first == @temp}
+
+          Put.info "\n Created a new domain: #{json['name']}"
+
+          json['name']
+        rescue => e
+          Put.error e
         end
-
-        res = VagrantSubutai::Rest::Bazaar.domains(@cookies)
-        json = JSON.parse(res.body)
-
-        json = json.find {|domain| domain['name'].split('.').first == @temp}
-
-        Put.info "\n Created a new domain: #{json['name']}"
-
-        json['name']
       end
 
       # Validate variable
