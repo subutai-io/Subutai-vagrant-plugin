@@ -144,12 +144,53 @@ module VagrantSubutai
               response = Rest::Bazaar.blueprint(variable.json, params, peer_id, token)
 
               case response
-                when Net::HTTPOK
-                  Put.success response.body
-                  Put.success response.code
+                when Net::HTTPAccepted
+                  json = JSON.parse(response.body)
+                  hub_id = json['hubId']
+                  subutai_id = json['subutaiId']
+                  @id = subutai_id
+
+                  Put.warn "\nStarted environment building ...... \n"
+
+                  # Track environment create state logs
+                  @log = Rest::Bazaar.log(token, subutai_id)
+                  @log = JSON.parse(@log.body)
+                  timer = Time.now + (60 * 60 * 17) # 17 hours
+                  @last_peer_state = nil
+
+                  until (@log['environment_status'] == Configs::EnvironmentState::HEALTHY || @log['environment_status'] == Configs::EnvironmentState::UNHEALTHY) && Time.now <= timer
+                    @log = Rest::Bazaar.log(token, subutai_id)
+
+                    begin
+                      @log = JSON.parse(@log.body)
+                      environment_peers = @log['environment_peers']
+
+                      environment_peers.each_with_index do |v, i|
+                        if (@last_peer_state != v['peer_state'])
+                          Put.info v['peer_state']
+                          Put.info v['peer_message']
+                        end
+                        @last_peer_state = v['peer_state']
+                      end
+
+                    rescue JSON::ParserError => e
+                      Put.error e
+                    end
+
+                    sleep 5 # sleep 5 seconds
+                  end
+
+                  if @log['environment_status'] == Configs::EnvironmentState::HEALTHY
+                    Put.success "\nEnvironment State: #{@log['environment_status']}"
+                  elsif @log['environment_status'] == Configs::EnvironmentState::UNHEALTHY
+                    Put.error "\nEnvironment State: #{@log['environment_status']}"
+                  elsif timer < Time.now
+                    Put.error "\nEnvironment State: Timeout environment creating"
+                  else
+                    Put.error "\nEnvironment State: #{@log['environment_status']}"
+                  end
                 else
                   Put.error response.body
-                  Put.error response.code
               end
             else
               Put.error response.body
