@@ -92,6 +92,46 @@ module VagrantSubutai
 
           @required_ram  += VagrantSubutai::Configs::Quota::RESOURCE[:TINY][:RAM] if @json.key?(KEYS[:ansible_configuration])  # default ansible container ram
           @required_disk += VagrantSubutai::Configs::Quota::RESOURCE[:TINY][:DISK] if @json.key?(KEYS[:ansible_configuration]) # default ansible container disk
+        else
+          @json[KEYS[:containers]].each do |container|
+            @required_ram  += (VagrantSubutai::Configs::Quota::RESOURCE[(container[KEYS[:size]]).to_sym][:RAM])
+            @required_disk += (VagrantSubutai::Configs::Quota::RESOURCE[(container[KEYS[:size]]).to_sym][:DISK])
+          end
+        end
+      end
+
+      def check_quota?(resource)
+        resource = JSON.parse(resource)
+
+        @free_ram = resource['RAM']['free'].to_f / 1073741824                                       # convert bytes to gb
+        @free_disk = (resource['Disk']['total'].to_f - resource['Disk']['used'].to_f) / 1073741824  # convert bytes to gb
+
+        @free_ram = @free_ram.round(3)
+        @free_disk = @free_disk.round(2)
+
+        check_required_quota
+
+        if @free_ram >= @required_ram && @free_disk >= @required_disk
+          true
+        else
+          Put.warn "\nNo available resources on the Peer Os\n"
+          Put.info "--------------------------------------------------------------------"
+          if @free_ram >= @required_ram
+            Put.info "RAM:  available = #{@free_ram} gb, required minimum = #{@required_ram} gb"
+          else
+            Put.error "RAM:  available = #{@free_ram} gb, required minimum = #{@required_ram} gb"
+          end
+
+          Put.info "--------------------------------------------------------------------"
+
+          if @free_disk >= @required_disk
+            Put.info "DISK:  available = #{@free_disk} gb, required minimum = #{@required_disk} gb"
+          else
+            Put.error "DISK:  available = #{@free_disk} gb, required minimum = #{@required_disk} gb"
+          end
+          Put.info "--------------------------------------------------------------------"
+
+          false
         end
       end
 
@@ -285,20 +325,31 @@ module VagrantSubutai
       end
 
       def reserve
-        @temp = STDIN.gets.strip
-        @response = VagrantSubutai::Rest::Bazaar.reserve(@cookies, @temp)
-
-        until @response.kind_of?(Net::HTTPOK)
-          Put.warn "\n-------------------------------------------------------------------"
-          Put.warn "Requested \"#{@temp}.envs.subutai.cloud\" sub-domain already exists"
-          Put.warn '-------------------------------------------------------------------'
-
-          Put.info "\n#Create a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
+        begin
           @temp = STDIN.gets.strip
           @response = VagrantSubutai::Rest::Bazaar.reserve(@cookies, @temp)
-        end
 
-        @temp
+          until @response.kind_of?(Net::HTTPOK)
+            Put.warn "\n-------------------------------------------------------------------"
+            Put.warn "Requested \"#{@temp}.envs.subutai.cloud\" sub-domain already exists"
+            Put.warn '-------------------------------------------------------------------'
+
+            Put.info "\n#Create a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
+            @temp = STDIN.gets.strip
+            @response = VagrantSubutai::Rest::Bazaar.reserve(@cookies, @temp)
+          end
+
+          res = VagrantSubutai::Rest::Bazaar.domains(@cookies)
+          json = JSON.parse(res.body)
+
+          json = json.find {|domain| domain['name'].split('.').first == @temp}
+
+          Put.info "\n Created a new domain: #{json['name']}"
+
+          json['name']
+        rescue => e
+          Put.error e
+        end
       end
 
       # Validate variable
@@ -308,6 +359,53 @@ module VagrantSubutai
           false
         else
           true
+        end
+      end
+
+      def bazaar_params(variables)
+        variables.each do |variable|
+          Put.info variable['label']
+        end
+      end
+
+      def get_input_bazaar(variable)
+        Put.info "\n#{variable['label']}"
+        if variable.key?('acceptableValues')
+          if variable['type'] == 'enum'
+            arr = variable['acceptableValues'].split(',')
+            temp = nil
+
+            arr.each_with_index do |val, index|
+              Put.info "     #{index}.  #{val}"
+              temp = index
+            end
+
+            Put.info "\nChoose your container size between ( 0 to #{temp}): "
+            input = STDIN.gets.strip.to_i
+            arr[input]
+          elsif variable['type'] == 'domain'
+            arr = variable['acceptableValues'].split(',')
+            temp = nil
+
+            arr.each_with_index do |val, index|
+              Put.info "     #{index}.  #{val}"
+              temp = index
+            end
+            Put.info "     #{temp+1}.  Create a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
+
+            Put.info "\nChoose options:  ( 0 to #{temp+1}) "
+            input = STDIN.gets.strip.to_i
+
+            if temp+1 == input
+              Put.info "\nCreate a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
+              reserve
+            else
+              arr[input]
+            end
+
+          end
+        else
+          STDIN.gets.strip
         end
       end
 
