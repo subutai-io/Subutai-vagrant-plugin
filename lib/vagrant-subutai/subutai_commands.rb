@@ -169,7 +169,9 @@ module VagrantSubutai
     def blueprint(url)
       variable = VagrantSubutai::Blueprint::VariablesController.new(0, 0, nil)
 
-      if variable.validate
+      resource = info('system')
+
+      if variable.validate && variable.check_quota?(resource)
         mode = SubutaiConfig.get(:SUBUTAI_ENV_TYPE)
 
         if mode.nil?
@@ -206,11 +208,9 @@ module VagrantSubutai
       case response
         when Net::HTTPOK
           rh_id = info('id')
-          resource = info('system')
           peer_id = Rest::SubutaiConsole.fingerprint(url)
 
           env = Blueprint::EnvironmentController.new
-          env.check_free_quota(resource)
           env.build(url, response.body, rh_id, peer_id, Configs::Blueprint::MODE::PEER)
         else
           Put.error "Error: #{response.body}"
@@ -250,11 +250,9 @@ module VagrantSubutai
           cookies = cookies_array.join('; ')
 
           rh_id = info('id')
-          resource = info('system')
           peer_id = Rest::SubutaiConsole.fingerprint(url)
 
           env = Blueprint::EnvironmentController.new
-          env.check_free_quota(resource)
           env.build(url, cookies, rh_id, peer_id, Configs::Blueprint::MODE::BAZAAR)
         else
           Put.error response.body

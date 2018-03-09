@@ -11,8 +11,6 @@ module VagrantSubutai
                     :log,           # Environment build logs
                     :id,            # Environment build id
                     :tracker_id,    # Environment logs tracker id
-                    :free_ram,      # Peer free ram unit in GB
-                    :free_disk,     # Peer free disk size unit in GB
                     :container_ids, # Container Hash {'hostname' => id}
                     :peer_os_token  # Peer Os token
 
@@ -20,171 +18,144 @@ module VagrantSubutai
 
         variable = VagrantSubutai::Blueprint::VariablesController.new(@free_ram, @free_disk, mode)
         variable.cookies = token       # needs cookies while reserving domain to Bazaar
-        variable.check_required_quota
 
-        if @free_ram >= variable.required_ram && @free_disk >= variable.required_disk
+        if mode == Configs::Blueprint::MODE::PEER
+          if variable.has_ansible?
+            @ansible = variable.ansible
+          end
 
-          if mode == Configs::Blueprint::MODE::PEER
-            if variable.has_ansible?
-              @ansible = variable.ansible
-            end
+          params = variable.params(rh_id, peer_id)
+          @name = params['name']
 
-            params = variable.params(rh_id, peer_id)
-            @name = params['name']
+          response = Rest::SubutaiConsole.environment(url, token, params.to_json)
 
-            response = Rest::SubutaiConsole.environment(url, token, params.to_json)
+          case response
+            when Net::HTTPAccepted
+              json = JSON.parse(response.body)
 
-            case response
-              when Net::HTTPAccepted
-                json = JSON.parse(response.body)
+              Put.warn "\nStarted \"#{@name}\" environment building ...... \n"
 
-                Put.warn "\nStarted \"#{@name}\" environment building ...... \n"
+              @id          = json['environmentId']
+              @tracker_id  = json['trackerId']
 
-                @id          = json['environmentId']
-                @tracker_id  = json['trackerId']
+              @log = VagrantSubutai::Rest::SubutaiConsole.log(url, token, @tracker_id)
+              @log = JSON.parse(@log.body)
 
+              decoded_log = Base64.decode64(@log['log'])
+              logs = decoded_log.split(/\{(.*?)\}\,/)
+
+              @logs_last_index = nil # this saves last logs index (for not showing duplicated logs)
+              @temp_last_index = nil
+
+              logs.each_with_index do |v, i|
+                v = v.split(',')
+                v.shift
+                Put.info "#{v[1]}  #{v[0]}" unless v.empty?
+                @temp_last_index = i
+              end
+
+              @logs_last_index = @temp_last_index
+
+              until @log['state'] == Configs::EnvironmentState::SUCCEEDED || @log['state'] == Configs::EnvironmentState::FAILED
                 @log = VagrantSubutai::Rest::SubutaiConsole.log(url, token, @tracker_id)
-                @log = JSON.parse(@log.body)
 
-                decoded_log = Base64.decode64(@log['log'])
-                logs = decoded_log.split(/\{(.*?)\}\,/)
+                begin
+                  @log = JSON.parse(@log.body)
+                  decoded_log = Base64.decode64(@log['log'])
+                  logs = decoded_log.split(/\{(.*?)\}\,/)
 
-                @logs_last_index = nil # this saves last logs index (for not showing duplicated logs)
-                @temp_last_index = nil
-
-                logs.each_with_index do |v, i|
-                  v = v.split(',')
-                  v.shift
-                  Put.info "#{v[1]}  #{v[0]}" unless v.empty?
-                  @temp_last_index = i
-                end
-
-                @logs_last_index = @temp_last_index
-
-                until @log['state'] == Configs::EnvironmentState::SUCCEEDED || @log['state'] == Configs::EnvironmentState::FAILED
-                  @log = VagrantSubutai::Rest::SubutaiConsole.log(url, token, @tracker_id)
-
-                  begin
-                    @log = JSON.parse(@log.body)
-                    decoded_log = Base64.decode64(@log['log'])
-                    logs = decoded_log.split(/\{(.*?)\}\,/)
-
-                    logs.each_with_index do |v, i|
-                      if @logs_last_index < i
-                        v = v.split(',')
-                        v.shift
-                        Put.info "#{v[1]}  #{v[0]}" unless v.empty?
-                      end
-                      @temp_last_index = i
+                  logs.each_with_index do |v, i|
+                    if @logs_last_index < i
+                      v = v.split(',')
+                      v.shift
+                      Put.info "#{v[1]}  #{v[0]}" unless v.empty?
                     end
-
-                    @logs_last_index = @temp_last_index
-                  rescue JSON::ParserError => e
-                    Put.error e
+                    @temp_last_index = i
                   end
 
-                  sleep 3 # sleep 3 seconds
+                  @logs_last_index = @temp_last_index
+                rescue JSON::ParserError => e
+                  Put.error e
                 end
 
-                if @log['state'] == Configs::EnvironmentState::SUCCEEDED
-                  Put.success "\nEnvironment State: #{@log['state']}"
+                sleep 3 # sleep 3 seconds
+              end
 
-                  if variable.has_ansible?
-                    env = list(url, token)
+              if @log['state'] == Configs::EnvironmentState::SUCCEEDED
+                Put.success "\nEnvironment State: #{@log['state']}"
 
-                    ansible = VagrantSubutai::Blueprint::AnsibleController.new(@ansible, env, url, token)
-                    ansible.hosts
-                    ansible.download
-                    ansible.run
-                  end
+                if variable.has_ansible?
+                  env = list(url, token)
 
-                  domain = variable.domain
-                  unless domain.nil?
-                    response = VagrantSubutai::Rest::SubutaiConsole.domain(url, token, @id, domain.name)
+                  ansible = VagrantSubutai::Blueprint::AnsibleController.new(@ansible, env, url, token)
+                  ansible.hosts
+                  ansible.download
+                  ansible.run
+                end
 
-                    case response
-                      when Net::HTTPOK
+                domain = variable.domain
+                unless domain.nil?
+                  response = VagrantSubutai::Rest::SubutaiConsole.domain(url, token, @id, domain.name)
 
-                        response = VagrantSubutai::Rest::SubutaiConsole.port(url, token, @id, @container_ids[domain.container_hostname], domain.internal_port)
+                  case response
+                    when Net::HTTPOK
 
-                        unless response.code == 200
-                          Put.error response.message
-                          Put.error response.body
-                        end
-                        ip = url.gsub("https://", "")
-                        ip = ip.gsub(':8443', '')
+                      response = VagrantSubutai::Rest::SubutaiConsole.port(url, token, @id, @container_ids[domain.container_hostname], domain.internal_port)
 
-                        if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
-                          Put.warn "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{ip} in your C:\\Windows\\System32\\drivers\\etc\\hosts file or to your local DNS."
-                        else
-                          Put.warn "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{ip} in your /etc/hosts file or to your local DNS."
-                        end
-                      else
-                        Put.error response.body
-                        Put.error response.code
+                      unless response.code == 200
                         Put.error response.message
-                    end
+                        Put.error response.body
+                      end
+                      ip = url.gsub("https://", "")
+                      ip = ip.gsub(':8443', '')
+
+                      if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
+                        Put.warn "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{ip} in your C:\\Windows\\System32\\drivers\\etc\\hosts file or to your local DNS."
+                      else
+                        Put.warn "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{ip} in your /etc/hosts file or to your local DNS."
+                      end
+                    else
+                      Put.error response.body
+                      Put.error response.code
+                      Put.error response.message
                   end
+                end
+              else
+                Put.error "\nEnvironment State: #{@log['state']}"
+              end
+            else
+              Put.error "Error: #{response.body}"
+          end
+        elsif mode == Configs::Blueprint::MODE::BAZAAR
+          # TODO implement Bazaar new REST API to build blueprint provisioning
+          response = VagrantSubutai::Rest::Bazaar.variables(variable.json, peer_id, token)
+
+          case response
+            when Net::HTTPOK
+              variables = JSON.parse(response.body)
+              params = []
+
+              variables.each do |var|
+                temp = var
+                temp['value'] = variable.get_input_bazaar(var)
+                params << temp
+              end
+
+              response = Rest::Bazaar.blueprint(variable.json, params, peer_id, token)
+
+              case response
+                when Net::HTTPOK
+                  Put.success response.body
+                  Put.success response.code
                 else
-                  Put.error "\nEnvironment State: #{@log['state']}"
-                end
-              else
-                Put.error "Error: #{response.body}"
-            end
-          elsif mode == Configs::Blueprint::MODE::BAZAAR
-            # TODO implement Bazaar new REST API to build blueprint provisioning
-            response = VagrantSubutai::Rest::Bazaar.variables(variable.json, peer_id, token)
-
-            case response
-              when Net::HTTPOK
-                variables = JSON.parse(response.body)
-                params = []
-
-                variables.each do |var|
-                  temp = var
-                  temp['value'] = variable.get_input_bazaar(var)
-                  params << temp
-                end
-
-                response = Rest::Bazaar.blueprint(variable.json, params, peer_id, token)
-
-                case response
-                  when Net::HTTPOK
-                    Put.success response.body
-                    Put.success response.code
-                  else
-                    Put.error response.body
-                    Put.error response.code
-                end
-              else
-                Put.error response.body
-                Put.error response.message
-            end
+                  Put.error response.body
+                  Put.error response.code
+              end
+            else
+              Put.error response.body
+              Put.error response.message
           end
-        else
-          Put.error "\nNo available resources on the Peer Os\n"
-          Put.info "--------------------------------------------------------------------"
-          if @free_ram >= variable.required_ram
-            Put.info "RAM:  available = #{@free_ram} gb, required minimum = #{variable.required_ram} gb"
-          else
-            Put.error "RAM:  available = #{@free_ram} gb, required minimum = #{variable.required_ram} gb"
-          end
-
-          if @free_disk >= variable.required_disk
-            Put.info "DISK:  available = #{@free_disk} gb, required minimum = #{variable.required_disk} gb"
-          else
-            Put.error "DISK:  available = #{@free_disk} gb, required minimum = #{variable.required_disk} gb"
-          end
-          Put.info "--------------------------------------------------------------------"
         end
-      end
-
-      # Checks peer available resource ram, disk
-      def check_free_quota(resource)
-        resource = JSON.parse(resource)
-
-        @free_ram = resource['RAM']['free'].to_f / 1073741824                                       # convert bytes to gb
-        @free_disk = (resource['Disk']['total'].to_f - resource['Disk']['used'].to_f) / 1073741824  # convert bytes to gb
       end
 
       # Gets Environment from Subutai Console REST API

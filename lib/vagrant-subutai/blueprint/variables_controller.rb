@@ -92,6 +92,46 @@ module VagrantSubutai
 
           @required_ram  += VagrantSubutai::Configs::Quota::RESOURCE[:TINY][:RAM] if @json.key?(KEYS[:ansible_configuration])  # default ansible container ram
           @required_disk += VagrantSubutai::Configs::Quota::RESOURCE[:TINY][:DISK] if @json.key?(KEYS[:ansible_configuration]) # default ansible container disk
+        else
+          @json[KEYS[:containers]].each do |container|
+            @required_ram  += (VagrantSubutai::Configs::Quota::RESOURCE[(container[KEYS[:size]]).to_sym][:RAM])
+            @required_disk += (VagrantSubutai::Configs::Quota::RESOURCE[(container[KEYS[:size]]).to_sym][:DISK])
+          end
+        end
+      end
+
+      def check_quota?(resource)
+        resource = JSON.parse(resource)
+
+        @free_ram = resource['RAM']['free'].to_f / 1073741824                                       # convert bytes to gb
+        @free_disk = (resource['Disk']['total'].to_f - resource['Disk']['used'].to_f) / 1073741824  # convert bytes to gb
+
+        @free_ram = @free_ram.round(3)
+        @free_disk = @free_disk.round(2)
+
+        check_required_quota
+
+        if @free_ram >= @required_ram && @free_disk >= @required_disk
+          true
+        else
+          Put.warn "\nNo available resources on the Peer Os\n"
+          Put.info "--------------------------------------------------------------------"
+          if @free_ram >= @required_ram
+            Put.info "RAM:  available = #{@free_ram} gb, required minimum = #{@required_ram} gb"
+          else
+            Put.error "RAM:  available = #{@free_ram} gb, required minimum = #{@required_ram} gb"
+          end
+
+          Put.info "--------------------------------------------------------------------"
+
+          if @free_disk >= @required_disk
+            Put.info "DISK:  available = #{@free_disk} gb, required minimum = #{@required_disk} gb"
+          else
+            Put.error "DISK:  available = #{@free_disk} gb, required minimum = #{@required_disk} gb"
+          end
+          Put.info "--------------------------------------------------------------------"
+
+          false
         end
       end
 
