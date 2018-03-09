@@ -219,10 +219,21 @@ module VagrantSubutai
 
     def bazaar(url, has_ansible)
       Put.info "\nBlueprint provisioning via Bazaar\n"
+      email = nil
+      password = nil
 
       # Register Peer Os to Bazaar
       unless registered?(url)
-        email, password = register(nil, nil, url)
+        username, password = get_input_token if username.nil? && password.nil?
+        response = Rest::SubutaiConsole.token(url, username, password)
+
+        case response
+          when Net::HTTPOK
+            email, password = register_by_token(response.body, url)
+          else
+            Put.error response.body
+            Put.error response.message
+        end
       end
 
       email, password = get_input_login if email.nil? && password.nil?
