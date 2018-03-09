@@ -127,7 +127,7 @@ module VagrantSubutai
               Put.error "Error: #{response.body}"
           end
         elsif mode == Configs::Blueprint::MODE::BAZAAR
-          # TODO implement Bazaar new REST API to build blueprint provisioning
+          # Bazaar new REST API to build blueprint provisioning
           response = VagrantSubutai::Rest::Bazaar.variables(variable.json, peer_id, token)
 
           case response

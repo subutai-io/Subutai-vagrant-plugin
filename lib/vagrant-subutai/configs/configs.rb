@@ -143,6 +143,7 @@ module VagrantSubutai
         DOMAIN_RESERVE = '/rest/v1/client/domains/{DOMAIN}'
         VARIABLES = '/rest/v1/client/blueprint/variables'.freeze
         BLUEPRINT = '/rest/v1/client/blueprint/build'.freeze
+        DOMAIN_LIST  = '/rest/v1/client/domains'.freeze
       end
     end
 

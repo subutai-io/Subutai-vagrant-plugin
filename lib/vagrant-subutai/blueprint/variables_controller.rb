@@ -338,7 +338,14 @@ module VagrantSubutai
           @response = VagrantSubutai::Rest::Bazaar.reserve(@cookies, @temp)
         end
 
-        @temp
+        res = VagrantSubutai::Rest::Bazaar.domains(@cookies)
+        json = JSON.parse(res.body)
+
+        json = json.find {|domain| domain['name'].split('.').first == @temp}
+
+        Put.info "\n Created a new domain: #{json['name']}"
+
+        json['name']
       end
 
       # Validate variable
