@@ -116,8 +116,6 @@ module VagrantSubutai
 
                       if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
                         Put.warn "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{ip} in your C:\\Windows\\System32\\drivers\\etc\\hosts file or to your local DNS."
-                      elsif RbConfig::CONFIG['host_os'] =~ /darwin/
-                        system "osascript -e \"do shell script \" echo '#{ip} #{domain.name}' >> /etc/hosts \" with administrator privileges\""
                       else
                         Put.warn "MESSAGE You're environment has been setup for a *local* #{domain.name}. You can map this domain to the IP address #{ip} in your /etc/hosts file or to your local DNS."
                       end
