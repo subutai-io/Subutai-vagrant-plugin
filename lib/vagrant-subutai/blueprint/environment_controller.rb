@@ -18,6 +18,7 @@ module VagrantSubutai
 
         variable = VagrantSubutai::Blueprint::VariablesController.new(@free_ram, @free_disk, mode)
         variable.cookies = token       # needs cookies while reserving domain to Bazaar
+        variable.check_required_quota
 
         if mode == Configs::Blueprint::MODE::PEER
           if variable.has_ansible?
@@ -197,6 +198,14 @@ module VagrantSubutai
               Put.error response.message
           end
         end
+      end
+
+      # Checks peer available resource ram, disk
+      def check_free_quota(resource)
+        resource = JSON.parse(resource)
+
+        @free_ram = resource['RAM']['free'].to_f / 1073741824                                       # convert bytes to gb
+        @free_disk = (resource['Disk']['total'].to_f - resource['Disk']['used'].to_f) / 1073741824  # convert bytes to gb
       end
 
       # Gets Environment from Subutai Console REST API

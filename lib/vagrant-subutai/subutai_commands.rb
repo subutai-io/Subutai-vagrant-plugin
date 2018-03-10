@@ -182,25 +182,25 @@ module VagrantSubutai
           case response
             when Net::HTTPOK
               # [MODE] The blueprint provisioning via Bazaar
-              bazaar(url, variable.has_ansible?)
+              bazaar(url)
             when Net::HTTPNotFound
               # [MODE] blueprint provisioning via Peer Os (local)
-              peer(url)
+              peer(url, resource)
             else
               Put.error response.message
               Put.error response.body
           end
         elsif mode == Configs::Blueprint::MODE::PEER
           # [MODE] blueprint provisioning via Peer Os (local)
-          peer(url)
+          peer(url, resource)
         elsif mode == Configs::Blueprint::MODE::BAZAAR
           # [MODE] The blueprint provisioning via Bazaar
-          bazaar(url, variable.has_ansible?)
+          bazaar(url)
         end
       end
     end
 
-    def peer(url)
+    def peer(url, resource)
       Put.info "\nBlueprint provisioning via Peer Os\n"
       username, password = get_input_token if username.nil? && password.nil?
       response = Rest::SubutaiConsole.token(url, username, password)
@@ -211,13 +211,14 @@ module VagrantSubutai
           peer_id = Rest::SubutaiConsole.fingerprint(url)
 
           env = Blueprint::EnvironmentController.new
+          env.check_free_quota(resource)
           env.build(url, response.body, rh_id, peer_id, Configs::Blueprint::MODE::PEER)
         else
           Put.error "Error: #{response.body}"
       end
     end
 
-    def bazaar(url, has_ansible)
+    def bazaar(url)
       Put.info "\nBlueprint provisioning via Bazaar\n"
       email = nil
       password = nil
