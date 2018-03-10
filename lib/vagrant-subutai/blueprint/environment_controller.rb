@@ -79,7 +79,7 @@ module VagrantSubutai
                   Put.error e
                 end
 
-                sleep 3 # sleep 3 seconds
+                sleep 5 # sleep 5 seconds
               end
 
               if @log['state'] == Configs::EnvironmentState::SUCCEEDED
