@@ -21,6 +21,8 @@ module VagrantSubutai
         variable.check_required_quota
 
         if mode == Configs::Blueprint::MODE::PEER
+          variable.user_variables
+
           if variable.has_ansible?
             @ansible = variable.ansible
           end
@@ -92,6 +94,8 @@ module VagrantSubutai
                   ansible.hosts
                   ansible.download
                   ansible.run
+                else
+                  list(url, token)
                 end
 
                 domain = variable.domain
@@ -185,6 +189,7 @@ module VagrantSubutai
 
                   if @log['environment_status'] == Configs::EnvironmentState::HEALTHY
                     Put.success "\nEnvironment State: #{@log['environment_status']}"
+                    # TODO show ansible logs
                   elsif @log['environment_status'] == Configs::EnvironmentState::UNHEALTHY
                     Put.error "\nEnvironment State: #{@log['environment_status']}"
                   elsif timer < Time.now

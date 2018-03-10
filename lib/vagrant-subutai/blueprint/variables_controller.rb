@@ -74,7 +74,7 @@ module VagrantSubutai
           end
         end
 
-        hash
+        @variables = hash
       end
 
       # This counts how mach quota(ram, disk) required for building environment from the Peer Os
@@ -144,7 +144,6 @@ module VagrantSubutai
       end
 
       def ansible
-        @variables = user_variables
 
         if has_ansible?
           ansible = VagrantSubutai::Models::Ansible.new
