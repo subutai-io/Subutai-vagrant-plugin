@@ -221,9 +221,9 @@ module VagrantSubutai
     end
 
     def bazaar(url)
-      Put.success "\n------------------------------------"
+      Put.success "\n-------------------------------------"
       Put.success "| Blueprint provisioning via Bazaar |"
-      Put.success "------------------------------------\n"
+      Put.success "-------------------------------------\n"
       
       email = nil
       password = nil

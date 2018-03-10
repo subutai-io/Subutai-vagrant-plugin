@@ -187,7 +187,40 @@ module VagrantSubutai
 
                   if @log['environment_status'] == Configs::EnvironmentState::HEALTHY
                     Put.success "\nEnvironment State: #{@log['environment_status']}"
-                    # TODO show ansible logs
+                    # Track ansible logs
+
+                    unless @log['environment_applications'].empty?
+                      arr = @log['environment_applications']
+
+                      arr.each_with_index  do |environment_application, i|
+                        Put.error("loop: #{i}")
+                        @tmp = nil
+
+                        until (@log['environment_applications'][i])['application_state'] == Configs::ApplicationState::INSTALLED
+                          @log = Rest::Bazaar.log(token, subutai_id)
+
+                          begin
+                            @log = JSON.parse(@log.body)
+
+                            if @tmp.nil?
+                              Put.info (@log['environment_applications'][i])['application_log']
+                            else
+                              msg = (@log['environment_applications'][i])['application_log']
+                              if @tmp.length < msg.length
+                                msg = msg[(@tmp.length)..(msg.length-1)]
+                                Put.info msg
+                              end
+                            end
+                            @tmp = (@log['environment_applications'][i])['application_log']
+
+                          rescue JSON::ParserError => e
+                            Put.error e
+                          end
+
+                          sleep 5 # sleep 5 seconds
+                        end
+                      end
+                    end
                   elsif @log['environment_status'] == Configs::EnvironmentState::UNHEALTHY
                     Put.error "\nEnvironment State: #{@log['environment_status']}"
                   elsif timer < Time.now

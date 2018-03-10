@@ -396,9 +396,10 @@ module VagrantSubutai
             input = STDIN.gets.strip.to_i
 
             if temp+1 == input
-              Put.info "\nCreate a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
+              Put.success "\nCreate a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
               reserve
             else
+              Put.success "\n Chosen a domain: #{arr[input]}"
               arr[input]
             end
 
