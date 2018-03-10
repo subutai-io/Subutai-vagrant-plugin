@@ -158,6 +158,11 @@ module VagrantSubutai
       UNHEALTHY = 'UNHEALTHY'.freeze
     end
 
+    module ApplicationState
+      INSTALLING = 'INSTALLING'.freeze
+      INSTALLED  = 'INSTALLED'.freeze
+    end
+
     module SubutaiAgentCommand
       BASE   = 'sudo /snap/bin/subutai'.freeze
       UPDATE = ' update'.freeze                     # arg required
