@@ -85,8 +85,8 @@ module VagrantSubutai
 
           keys.each do |key|
             if user_variables[key][KEYS[:type]] == 'enum'
-              @required_ram  += (VagrantSubutai::Configs::Quota::RESOURCE[(user_variables[key][KEYS[:default]]).to_sym][:RAM])
-              @required_disk += (VagrantSubutai::Configs::Quota::RESOURCE[(user_variables[key][KEYS[:default]]).to_sym][:DISK])
+              @required_ram  += (VagrantSubutai::Configs::Quota::RESOURCE[(user_variables[key][KEYS[:default]]).strip.to_sym][:RAM])
+              @required_disk += (VagrantSubutai::Configs::Quota::RESOURCE[(user_variables[key][KEYS[:default]]).strip.to_sym][:DISK])
             end
           end
 
@@ -304,7 +304,7 @@ module VagrantSubutai
 
           temp = nil
           validations.each_with_index do |validation, index|
-            if @available_ram >= Configs::Quota::RESOURCE[validation.to_sym][:RAM] && @available_disk >= Configs::Quota::RESOURCE[validation.to_sym][:DISK]
+            if @available_ram >= Configs::Quota::RESOURCE[validation.strip.to_sym][:RAM] && @available_disk >= Configs::Quota::RESOURCE[validation.strip.to_sym][:DISK]
               Put.info "    #{index}. #{validation}"
               temp = index
             end
