@@ -84,7 +84,7 @@ module VagrantSubutai
           keys = user_variables.keys
 
           keys.each do |key|
-            if user_variables[key][KEYS[:type]] == 'enum'
+            if user_variables[key][KEYS[:type]] == 'enum' && Configs::Blueprint::CONTAINER_SIZES.include?(user_variables[key][KEYS[:default]])
               @required_ram  += (VagrantSubutai::Configs::Quota::RESOURCE[(user_variables[key][KEYS[:default]]).strip.to_sym][:RAM])
               @required_disk += (VagrantSubutai::Configs::Quota::RESOURCE[(user_variables[key][KEYS[:default]]).strip.to_sym][:DISK])
             end
