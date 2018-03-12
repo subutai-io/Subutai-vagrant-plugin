@@ -131,8 +131,17 @@ module VagrantSubutai
       Put.warn "\nPlease enter credentials Bazaar:\n"
       Put.info "\nemail: "
       email = STDIN.gets.chomp
-      Put.info "\npassword: "
-      password = STDIN.noecho(&:gets).chomp
+
+      password = nil
+
+      begin
+        Put.info "\npassword: "
+        password = STDIN.noecho(&:gets).chomp
+      rescue Errno::EBADF
+        Put.info "Stdin doesn't support echo less input. Stdin can't hide password"
+        password = STDIN.gets
+      end
+
 
       [email, password]
     end
@@ -145,9 +154,15 @@ module VagrantSubutai
       Put.info "\nEnter Bazaar email: "
       hub_email = STDIN.gets.chomp
 
+      hub_password = nil
       # Hub password
-      Put.info "\nEnter Bazaar password: "
-      hub_password = STDIN.noecho(&:gets).chomp
+      begin
+        Put.info "\nEnter Bazaar password: "
+        hub_password = STDIN.noecho(&:gets).chomp
+      rescue Errno::EBADF
+        Put.info "Stdin doesn't support echo less input. Stdin can't hide password"
+        hub_password = STDIN.gets
+      end
 
       # Peer name
       Put.info "\nEnter Peer Os name: "
