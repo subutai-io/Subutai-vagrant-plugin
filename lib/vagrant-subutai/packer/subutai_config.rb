@@ -35,6 +35,7 @@ module SubutaiConfig
     AUTHORIZED_KEYS
     PASSWORD_OVERRIDE
     DISK_SIZE
+    SUBUTAI_ENV_TYPE
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -225,7 +226,7 @@ module SubutaiConfig
   # Stores ONLY generated configuration from YAML files
   def self.store
     FileUtils.mkdir_p(PARENT_DIR) unless Dir.exist?(PARENT_DIR)
-    stringified = Hash[@generated.map { |k, v| [k.to_s, v.to_s] }]
+    stringified = Hash[@generated.map { |k, v| [k.to_s, v] }]
     File.open(GENERATED_FILE, 'w') { |f| f.write stringified.to_yaml }
 
     true
@@ -297,6 +298,11 @@ module SubutaiConfig
 
     # Load overrides from the environment, and generated configurations
     ENV.each do |key, value|
+      if value == 'true'
+        value = true
+      elsif value == 'false'
+        value = false
+      end
       put(key.to_sym, value, false) if USER_PARAMETERS.include? key.to_sym
     end
     do_handlers
@@ -357,6 +363,7 @@ module SubutaiConfig
     end
   end
 
+  # TODO remove Openssl verify (if certificate expired in cdn this code will be crashed)
   def self.get_latest_id_artifact(owner, artifact_name)
     url = url_of_cdn + '/raw/info?owner=' + owner + '&name=' + artifact_name
     uri = URI(url)

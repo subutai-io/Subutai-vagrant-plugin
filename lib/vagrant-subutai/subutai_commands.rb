@@ -1,9 +1,7 @@
 require_relative '../vagrant-subutai'
-require_relative 'command'
 require 'net/https'
 require 'io/console'
 require 'fileutils'
-require_relative 'rh_controller'
 
 module VagrantSubutai
   class Commands < Vagrant.plugin('2', :command)
@@ -14,17 +12,17 @@ module VagrantSubutai
 
     # show snap logs
     def log
-      ssh(base + SubutaiAgentCommand::LOG)
+      ssh(base + Configs::SubutaiAgentCommand::LOG)
     end
 
     def base
       env = SubutaiConfig.get(:SUBUTAI_ENV)
 
       if env.nil?
-        SubutaiAgentCommand::BASE
+        Configs::SubutaiAgentCommand::BASE
       else
-        if env.to_s == "prod"
-          SubutaiAgentCommand::BASE
+        if env.to_s == 'prod'
+          Configs::SubutaiAgentCommand::BASE
         else
           "sudo /snap/bin/subutai-#{env.to_s}"
         end
@@ -34,10 +32,9 @@ module VagrantSubutai
     # info id
     def info(arg)
       with_target_vms(nil, single_target: true) do |vm|
-        vm.communicate.sudo("#{base} #{SubutaiAgentCommand::INFO} #{arg}") do |type, data|
+        vm.communicate.sudo("#{base} #{Configs::SubutaiAgentCommand::INFO} #{arg}") do |type, data|
           if type == :stdout
             result = data.split(/[\r\n]+/)
-            STDOUT.puts result.first
             return result.first
           end
         end
@@ -46,164 +43,252 @@ module VagrantSubutai
 
     # update Subutai rh or management
     def update(name)
-      ssh(base + SubutaiAgentCommand::UPDATE + " #{name}")
+      ssh(base + Configs::SubutaiAgentCommand::UPDATE + " #{name}")
     end
 
-    # register Subutai Peer to Hub
-    def register(username, password)
-      username, password = get_input_token if username.nil? && password.nil?
-      response = VagrantSubutai::Rest::SubutaiConsole.token($SUBUTAI_CONSOLE_URL, username, password)
+    # checks The Peer Os registered or not registered to Bazaar
+    def registered?(url)
+      fingerprint = Rest::SubutaiConsole.fingerprint(url)
+      response = Rest::Bazaar.registered(fingerprint)
 
       case response
         when Net::HTTPOK
-          STDOUT.puts "Successfully you signed Subutai Console"
-          hub_email, hub_password, peer_name, peer_scope = get_input_register
-          response = VagrantSubutai::Rest::SubutaiConsole.register(response.body, $SUBUTAI_CONSOLE_URL, hub_email, hub_password, peer_name, peer_scope)
-
-          case response
-            when Net::HTTPOK
-              STDOUT.puts "You peer: \"#{peer_name}\" successfully registered to hub."
-            else
-              STDOUT.puts "Try again! #{response.body}\n"
-              register(username, password)
-          end
+          return true
+        when Net::HTTPNotFound
+          return false
         else
-          STDERR.puts "Try again! #{response.body}\n"
-          register(nil, nil)
+          Put.error response.body
+          Put.error response.message
+          exit
       end
     end
 
-    # Add new RH to Peer
-    def add(peer_path, rh_name)
-      # TODO peer_path also be fixed(this path must work on all platforms)
-      peer_path = peer_path + "/#{VagrantSubutai::Subutai::RH_FOLDER_NAME}/#{rh_name}"
+    # register Subutai Peer Os to Bazaar by username and password
+    def register(username, password, url)
+      if registered?(url)
+        Put.warn "\nThe Peer Os already registered to Bazaar.\n"
+      else
+        username, password = get_input_token if username.nil? && password.nil?
+        response = Rest::SubutaiConsole.token(url, username, password)
 
-      # create RH folder your_peer_path/RH/rh_name
-      unless File.exists?(peer_path)
-        FileUtils.mkdir_p(peer_path)
+        case response
+          when Net::HTTPOK
+            hub_email, hub_password, peer_name, peer_scope = get_input_register
+            peer_scope = peer_scope == 1 ? 'Public':'Private'
+            response = Rest::SubutaiConsole.register(response.body, url, hub_email, hub_password, peer_name, peer_scope)
 
-        # 1. create RH
-        Dir.chdir(peer_path){
-          unless system(VagrantCommand::INIT + " " + $SUBUTAI_BOX_NAME)
-            raise "#{VagrantCommand::INIT} command failed."
-          end
-        }
-
-        # 2. vagrant up
-        Dir.chdir(peer_path){
-          unless system(VagrantCommand::RH_UP)
-            raise "#{VagrantCommand::RH_UP} command failed."
-          end
-        }
-
-        # 3. vagrant provision
-        Dir.chdir(peer_path){
-          unless system(VagrantCommand::PROVISION)
-            raise "#{VagrantCommand::PROVISION} command failed."
-          end
-        }
-
-        # 4. TODO set Subutai Console host and fingerprint in RH agent config
-        fingerprint = VagrantSubutai::Rest::SubutaiConsole.fingerprint($SUBUTAI_CONSOLE_URL).body
-        ip = info(VagrantCommand::ARG_IP_ADDR)
-
-        STDOUT.puts "Subutai Console(Peer)"
-        STDOUT.puts "ip: #{ip}"
-        STDOUT.puts "fingerprint: #{fingerprint}"
-
-        # 5. Check is RH request exist in Subutai Console
-        # then approve
-        rhs = []
-        # Get RH requests from Subutai Console
-        rhs = VagrantSubutai::RhController.new.all(get_token)
-
-        # Get RH id
-        id = nil
-        Dir.chdir(peer_path){
-          r, w = IO.pipe
-
-          pid = spawn(VagrantCommand::SUBUTAI_ID, :out => w)
-
-          w.close
-          id = r.read
-        }
-
-        # Check is this RH request exist in Subutai Console
-        found = rhs.detect {|rh| rh.id == id}
-
-        if found.nil?
-          raise 'RH not send request to Subutai Console for approve'
-        else
-          # TODO send REST call for approve RH to Subutai Console
+            case response
+              when Net::HTTPOK
+                Put.success response.body
+                Put.success "\"#{peer_name}\" successfully registered to Bazaar."
+              else
+                Put.error "Error: #{response.body}\n"
+                register(username, password, url)
+            end
+          else
+            Put.error "Error: #{response.body}\n"
+            register(nil, nil, url)
         end
+      end
+    end
 
-        STDOUT.puts "Your RH path: #{peer_path}"
+    # register Subutai Peer Os to Bazaar by token
+    def register_by_token(token, url)
+      hub_email, hub_password, peer_name, peer_scope = get_input_register
+      peer_scope = peer_scope == 1 ? 'Public':'Private'
+      response = Rest::SubutaiConsole.register(token, url, hub_email, hub_password, peer_name, peer_scope)
+
+      case response
+        when Net::HTTPOK
+          Put.success response.body
+          Put.success "\"#{peer_name}\" successfully registered to Bazaar."
+          [hub_email, hub_password]
+        else
+          Put.error "Error: #{response.body}\n"
+          register_by_token(token, url)
       end
     end
 
     # Show Subutai Console finger print
     def fingerprint(url)
-      response = VagrantSubutai::Rest::SubutaiConsole.fingerprint(url)
-
-      case response
-        when Net::HTTPOK
-          STDOUT.puts response.body
-        else
-          STDOUT.puts "Try again! #{response.body}"
-      end
+      peer_id = Rest::SubutaiConsole.fingerprint(url)
+      Put.info peer_id
     end
 
-    # Get Subutai console credentials from input
+    # Get Subutai Peer Os credentials from input
     def get_input_token
-      STDOUT.puts "\nPlease enter credentials Subutai Console:\n"
-      STDOUT.puts "username: "
+      Put.warn "\nPlease enter credentials Subutai Peer Os:\n"
+      Put.info "\nusername: "
       username = STDIN.gets.chomp
-      puts "password: "
+      Put.info "\npassword: "
       password = STDIN.noecho(&:gets).chomp
 
       [username, password]
     end
 
-    # gets token
-    def get_token
-      username, password = get_input_token
-      response = VagrantSubutai::Rest::SubutaiConsole.token($SUBUTAI_CONSOLE_URL, username, password)
+    # Get Bazaar credentials from input
+    def get_input_login
+      Put.warn "\nPlease enter credentials Bazaar:\n"
+      Put.info "\nemail: "
+      email = STDIN.gets.chomp
 
-      case response
-        when Net::HTTPOK
-          return response.body
-        else
-          get_token
+      password = nil
+
+      begin
+        Put.info "\npassword: "
+        password = STDIN.noecho(&:gets).chomp
+      rescue Errno::EBADF
+        Put.warn "\nStdin doesn't support echo less input. Stdin can't hide password\n"
+        password = STDIN.gets
       end
+
+
+      [email, password]
     end
 
     # Get Hub credentials and peer info
     def get_input_register
-      STDOUT.puts "\nRegister your peer to HUB:\n"
+      Put.warn "\nRegister your peer to Bazaar:\n"
 
       # Hub email
-      STDOUT.puts "Enter Hub email: "
+      Put.info "\nEnter Bazaar email: "
       hub_email = STDIN.gets.chomp
 
+      hub_password = nil
       # Hub password
-      STDOUT.puts "Enter Hub password: "
-      hub_password = STDIN.noecho(&:gets).chomp
+      begin
+        Put.info "\nEnter Bazaar password: "
+        hub_password = STDIN.noecho(&:gets).chomp
+      rescue Errno::EBADF
+        Put.warn "\nStdin doesn't support echo less input. Stdin can't hide password\n"
+        hub_password = STDIN.gets
+      end
 
       # Peer name
-      STDOUT.puts "Enter peer name: "
+      Put.info "\nEnter Peer Os name: "
       peer_name = STDIN.gets.chomp
 
       # Peer scope
-      STDOUT.puts "1. Public"
-      STDOUT.puts "2. Private"
-      STDOUT.puts "Choose your peer scope (1 or 2): "
+      Put.info "\n1. Public"
+      Put.info "2. Private"
+      Put.info "\nChoose your Peer Os scope (1 or 2): "
       peer_scope = STDIN.gets.chomp.to_i
 
       [hub_email, hub_password, peer_name, peer_scope]
     end
 
     def list(arg)
-      ssh(base + "#{SubutaiAgentCommand::LIST} #{arg}")
+      ssh(base + "#{Configs::SubutaiAgentCommand::LIST} #{arg}")
+    end
+
+    def blueprint(url)
+      variable = VagrantSubutai::Blueprint::VariablesController.new(0, 0, nil)
+
+      resource = info('system')
+
+      if variable.validate && variable.check_quota?(resource)
+        mode = SubutaiConfig.get(:SUBUTAI_ENV_TYPE)
+
+        if mode.nil?
+          # check smart defaults
+          fingerprint = Rest::SubutaiConsole.fingerprint(url)
+          response = Rest::Bazaar.registered(fingerprint)
+
+          case response
+            when Net::HTTPOK
+              # [MODE] The blueprint provisioning via Bazaar
+              bazaar(url)
+            when Net::HTTPNotFound
+              # [MODE] blueprint provisioning via Peer Os (local)
+              peer(url, resource)
+            else
+              Put.error response.message
+              Put.error response.body
+          end
+        elsif mode == Configs::Blueprint::MODE::PEER
+          # [MODE] blueprint provisioning via Peer Os (local)
+          peer(url, resource)
+        elsif mode == Configs::Blueprint::MODE::BAZAAR
+          # [MODE] The blueprint provisioning via Bazaar
+          bazaar(url)
+        end
+      end
+    end
+
+    def peer(url, resource)
+      Put.success "\n--------------------------------------"
+      Put.success "| Blueprint provisioning via Peer Os |"
+      Put.success "--------------------------------------\n"      
+      username, password = get_input_token if username.nil? && password.nil?
+      response = Rest::SubutaiConsole.token(url, username, password)
+
+      case response
+        when Net::HTTPOK
+          rh_id = info('id')
+          peer_id = Rest::SubutaiConsole.fingerprint(url)
+
+          env = Blueprint::EnvironmentController.new
+          env.check_free_quota(resource)
+          env.build(url, response.body, rh_id, peer_id, Configs::Blueprint::MODE::PEER)
+        else
+          Put.error "Error: #{response.body}"
+      end
+    end
+
+    def bazaar(url)
+      Put.success "\n-------------------------------------"
+      Put.success "| Blueprint provisioning via Bazaar |"
+      Put.success "-------------------------------------\n"
+      
+      email = nil
+      password = nil
+
+      # Register Peer Os to Bazaar
+      unless registered?(url)
+        username, password = get_input_token if username.nil? && password.nil?
+        response = Rest::SubutaiConsole.token(url, username, password)
+
+        case response
+          when Net::HTTPOK
+            email, password = register_by_token(response.body, url)
+          else
+            Put.error response.body
+            Put.error response.message
+        end
+      end
+
+      email, password = get_input_login if email.nil? && password.nil?
+
+      response = Rest::Bazaar.login(email, password)
+
+      case response
+        when Net::HTTPOK
+          all_cookies = response.get_fields('set-cookie')
+          cookies_array = Array.new
+          all_cookies.each { | cookie |
+            cookies_array.push(cookie.split('; ')[0])
+          }
+          cookies = cookies_array.join('; ')
+
+          rh_id = info('id')
+          peer_id = Rest::SubutaiConsole.fingerprint(url)
+
+          env = Blueprint::EnvironmentController.new
+          env.build(url, cookies, rh_id, peer_id, Configs::Blueprint::MODE::BAZAAR)
+        else
+          Put.error response.body
+      end
+    end
+
+    # opens browser
+    def open(link)
+      if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
+        system "start #{link}"
+      elsif RbConfig::CONFIG['host_os'] =~ /darwin/
+        system "open #{link}"
+      elsif RbConfig::CONFIG['host_os'] =~ /linux|bsd/
+        system "xdg-open #{link}"
+      end
     end
 
     def ssh(command)
