@@ -193,7 +193,6 @@ module VagrantSubutai
                       arr = @log['environment_applications']
 
                       arr.each_with_index  do |environment_application, i|
-                        Put.error("loop: #{i}")
                         @tmp = nil
 
                         until (@log['environment_applications'][i])['application_state'] == Configs::ApplicationState::INSTALLED
