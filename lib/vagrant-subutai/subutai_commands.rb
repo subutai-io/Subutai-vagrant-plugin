@@ -138,7 +138,7 @@ module VagrantSubutai
         Put.info "\npassword: "
         password = STDIN.noecho(&:gets).chomp
       rescue Errno::EBADF
-        Put.info "Stdin doesn't support echo less input. Stdin can't hide password"
+        Put.warn "\nStdin doesn't support echo less input. Stdin can't hide password\n"
         password = STDIN.gets
       end
 
@@ -160,7 +160,7 @@ module VagrantSubutai
         Put.info "\nEnter Bazaar password: "
         hub_password = STDIN.noecho(&:gets).chomp
       rescue Errno::EBADF
-        Put.info "Stdin doesn't support echo less input. Stdin can't hide password"
+        Put.warn "\nStdin doesn't support echo less input. Stdin can't hide password\n"
         hub_password = STDIN.gets
       end
 
