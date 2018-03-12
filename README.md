@@ -42,10 +42,10 @@ COMMANDS:
        tunnel                  - SSH tunnel management
        update                  - update Subutai management, container or Resource host
        vxlan                   - VXLAN tunnels operation
-       register                - register Subutai Peer to Hub
+       register                - register Subutai PeerOS to Bazaar
        fingerprint             - shows fingerprint Subutai Console
-       disk                    - manage Subutai disk
-       open                    - open Subutai Console
+       open                    - open the Subutai PeerOS in browser
+       blueprint               - run blueprint provisioning
 
 GLOBAL OPTIONS:
        -h, --help              - show help
