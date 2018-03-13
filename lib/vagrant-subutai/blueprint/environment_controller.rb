@@ -148,7 +148,7 @@ module VagrantSubutai
                     conf_user_variables = JSON.parse(SubutaiConfig.get(:USER_VARIABLES))
                   rescue JSON::ParserError => e
                     Put.error e
-                    conf_user_variables = {}
+                    return
                   end
                 end
               end
