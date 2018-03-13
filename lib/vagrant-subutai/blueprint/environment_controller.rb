@@ -144,7 +144,12 @@ module VagrantSubutai
                 conf_user_variables = {}
               else
                 if conf_user_variables.kind_of?(String)
-                  conf_user_variables = JSON.parse(SubutaiConfig.get(:USER_VARIABLES))
+                  begin
+                    conf_user_variables = JSON.parse(SubutaiConfig.get(:USER_VARIABLES))
+                  rescue JSON::ParserError => e
+                    Put.error e
+                    conf_user_variables = {}
+                  end
                 end
               end
 
