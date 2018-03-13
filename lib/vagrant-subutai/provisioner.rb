@@ -39,16 +39,19 @@ module VagrantSubutai
     #
     # No return value is expected.
     def provision
-      subutai_cli = Commands.new(ARGV, @machine.env)
-      ip = subutai_cli.info(Configs::VagrantCommand::ARG_IP_ADDR)
+      # If Subutai.json exist
+      if File.exist?("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}")
+        subutai_cli = Commands.new(ARGV, @machine.env)
+        ip = subutai_cli.info(Configs::VagrantCommand::ARG_IP_ADDR)
 
-      if ip.nil?
-        STDOUT.puts 'We can\'t detect your Subutai Console ip address!'
-        exit
+        if ip.nil?
+          STDOUT.puts 'We can\'t detect your Subutai Console ip address!'
+          exit
+        end
+        url = "https://#{ip}:#{Configs::SubutaiConsoleAPI::PORT}"
+
+        subutai_cli.blueprint(url)
       end
-      url = "https://#{ip}:#{Configs::SubutaiConsoleAPI::PORT}"
-
-      subutai_cli.blueprint(url)
     end
 
     # This is the method called when destroying a machine that allows
