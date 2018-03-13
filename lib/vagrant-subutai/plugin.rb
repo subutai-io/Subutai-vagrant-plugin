@@ -1,7 +1,8 @@
 module VagrantSubutai
     module Subutai
         class Plugin < Vagrant.plugin(2)
-            name 'Subutai'
+            name 'subutai'
+
             description <<-DESC
               Vagrant Subutai CLI - executes Subutai scripts in target hosts
             DESC
@@ -11,9 +12,15 @@ module VagrantSubutai
                 Command
             end
 
+            provisioner "blueprint" do
+               require_relative "provisioner"
+               Provisioner
+            end
+
+
             config 'subutai_console' do
-              require_relative 'config'
-              Config
+               require_relative 'config'
+               Config
             end
         end
     end

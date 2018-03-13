@@ -12,6 +12,7 @@ module VagrantSubutai
       'Vagrant Subutai Plugin - executes Subutai scripts in target hosts'
     end
 
+
     def execute
       cli_info
 
