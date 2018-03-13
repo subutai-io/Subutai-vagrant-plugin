@@ -271,6 +271,7 @@ module VagrantSubutai
           env.build(url, response.body, rh_id, peer_id, Configs::Blueprint::MODE::PEER)
         else
           Put.error "Error: #{response.body}"
+          Put.warn "\n[WARNING] if you have a new PeerOS make sure you have to change the default UI console password. It’s default credentials are ‘admin’ / ‘secret’.\n"
       end
     end
 
