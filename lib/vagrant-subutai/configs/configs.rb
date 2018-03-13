@@ -31,6 +31,7 @@ module VagrantSubutai
                  description:     'My static website',
                  version:         'Blueprint version',
                  'author':        'Author',
+                 'ssh-key':        'ssh-key-name',
                  containers:      [
                                    {
                                      hostname:   'www',

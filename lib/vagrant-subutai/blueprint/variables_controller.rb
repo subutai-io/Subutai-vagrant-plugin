@@ -66,11 +66,30 @@ module VagrantSubutai
         hash = {}
 
         if @json.key?(KEYS[:user_variables])
+          conf_user_variables = SubutaiConfig.get(:USER_VARIABLES)
+
+          if conf_user_variables.nil?
+            conf_user_variables = {}
+          else
+            if conf_user_variables.kind_of?(String)
+              begin
+                conf_user_variables = JSON.parse(SubutaiConfig.get(:USER_VARIABLES))
+              rescue JSON::ParserError => e
+                Put.error e
+                return
+              end
+            end
+          end
+
           user_variables = @json[KEYS[:user_variables]]
           keys = user_variables.keys
 
           keys.each do |key|
-            hash[key] = get_input(user_variables[key])
+            if conf_user_variables[key].nil?
+              hash[key] = get_input(user_variables[key])
+            else
+              hash[key] = conf_user_variables[key]
+            end
           end
         end
 
@@ -84,7 +103,7 @@ module VagrantSubutai
           keys = user_variables.keys
 
           keys.each do |key|
-            if user_variables[key][KEYS[:type]] == 'enum'
+            if user_variables[key][KEYS[:type]] == 'enum' && Configs::Blueprint::CONTAINER_SIZES.include?(user_variables[key][KEYS[:default]])
               @required_ram  += (VagrantSubutai::Configs::Quota::RESOURCE[(user_variables[key][KEYS[:default]]).strip.to_sym][:RAM])
               @required_disk += (VagrantSubutai::Configs::Quota::RESOURCE[(user_variables[key][KEYS[:default]]).strip.to_sym][:DISK])
             end

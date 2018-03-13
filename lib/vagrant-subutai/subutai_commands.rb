@@ -95,7 +95,6 @@ module VagrantSubutai
     # register Subutai Peer Os to Bazaar by token
     def register_by_token(token, url)
       hub_email, hub_password, peer_name, peer_scope = get_input_register
-      peer_scope = peer_scope == 1 ? 'Public':'Private'
       response = Rest::SubutaiConsole.register(token, url, hub_email, hub_password, peer_name, peer_scope)
 
       case response
@@ -117,62 +116,98 @@ module VagrantSubutai
 
     # Get Subutai Peer Os credentials from input
     def get_input_token
-      Put.warn "\nPlease enter credentials Subutai Peer Os:\n"
-      Put.info "\nusername: "
-      username = STDIN.gets.chomp
-      Put.info "\npassword: "
-      password = STDIN.noecho(&:gets).chomp
+      password = nil
+      username = nil
+
+      if SubutaiConfig.get(:SUBUTAI_USERNAME).nil?
+        Put.warn "\nPlease enter credentials Subutai Peer Os:\n"
+        Put.info "\nusername: "
+        username = STDIN.gets.chomp
+      else
+        username = SubutaiConfig.get(:SUBUTAI_USERNAME)
+      end
+
+
+      if SubutaiConfig.get(:SUBUTAI_PASSWORD).nil?
+        begin
+          Put.info "\npassword: "
+          password = STDIN.noecho(&:gets).chomp
+        rescue Errno::EBADF
+          Put.warn "\nStdin doesn't support echo less input. Stdin can't hide password\n"
+          password = STDIN.gets
+        end
+      else
+        password = SubutaiConfig.get(:SUBUTAI_PASSWORD)
+      end
 
       [username, password]
     end
 
     # Get Bazaar credentials from input
     def get_input_login
-      Put.warn "\nPlease enter credentials Bazaar:\n"
-      Put.info "\nemail: "
-      email = STDIN.gets.chomp
 
+      email = nil
       password = nil
 
-      begin
-        Put.info "\npassword: "
-        password = STDIN.noecho(&:gets).chomp
-      rescue Errno::EBADF
-        Put.warn "\nStdin doesn't support echo less input. Stdin can't hide password\n"
-        password = STDIN.gets
+      if SubutaiConfig.get(:BAZAAR_EMAIL).nil?
+        # Bazaar email
+        Put.warn "\nPlease enter credentials Bazaar:\n"
+        Put.info "\nemail: "
+        email = STDIN.gets.chomp
+      else
+        email = SubutaiConfig.get(:BAZAAR_EMAIL)
       end
 
+
+      if SubutaiConfig.get(:BAZAAR_PASSWORD).nil?
+        # Bazaar password
+        begin
+          Put.info "\nEnter Bazaar password: "
+          password = STDIN.noecho(&:gets).chomp
+        rescue Errno::EBADF
+          Put.warn "\nStdin doesn't support echo less input. Stdin can't hide password\n"
+          password = STDIN.gets
+        end
+      else
+        password = SubutaiConfig.get(:BAZAAR_PASSWORD)
+      end
 
       [email, password]
     end
 
-    # Get Hub credentials and peer info
+    # Get Bazaar credentials and peer info
     def get_input_register
       Put.warn "\nRegister your peer to Bazaar:\n"
 
-      # Hub email
-      Put.info "\nEnter Bazaar email: "
-      hub_email = STDIN.gets.chomp
-
       hub_password = nil
-      # Hub password
-      begin
-        Put.info "\nEnter Bazaar password: "
-        hub_password = STDIN.noecho(&:gets).chomp
-      rescue Errno::EBADF
-        Put.warn "\nStdin doesn't support echo less input. Stdin can't hide password\n"
-        hub_password = STDIN.gets
+      hub_email = nil
+
+      if SubutaiConfig.get(:BAZAAR_EMAIL).nil?
+        # Hub email
+        Put.info "\nEnter Bazaar email: "
+        hub_email = STDIN.gets.chomp
+      else
+        hub_email = SubutaiConfig.get(:BAZAAR_EMAIL)
+      end
+
+
+      if SubutaiConfig.get(:BAZAAR_PASSWORD).nil?
+        # Hub password
+        begin
+          Put.info "\nEnter Bazaar password: "
+          hub_password = STDIN.noecho(&:gets).chomp
+        rescue Errno::EBADF
+          Put.warn "\nStdin doesn't support echo less input. Stdin can't hide password\n"
+          hub_password = STDIN.gets
+        end
+      else
+        hub_password = SubutaiConfig.get(:BAZAAR_PASSWORD)
       end
 
       # Peer name
-      Put.info "\nEnter Peer Os name: "
-      peer_name = STDIN.gets.chomp
+      peer_name = SubutaiConfig.get(:SUBUTAI_NAME)
 
-      # Peer scope
-      Put.info "\n1. Public"
-      Put.info "2. Private"
-      Put.info "\nChoose your Peer Os scope (1 or 2): "
-      peer_scope = STDIN.gets.chomp.to_i
+      peer_scope = SubutaiConfig.get(:SUBUTAI_SCOPE)
 
       [hub_email, hub_password, peer_name, peer_scope]
     end
@@ -218,7 +253,11 @@ module VagrantSubutai
     def peer(url, resource)
       Put.success "\n--------------------------------------"
       Put.success "| Blueprint provisioning via Peer Os |"
-      Put.success "--------------------------------------\n"      
+      Put.success "--------------------------------------\n"
+
+      username = SubutaiConfig.get(:SUBUTAI_USERNAME)
+      password = SubutaiConfig.get(:SUBUTAI_PASSWORD)
+
       username, password = get_input_token if username.nil? && password.nil?
       response = Rest::SubutaiConsole.token(url, username, password)
 
@@ -232,6 +271,7 @@ module VagrantSubutai
           env.build(url, response.body, rh_id, peer_id, Configs::Blueprint::MODE::PEER)
         else
           Put.error "Error: #{response.body}"
+          Put.warn "\n[WARNING] if you have a new PeerOS make sure you have to change the default UI console password. It’s default credentials are ‘admin’ / ‘secret’.\n"
       end
     end
 
@@ -240,13 +280,16 @@ module VagrantSubutai
       Put.success "| Blueprint provisioning via Bazaar |"
       Put.success "-------------------------------------\n"
       
-      email = nil
-      password = nil
+      email = SubutaiConfig.get(:BAZAAR_EMAIL)
+      password = SubutaiConfig.get(:BAZAAR_PASSWORD)
 
       # Register Peer Os to Bazaar
       unless registered?(url)
-        username, password = get_input_token if username.nil? && password.nil?
-        response = Rest::SubutaiConsole.token(url, username, password)
+        username = SubutaiConfig.get(:SUBUTAI_USERNAME)
+        pwd = SubutaiConfig.get(:SUBUTAI_PASSWORD)
+
+        username, pwd = get_input_token if username.nil? && pwd.nil?
+        response = Rest::SubutaiConsole.token(url, username, pwd)
 
         case response
           when Net::HTTPOK

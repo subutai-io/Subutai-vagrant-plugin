@@ -36,6 +36,13 @@ module SubutaiConfig
     PASSWORD_OVERRIDE
     DISK_SIZE
     SUBUTAI_ENV_TYPE
+    SUBUTAI_NAME
+    SUBUTAI_SCOPE
+    SUBUTAI_USERNAME
+    SUBUTAI_PASSWORD
+    USER_VARIABLES
+    BAZAAR_EMAIL
+    BAZAAR_PASSWORD
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -73,6 +80,8 @@ module SubutaiConfig
     SUBUTAI_PEER: true,              # to provision or not console (peer)
     SUBUTAI_RAM: 4096,               # RAM memory assigned to the vm
     SUBUTAI_CPU: 2,                  # virtual CPU's assign to the vm
+    SUBUTAI_NAME: 'My Peer',         # PeerOS name
+    SUBUTAI_SCOPE: 'Public',         # PeerOS scope
 
     # Configuration parameters below have not been implemented
     SUBUTAI_SNAP: nil,               # alternative snap to provision
