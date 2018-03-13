@@ -138,11 +138,25 @@ module VagrantSubutai
           case response
             when Net::HTTPOK
               variables = JSON.parse(response.body)
+              conf_user_variables = SubutaiConfig.get(:USER_VARIABLES)
+
+              if conf_user_variables.nil?
+                conf_user_variables = {}
+              else
+                if conf_user_variables.kind_of?(String)
+                  conf_user_variables = JSON.parse(SubutaiConfig.get(:USER_VARIABLES))
+                end
+              end
+
               params = []
 
               variables.each do |var|
                 temp = var
-                temp['value'] = variable.get_input_bazaar(var)
+                if conf_user_variables[var['name']].nil?
+                  temp['value'] = variable.get_input_bazaar(var)
+                else
+                  temp['value'] = conf_user_variables[var['name']]
+                end
                 params << temp
               end
 

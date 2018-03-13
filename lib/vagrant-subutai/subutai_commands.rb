@@ -218,7 +218,11 @@ module VagrantSubutai
     def peer(url, resource)
       Put.success "\n--------------------------------------"
       Put.success "| Blueprint provisioning via Peer Os |"
-      Put.success "--------------------------------------\n"      
+      Put.success "--------------------------------------\n"
+
+      username = SubutaiConfig.get(:SUBUTAI_USERNAME)
+      password = SubutaiConfig.get(:SUBUTAI_PASSWORD)
+
       username, password = get_input_token if username.nil? && password.nil?
       response = Rest::SubutaiConsole.token(url, username, password)
 
@@ -240,8 +244,8 @@ module VagrantSubutai
       Put.success "| Blueprint provisioning via Bazaar |"
       Put.success "-------------------------------------\n"
       
-      email = nil
-      password = nil
+      email = SubutaiConfig.get(:SUBUTAI_USERNAME)
+      password = SubutaiConfig.get(:SUBUTAI_PASSWORD)
 
       # Register Peer Os to Bazaar
       unless registered?(url)

@@ -80,7 +80,6 @@ module SubutaiConfig
     SUBUTAI_CPU: 2,                  # virtual CPU's assign to the vm
     SUBUTAI_NAME: 'My Peer',         # PeerOS name
     SUBUTAI_SCOPE: 'Public',         # PeerOS scope
-    USER_VARIABLES: {},              # Subutai.json user-variables value must be specified
 
     # Configuration parameters below have not been implemented
     SUBUTAI_SNAP: nil,               # alternative snap to provision
