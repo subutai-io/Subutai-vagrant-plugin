@@ -23,6 +23,20 @@ module VagrantSubutai
         https.request(request)
       end
 
+      # Change password
+      def self.password(url, username, password, new_password)
+        uri = URI.parse(url + Configs::SubutaiConsoleAPI::LOGIN)
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 3600 # an hour
+
+        request = Net::HTTP::Post.new(uri.request_uri)
+        request.set_form_data('username' => username, 'password' => password, 'newpassword' => new_password)
+
+        https.request(request)
+      end
+
       # Subutai Hub credentials email, password
       # specify your peer_name
       # peer_scope acceptable only like this "Public" : "Private"
@@ -48,6 +62,18 @@ module VagrantSubutai
         https.read_timeout = 3600 # an hour
 
         request = Net::HTTP::Post.new(uri.request_uri)
+
+        https.request(request)
+      end
+
+      def self.ready(url)
+        uri = URI.parse(url + Configs::SubutaiConsoleAPI::V1::READY)
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 3600 # an hour
+
+        request = Net::HTTP::Get.new(uri.request_uri)
 
         https.request(request)
       end

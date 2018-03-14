@@ -122,7 +122,10 @@ module VagrantSubutai
         LOG          = '/rest/v1/tracker/operations/ENVIRONMENT%20MANAGER/'.freeze
         RESOURCES    = '/rest/v1/peer/resources?sptoken='.freeze
         DOMAIN       = '/rest/ui/environments/'.freeze
+        READY        = '/rest/v1/peer/ready'.freeze
       end
+      LOGIN = '/login'.freeze
+      DEFAULT_PASSWORDS = 'secret'.freeze
     end
 
     module Gorjun
@@ -150,6 +153,7 @@ module VagrantSubutai
 
     module Blueprint
       FILE_NAME = 'Subutai.json'.freeze
+      ATTEMPT = 10.freeze
     end
 
     module EnvironmentState

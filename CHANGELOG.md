@@ -5,3 +5,8 @@ FEATURES:
   - Blueprint provisioning in two modes bazaar and peer
   - Open command PeerOS in browser
     
+## 1.1.1 (March 15, 2018)
+
+BUG FIXES:
+
+  - Blueprint provisioning check for ready PeerOS 
