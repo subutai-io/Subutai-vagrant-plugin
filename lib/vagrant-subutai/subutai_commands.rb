@@ -68,13 +68,13 @@ module VagrantSubutai
       if registered?(url)
         Put.warn "\nThe Peer Os already registered to Bazaar.\n"
       else
-        username, password = get_input_token if username.nil? && password.nil?
+        username, password = get_input_token if username.nil? || password.nil?
         response = Rest::SubutaiConsole.token(url, username, password)
 
         case response
           when Net::HTTPOK
             hub_email, hub_password, peer_name, peer_scope = get_input_register
-            peer_scope = peer_scope == 1 ? 'Public':'Private'
+
             response = Rest::SubutaiConsole.register(response.body, url, hub_email, hub_password, peer_name, peer_scope)
 
             case response
@@ -83,11 +83,9 @@ module VagrantSubutai
                 Put.success "\"#{peer_name}\" successfully registered to Bazaar."
               else
                 Put.error "Error: #{response.body}\n"
-                register(username, password, url)
             end
           else
             Put.error "Error: #{response.body}\n"
-            register(nil, nil, url)
         end
       end
     end
@@ -104,7 +102,6 @@ module VagrantSubutai
           [hub_email, hub_password]
         else
           Put.error "Error: #{response.body}\n"
-          register_by_token(token, url)
       end
     end
 
@@ -121,7 +118,7 @@ module VagrantSubutai
 
       if SubutaiConfig.get(:SUBUTAI_USERNAME).nil?
         Put.warn "\nPlease enter credentials Subutai Peer Os:\n"
-        Put.info "\nusername: "
+        Put.info "\nPeerOS username: "
         username = STDIN.gets.chomp
       else
         username = SubutaiConfig.get(:SUBUTAI_USERNAME)
@@ -130,7 +127,7 @@ module VagrantSubutai
 
       if SubutaiConfig.get(:SUBUTAI_PASSWORD).nil?
         begin
-          Put.info "\npassword: "
+          Put.info "\nPeerOS password: "
           password = STDIN.noecho(&:gets).chomp
         rescue Errno::EBADF
           Put.warn "\nStdin doesn't support echo less input. Stdin can't hide password\n"
@@ -177,7 +174,7 @@ module VagrantSubutai
 
     # Get Bazaar credentials and peer info
     def get_input_register
-      Put.warn "\nRegister your peer to Bazaar:\n"
+      Put.warn "\nRegister your PeerOS to Bazaar:\n"
 
       hub_password = nil
       hub_email = nil
@@ -217,36 +214,54 @@ module VagrantSubutai
     end
 
     def blueprint(url)
-      variable = VagrantSubutai::Blueprint::VariablesController.new(0, 0, nil)
+      begin
+        response = Rest::SubutaiConsole.ready(url)
 
-      resource = info('system')
+        case response
+          when Net::HTTPOK                       # 200 Ready
+            # start provisioning
+            variable = VagrantSubutai::Blueprint::VariablesController.new(0, 0, nil)
 
-      if variable.validate && variable.check_quota?(resource)
-        mode = SubutaiConfig.get(:SUBUTAI_ENV_TYPE)
+            resource = info('system')
 
-        if mode.nil?
-          # check smart defaults
-          fingerprint = Rest::SubutaiConsole.fingerprint(url)
-          response = Rest::Bazaar.registered(fingerprint)
+            if variable.validate && variable.check_quota?(resource)
+              mode = SubutaiConfig.get(:SUBUTAI_ENV_TYPE)
 
-          case response
-            when Net::HTTPOK
-              # [MODE] The blueprint provisioning via Bazaar
-              bazaar(url)
-            when Net::HTTPNotFound
-              # [MODE] blueprint provisioning via Peer Os (local)
-              peer(url, resource)
-            else
-              Put.error response.message
-              Put.error response.body
-          end
-        elsif mode == Configs::Blueprint::MODE::PEER
-          # [MODE] blueprint provisioning via Peer Os (local)
-          peer(url, resource)
-        elsif mode == Configs::Blueprint::MODE::BAZAAR
-          # [MODE] The blueprint provisioning via Bazaar
-          bazaar(url)
+              if mode.nil?
+                # check smart defaults
+                fingerprint = Rest::SubutaiConsole.fingerprint(url)
+                response = Rest::Bazaar.registered(fingerprint)
+
+                case response
+                  when Net::HTTPOK
+                    # [MODE] The blueprint provisioning via Bazaar
+                    bazaar(url)
+                  when Net::HTTPNotFound
+                    # [MODE] blueprint provisioning via Peer Os (local)
+                    peer(url, resource)
+                  else
+                    Put.error response.message
+                    Put.error response.body
+                end
+              elsif mode == Configs::Blueprint::MODE::PEER
+                # [MODE] blueprint provisioning via Peer Os (local)
+                peer(url, resource)
+              elsif mode == Configs::Blueprint::MODE::BAZAAR
+                # [MODE] The blueprint provisioning via Bazaar
+                bazaar(url)
+              end
+            end
+          when response.code == 503              # 503 Loading
+            # try a bit later peer os loading
+            Put.warn "Try a bit later blueprint provisioning the PeerOS loading"
+          when response.code == 500
+            Put.error "Failed to load PeerOS"
+          else
+            # PeerOs not ready
+            Put.error "PeerOS not ready"
         end
+      rescue => e
+        Put.error e
       end
     end
 
@@ -258,7 +273,7 @@ module VagrantSubutai
       username = SubutaiConfig.get(:SUBUTAI_USERNAME)
       password = SubutaiConfig.get(:SUBUTAI_PASSWORD)
 
-      username, password = get_input_token if username.nil? && password.nil?
+      username, password = get_input_token if username.nil? || password.nil?
       response = Rest::SubutaiConsole.token(url, username, password)
 
       case response
@@ -270,7 +285,7 @@ module VagrantSubutai
           env.check_free_quota(resource)
           env.build(url, response.body, rh_id, peer_id, Configs::Blueprint::MODE::PEER)
         else
-          Put.error "Error: #{response.body}"
+          Put.error "PeerOS: Error #{response.body}"
           Put.warn "\n[WARNING] if you have a new PeerOS make sure you have to change the default UI console password. It’s default credentials are ‘admin’ / ‘secret’.\n"
       end
     end
@@ -288,19 +303,20 @@ module VagrantSubutai
         username = SubutaiConfig.get(:SUBUTAI_USERNAME)
         pwd = SubutaiConfig.get(:SUBUTAI_PASSWORD)
 
-        username, pwd = get_input_token if username.nil? && pwd.nil?
+        username, pwd = get_input_token if username.nil? || pwd.nil?
         response = Rest::SubutaiConsole.token(url, username, pwd)
 
         case response
           when Net::HTTPOK
             email, password = register_by_token(response.body, url)
           else
-            Put.error response.body
+            Put.error "PeerOS: #{response.body}"
             Put.error response.message
+            return
         end
       end
 
-      email, password = get_input_login if email.nil? && password.nil?
+      email, password = get_input_login if email.nil? || password.nil?
 
       response = Rest::Bazaar.login(email, password)
 
@@ -319,7 +335,7 @@ module VagrantSubutai
           env = Blueprint::EnvironmentController.new
           env.build(url, cookies, rh_id, peer_id, Configs::Blueprint::MODE::BAZAAR)
         else
-          Put.error response.body
+          Put.error "Bazaar: #{response.body}"
       end
     end
 
