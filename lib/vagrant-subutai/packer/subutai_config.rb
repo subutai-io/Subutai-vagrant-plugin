@@ -82,6 +82,7 @@ module SubutaiConfig
     SUBUTAI_CPU: 2,                  # virtual CPU's assign to the vm
     SUBUTAI_NAME: 'My Peer',         # PeerOS name
     SUBUTAI_SCOPE: 'Public',         # PeerOS scope
+    SUBUTAI_USERNAME: 'admin',       # PeerOS default username
 
     # Configuration parameters below have not been implemented
     SUBUTAI_SNAP: nil,               # alternative snap to provision
