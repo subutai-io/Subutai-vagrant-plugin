@@ -312,6 +312,15 @@ module VagrantSubutai
           blueprint(url, attempt+1)
         end
       rescue Errno::ECONNRESET
+        Put.warn "conreset"
+        Put.warn "attempt: #{attempt}"
+
+        if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+          Put.info "in if e #{2**attempt}"
+          sleep(2**attempt) #
+          blueprint(url, attempt+1)
+        end
+      rescue OpenSSL::OpenSSLError # generic openssl error
         Put.warn "openssl"
         Put.warn "attempt: #{attempt}"
 
@@ -339,7 +348,7 @@ module VagrantSubutai
 
       case res
         when Net::HTTPOK
-          Put.info "\nSuccessfully changed default passwords.\n"
+          Put.info "\nSuccessfully changed default password.\n"
       end
 
       response = Rest::SubutaiConsole.token(url, username, password)
