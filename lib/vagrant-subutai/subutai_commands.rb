@@ -311,7 +311,7 @@ module VagrantSubutai
           sleep(2**attempt) # 5 sec
           blueprint(url, attempt+1)
         end
-      rescue OpenSSL::SSL::SSLError
+      rescue Errno::ECONNRESET
         Put.warn "openssl"
         Put.warn "attempt: #{attempt}"
 
