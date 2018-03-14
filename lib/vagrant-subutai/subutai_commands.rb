@@ -74,6 +74,14 @@ module VagrantSubutai
       else
         begin
           username, password = get_input_token if username.nil? || password.nil?
+
+          res = Rest::SubutaiConsole.password(url, username, Configs::SubutaiConsoleAPI::DEFAULT_PASSWORDS, password)
+
+          case res
+            when Net::HTTPOK
+              Put.info "\nSuccessfully changed default password.\n"
+          end
+
           response = Rest::SubutaiConsole.token(url, username, password)
 
           case response
@@ -345,6 +353,14 @@ module VagrantSubutai
         pwd = SubutaiConfig.get(:SUBUTAI_PASSWORD)
 
         username, pwd = get_input_token if username.nil? || pwd.nil?
+
+        res = Rest::SubutaiConsole.password(url, username, Configs::SubutaiConsoleAPI::DEFAULT_PASSWORDS, pwd)
+
+        case res
+          when Net::HTTPOK
+            Put.info "\nSuccessfully changed default password.\n"
+        end
+
         response = Rest::SubutaiConsole.token(url, username, pwd)
 
         case response
