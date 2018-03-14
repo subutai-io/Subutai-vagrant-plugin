@@ -48,44 +48,52 @@ module VagrantSubutai
 
     # checks The Peer Os registered or not registered to Bazaar
     def registered?(url)
-      fingerprint = Rest::SubutaiConsole.fingerprint(url)
-      response = Rest::Bazaar.registered(fingerprint)
+      begin
+        fingerprint = Rest::SubutaiConsole.fingerprint(url)
+        response = Rest::Bazaar.registered(fingerprint)
 
-      case response
-        when Net::HTTPOK
-          return true
-        when Net::HTTPNotFound
-          return false
-        else
-          Put.error response.body
-          Put.error response.message
-          exit
+        case response
+          when Net::HTTPOK
+            return true
+          when Net::HTTPNotFound
+            return false
+          else
+            Put.error response.body
+            Put.error response.message
+            exit
+        end
+      rescue Net::OpenTimeout => e
+        Put.error e
       end
     end
 
     # register Subutai Peer Os to Bazaar by username and password
     def register(username, password, url)
       if registered?(url)
-        Put.warn "\nThe Peer Os already registered to Bazaar.\n"
+        Put.warn "\nThe PeerOs already registered to Bazaar.\n"
       else
-        username, password = get_input_token if username.nil? || password.nil?
-        response = Rest::SubutaiConsole.token(url, username, password)
+        begin
+          username, password = get_input_token if username.nil? || password.nil?
+          response = Rest::SubutaiConsole.token(url, username, password)
 
-        case response
-          when Net::HTTPOK
-            hub_email, hub_password, peer_name, peer_scope = get_input_register
+          case response
+            when Net::HTTPOK
+              hub_email, hub_password, peer_name, peer_scope = get_input_register
 
-            response = Rest::SubutaiConsole.register(response.body, url, hub_email, hub_password, peer_name, peer_scope)
+              response = Rest::SubutaiConsole.register(response.body, url, hub_email, hub_password, peer_name, peer_scope)
 
-            case response
-              when Net::HTTPOK
-                Put.success response.body
-                Put.success "\"#{peer_name}\" successfully registered to Bazaar."
-              else
-                Put.error "Error: #{response.body}\n"
-            end
-          else
-            Put.error "Error: #{response.body}\n"
+              case response
+                when Net::HTTPOK
+                  Put.success response.body
+                  Put.success "\"#{peer_name}\" successfully registered to Bazaar."
+                else
+                  Put.error "Error: #{response.body}\n"
+              end
+            else
+              Put.error "Error: #{response.body}\n"
+          end
+        rescue Net::OpenTimeout => e
+          Put.error e
         end
       end
     end
@@ -107,8 +115,12 @@ module VagrantSubutai
 
     # Show Subutai Console finger print
     def fingerprint(url)
-      peer_id = Rest::SubutaiConsole.fingerprint(url)
-      Put.info peer_id
+      begin
+        peer_id = Rest::SubutaiConsole.fingerprint(url)
+        Put.info peer_id
+      rescue Net::OpenTimeout => e
+        Put.error e
+      end
     end
 
     # Get Subutai Peer Os credentials from input
@@ -213,12 +225,19 @@ module VagrantSubutai
       ssh(base + "#{Configs::SubutaiAgentCommand::LIST} #{arg}")
     end
 
-    def blueprint(url)
+    def blueprint(url, attempt)
       begin
         response = Rest::SubutaiConsole.ready(url)
+        Put.warn "Ready response #{response.code}"
+        Put.warn "Ready response #{response.message}"
+        Put.warn "attempt #{attempt}"
+
 
         case response
           when Net::HTTPOK                       # 200 Ready
+            Put.warn "HTTPOK"
+            Put.warn "attempt #{attempt}"
+
             # start provisioning
             variable = VagrantSubutai::Blueprint::VariablesController.new(0, 0, nil)
 
@@ -251,17 +270,57 @@ module VagrantSubutai
                 bazaar(url)
               end
             end
-          when response.code == 503              # 503 Loading
-            # try a bit later peer os loading
-            Put.warn "Try a bit later blueprint provisioning the PeerOS loading"
-          when response.code == 500
-            Put.error "Failed to load PeerOS"
+          when response.code == 503
+            Put.warn "Wait status code 503"
+            Put.warn "real code #{response.code}"
+            Put.warn "attempt #{attempt}"
+
+            if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+              Put.info "in if 503 #{5**attempt}"
+
+              sleep(2**attempt) # 5 sec
+              blueprint(url, attempt+1)
+            end
+          when Net::HTTPNotFound
+            Put.warn "Wait status code 404"
+            Put.warn "real code #{response.code}"
+            Put.warn "attempt #{attempt}"
+
+
+            if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+              Put.info "in if 404 #{5**attempt}"
+
+              sleep(2**attempt) # 5 sec
+              blueprint(url, attempt+1)
+            end
+          when response.code == 500       # management happened something wrong
+            Put.warn "Wait status code 500"
+            Put.warn "real code #{response.code}"
+            Put.warn "attempt #{attempt}"
+            Put.error "PeerOS failed to run!"
           else
+            Put.warn "elseeeeeeeeee"
             # PeerOs not ready
-            Put.error "PeerOS not ready"
+            Put.error "PeerOS failed to run"
+        end
+      rescue Net::OpenTimeout => timeout
+        Put.warn "time out"
+        Put.warn "attempt: #{attempt}"
+        if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+          Put.info "in if timeout #{5**attempt}"
+          sleep(2**attempt) # 5 sec
+          blueprint(url, attempt+1)
         end
       rescue => e
-        Put.error e
+        Put.warn "e"
+        Put.warn "attempt: #{attempt}"
+        Put.warn e
+
+        if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+          Put.info "in if e #{5**attempt}"
+          sleep(2**attempt) #
+          blueprint(url, attempt+1)
+        end
       end
     end
 
@@ -274,6 +333,14 @@ module VagrantSubutai
       password = SubutaiConfig.get(:SUBUTAI_PASSWORD)
 
       username, password = get_input_token if username.nil? || password.nil?
+
+      res = Rest::SubutaiConsole.password(url, username, Configs::SubutaiConsoleAPI::DEFAULT_PASSWORDS, password)
+
+      case res
+        when Net::HTTPOK
+          Put.info "\nSuccessfully changed default passwords.\n"
+      end
+
       response = Rest::SubutaiConsole.token(url, username, password)
 
       case response
@@ -286,7 +353,6 @@ module VagrantSubutai
           env.build(url, response.body, rh_id, peer_id, Configs::Blueprint::MODE::PEER)
         else
           Put.error "PeerOS: Error #{response.body}"
-          Put.warn "\n[WARNING] if you have a new PeerOS make sure you have to change the default UI console password. It’s default credentials are ‘admin’ / ‘secret’.\n"
       end
     end
 

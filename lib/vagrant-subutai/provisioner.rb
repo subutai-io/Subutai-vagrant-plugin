@@ -45,12 +45,12 @@ module VagrantSubutai
         ip = subutai_cli.info(Configs::VagrantCommand::ARG_IP_ADDR)
 
         if ip.nil?
-          STDOUT.puts 'We can\'t detect your Subutai Console ip address!'
+          STDOUT.puts 'We can\'t detect your PeerOS ip address!'
           exit
         end
         url = "https://#{ip}:#{Configs::SubutaiConsoleAPI::PORT}"
 
-        subutai_cli.blueprint(url)
+        subutai_cli.blueprint(url, 1)
       end
     end
 

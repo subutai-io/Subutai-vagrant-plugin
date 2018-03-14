@@ -31,7 +31,7 @@ module VagrantSubutai
         when 'open'
           subutai_cli.open(check_subutai_console_url(subutai_cli))
         when 'blueprint'
-          subutai_cli.blueprint(check_subutai_console_url(subutai_cli))
+          subutai_cli.blueprint(check_subutai_console_url(subutai_cli), 1)
         when '-h'
           STDOUT.puts cli_info
         when '--help'
@@ -54,7 +54,7 @@ module VagrantSubutai
       ip = subutai_cli.info(Configs::VagrantCommand::ARG_IP_ADDR)
 
       if ip.nil?
-        STDOUT.puts 'We can\'t detect your Subutai Console ip address!'
+        STDOUT.puts 'We can\'t detect your PeerOS ip address!'
         exit
       end
       "https://#{ip}:#{Configs::SubutaiConsoleAPI::PORT}"

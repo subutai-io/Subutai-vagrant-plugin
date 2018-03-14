@@ -124,6 +124,8 @@ module VagrantSubutai
         DOMAIN       = '/rest/ui/environments/'.freeze
         READY        = '/rest/v1/peer/ready'.freeze
       end
+      LOGIN = '/login'.freeze
+      DEFAULT_PASSWORDS = 'secret'.freeze
     end
 
     module Gorjun
@@ -151,6 +153,7 @@ module VagrantSubutai
 
     module Blueprint
       FILE_NAME = 'Subutai.json'.freeze
+      ATTEMPT = 9.freeze
     end
 
     module EnvironmentState
