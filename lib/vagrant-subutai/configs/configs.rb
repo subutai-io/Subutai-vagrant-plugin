@@ -153,7 +153,7 @@ module VagrantSubutai
 
     module Blueprint
       FILE_NAME = 'Subutai.json'.freeze
-      ATTEMPT = 9.freeze
+      ATTEMPT = 10.freeze
     end
 
     module EnvironmentState

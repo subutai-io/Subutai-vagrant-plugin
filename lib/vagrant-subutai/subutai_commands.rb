@@ -228,16 +228,9 @@ module VagrantSubutai
     def blueprint(url, attempt)
       begin
         response = Rest::SubutaiConsole.ready(url)
-        Put.warn "Ready response #{response.code}"
-        Put.warn "Ready response #{response.message}"
-        Put.warn "attempt #{attempt}"
-
 
         case response
           when Net::HTTPOK                       # 200 Ready
-            Put.warn "HTTPOK"
-            Put.warn "attempt #{attempt}"
-
             # start provisioning
             variable = VagrantSubutai::Blueprint::VariablesController.new(0, 0, nil)
 
@@ -271,61 +264,33 @@ module VagrantSubutai
               end
             end
           when response.code == 503
-            Put.warn "Wait status code 503"
-            Put.warn "real code #{response.code}"
-            Put.warn "attempt #{attempt}"
-
             if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-              Put.info "in if 503 #{2**attempt}"
-
-              sleep(2**attempt) # 5 sec
+              sleep(2**attempt) #
               blueprint(url, attempt+1)
             end
           when Net::HTTPNotFound
-            Put.warn "Wait status code 404"
-            Put.warn "real code #{response.code}"
-            Put.warn "attempt #{attempt}"
-
-
             if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-              Put.info "in if 404 #{2**attempt}"
-
-              sleep(2**attempt) # 5 sec
+              sleep(2**attempt) #
               blueprint(url, attempt+1)
             end
           when response.code == 500       # management happened something wrong
-            Put.warn "Wait status code 500"
-            Put.warn "real code #{response.code}"
-            Put.warn "attempt #{attempt}"
             Put.error "PeerOS failed to run!"
           else
-            Put.warn "elseeeeeeeeee"
             # PeerOs not ready
             Put.error "PeerOS failed to run"
         end
       rescue Net::OpenTimeout => timeout
-        Put.warn "time out"
-        Put.warn "attempt: #{attempt}"
         if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-          Put.info "in if timeout #{5**attempt}"
-          sleep(2**attempt) # 5 sec
+          sleep(2**attempt) #
           blueprint(url, attempt+1)
         end
       rescue Errno::ECONNRESET
-        Put.warn "conreset"
-        Put.warn "attempt: #{attempt}"
-
         if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-          Put.info "in if e #{2**attempt}"
           sleep(2**attempt) #
           blueprint(url, attempt+1)
         end
       rescue OpenSSL::OpenSSLError # generic openssl error
-        Put.warn "openssl"
-        Put.warn "attempt: #{attempt}"
-
         if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-          Put.info "in if e #{2**attempt}"
           sleep(2**attempt) #
           blueprint(url, attempt+1)
         end
