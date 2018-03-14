@@ -276,7 +276,7 @@ module VagrantSubutai
             Put.warn "attempt #{attempt}"
 
             if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-              Put.info "in if 503 #{5**attempt}"
+              Put.info "in if 503 #{2**attempt}"
 
               sleep(2**attempt) # 5 sec
               blueprint(url, attempt+1)
@@ -288,7 +288,7 @@ module VagrantSubutai
 
 
             if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-              Put.info "in if 404 #{5**attempt}"
+              Put.info "in if 404 #{2**attempt}"
 
               sleep(2**attempt) # 5 sec
               blueprint(url, attempt+1)
@@ -311,16 +311,17 @@ module VagrantSubutai
           sleep(2**attempt) # 5 sec
           blueprint(url, attempt+1)
         end
-      rescue => e
-        Put.warn "e"
+      rescue OpenSSL::SSL::SSLError
+        Put.warn "openssl"
         Put.warn "attempt: #{attempt}"
-        Put.warn e
 
         if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-          Put.info "in if e #{5**attempt}"
+          Put.info "in if e #{2**attempt}"
           sleep(2**attempt) #
           blueprint(url, attempt+1)
         end
+      rescue => e
+        Put.error e
       end
     end
 
