@@ -311,8 +311,9 @@ module VagrantSubutai
         if attempt == 1 # fails first attempt then try
           sleep(10)
           blueprint(url, attempt+1)
+        else
+          Put.error e
         end
-        Put.error e
       end
     end
 
