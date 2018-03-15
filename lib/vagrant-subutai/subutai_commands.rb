@@ -302,7 +302,16 @@ module VagrantSubutai
           sleep(2**attempt) #
           blueprint(url, attempt+1)
         end
+      rescue OpenSSL::SSL::SSLError
+        if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+          sleep(2**attempt) #
+          blueprint(url, attempt+1)
+        end
       rescue => e
+        if attempt == 1 # fails first attempt then try
+          sleep(10)
+          blueprint(url, attempt+1)
+        end
         Put.error e
       end
     end
