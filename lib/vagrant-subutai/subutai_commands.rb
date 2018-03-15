@@ -297,6 +297,11 @@ module VagrantSubutai
           sleep(2**attempt) #
           blueprint(url, attempt+1)
         end
+      rescue Errno::ECONNABORTED
+        if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+          sleep(2**attempt) #
+          blueprint(url, attempt+1)
+        end
       rescue OpenSSL::OpenSSLError # generic openssl error
         if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
           sleep(2**attempt) #
