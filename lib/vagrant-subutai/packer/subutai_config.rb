@@ -43,6 +43,7 @@ module SubutaiConfig
     USER_VARIABLES
     BAZAAR_EMAIL
     BAZAAR_PASSWORD
+    SUBUTAI_DISK_PATH
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -257,6 +258,14 @@ module SubutaiConfig
       if key.to_sym == :SUBUTAI_ENV
         set_env(key.to_sym, temp[key].to_sym)
       elsif !temp[key].nil?
+        # TODO add double checks type
+
+        if temp[key] == 'true'
+          temp[key] = true
+        elsif temp[key] == 'false'
+          temp[key] = false
+        end
+
         @config.store(key.to_sym, temp[key])
       end
     end

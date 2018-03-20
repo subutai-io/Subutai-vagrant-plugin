@@ -109,6 +109,8 @@ module VagrantSubutai
     module SubutaiConsoleAPI
       PORT    = '8443'.freeze
       COMMAND = '/rest/ui/commands?sptoken='.freeze
+      COMMAND_ASYNC = '/rest/ui/commands/async?sptoken='.freeze
+      COMMAND_LOG   = '/rest/ui/commands/async/{COMMAND_ID}?sptoken='.freeze
 
       module V1
         TOKEN        = '/rest/v1/identity/gettoken'.freeze
@@ -161,6 +163,13 @@ module VagrantSubutai
       SUCCEEDED = 'SUCCEEDED'.freeze
       HEALTHY   = 'HEALTHY'.freeze
       UNHEALTHY = 'UNHEALTHY'.freeze
+    end
+
+    module CommandState
+      SUCCEEDED = 'SUCCEEDED'.freeze
+      FAILED  = 'FAILED'.freeze
+      KILLED  = 'KILLED'.freeze
+      TIMEOUT = 'TIMEOUT'.freeze
     end
 
     module ApplicationState
