@@ -50,6 +50,23 @@ module SubutaiDisk
   def self.file(grow_by)
     disk_port = port
 
-    "./#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}"
+    # get disk path from conf file
+    if SubutaiConfig.get(:SUBUTAI_DISK_PATH).nil?
+      "./#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}"
+    else
+      # Check is directory exist
+      if File.directory?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
+        # check permission
+        if File.writable?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
+          File.join(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}")
+        else
+          Put.warn "No write permission: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
+          "./#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}"
+        end
+      else
+        Put.warn "Invalid path: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
+        "./#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}"
+      end
+    end
   end
 end

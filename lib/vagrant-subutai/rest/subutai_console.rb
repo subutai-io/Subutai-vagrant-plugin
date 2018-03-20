@@ -157,7 +157,7 @@ module VagrantSubutai
 
       # Sends command to Subutai Console
       # method POST
-      def self.command(cmd, hostId, path, timeOut, url, token)
+      def self.command(cmd, hostid, path, timeout, url, token)
         uri = URI.parse(url + Configs::SubutaiConsoleAPI::COMMAND + token)
         https = Net::HTTP.new(uri.host, uri.port)
         https.use_ssl = true
@@ -165,7 +165,34 @@ module VagrantSubutai
         https.read_timeout = 21600 # 6 hours
 
         request = Net::HTTP::Post.new(uri.request_uri)
-        request.set_form_data({'command' => cmd, 'hostId' => hostId, 'path' => path, 'timeOut' => timeOut})
+        request.set_form_data({'command' => cmd, 'hostid' => hostid, 'path' => path, 'timeout' => timeout})
+
+        https.request(request)
+      end
+
+      # Sends  async request to Subutai Console
+      # method POST
+      def self.command_async(cmd, hostid, path, timeout, url, token)
+        uri = URI.parse(url + Configs::SubutaiConsoleAPI::COMMAND_ASYNC + token)
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 21600 # 6 hours
+
+        request = Net::HTTP::Post.new(uri.request_uri)
+        request.set_form_data({'command' => cmd, 'hostid' => hostid, 'path' => path, 'timeout' => timeout})
+
+        https.request(request)
+      end
+
+      def self.command_log(url, token, command_id)
+        uri = URI.parse(url + Configs::SubutaiConsoleAPI::COMMAND_LOG.gsub('{COMMAND_ID}', command_id) + token)
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 21600 # 6 hours
+
+        request = Net::HTTP::Get.new(uri.request_uri)
 
         https.request(request)
       end
