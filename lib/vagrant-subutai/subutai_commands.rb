@@ -131,6 +131,20 @@ module VagrantSubutai
       end
     end
 
+    def finger(url)
+      begin
+        peer_id = Rest::SubutaiConsole.fingerprint(url)
+        ip = info('ipaddr')
+
+        Put.info ip
+        Put.info peer_id
+      rescue Net::OpenTimeout => e
+        Put.error e
+      rescue => e
+        Put.error e
+      end
+    end
+
     # Get Subutai Peer Os credentials from input
     def get_input_token
       password = nil
