@@ -32,6 +32,8 @@ module VagrantSubutai
           subutai_cli.open(check_subutai_console_url(subutai_cli))
         when 'blueprint'
           subutai_cli.blueprint(check_subutai_console_url(subutai_cli), 1)
+        when 'finger'
+          subutai_cli.finger(check_subutai_console_url(subutai_cli))
         when '-h'
           STDOUT.puts cli_info
         when '--help'

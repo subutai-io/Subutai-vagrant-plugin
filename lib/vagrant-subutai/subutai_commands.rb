@@ -131,6 +131,20 @@ module VagrantSubutai
       end
     end
 
+    def finger(url)
+      begin
+        peer_id = Rest::SubutaiConsole.fingerprint(url)
+        ip = info('ipaddr')
+
+        Put.info ip
+        Put.info peer_id
+      rescue Net::OpenTimeout => e
+        Put.error e
+      rescue => e
+        Put.error e
+      end
+    end
+
     # Get Subutai Peer Os credentials from input
     def get_input_token
       password = nil
@@ -239,6 +253,7 @@ module VagrantSubutai
 
         case response
           when Net::HTTPOK                       # 200 Ready
+            Put.info "http::ok #{attempt}"
             # start provisioning
             variable = VagrantSubutai::Blueprint::VariablesController.new(0, 0, nil)
 
@@ -273,11 +288,13 @@ module VagrantSubutai
             end
           when response.code == 503
             if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+              #Put.info "status code 503 attempt: #{attempt}"
               sleep(2**attempt) #
               blueprint(url, attempt+1)
             end
           when Net::HTTPNotFound
             if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+              #Put.info "net::httpnotfound attempt: #{attempt}"
               sleep(2**attempt) #
               blueprint(url, attempt+1)
             end
@@ -287,33 +304,39 @@ module VagrantSubutai
             # PeerOs not ready
             Put.error "PeerOS failed to run"
         end
-      rescue Net::OpenTimeout => timeout
+      rescue Net::OpenTimeout
         if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-          sleep(2**attempt) #
+          #Put.info "net::opentimeout attempt: #{attempt}"
+          sleep(2**attempt) 
           blueprint(url, attempt+1)
         end
       rescue Errno::ECONNRESET
         if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+          #Put.info "errno::econnreset attempt: #{attempt}"
           sleep(2**attempt) #
           blueprint(url, attempt+1)
         end
       rescue Errno::ECONNABORTED
         if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+          #Put.info "errno::econnaborted attempt: #{attempt}"
           sleep(2**attempt) #
           blueprint(url, attempt+1)
         end
       rescue OpenSSL::OpenSSLError # generic openssl error
         if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+          #Put.info "openssl::opensslerror attempt: #{attempt}"
           sleep(2**attempt) #
           blueprint(url, attempt+1)
         end
       rescue OpenSSL::SSL::SSLError
         if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+          #Put.info "openssl::ssl::sslerror attempt: #{attempt}"
           sleep(2**attempt) #
           blueprint(url, attempt+1)
         end
       rescue => e
-        if attempt == 1 # fails first attempt then try
+        if attempt == 1 && ARGV[0] == 'up' # fails first attempt then try
+          #Put.info "e attempt: #{attempt} error: #{e} arg: #{ARGV[0]}"
           sleep(10)
           blueprint(url, attempt+1)
         else
