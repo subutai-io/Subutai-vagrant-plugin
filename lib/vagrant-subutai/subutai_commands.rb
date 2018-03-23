@@ -253,7 +253,7 @@ module VagrantSubutai
 
         case response
           when Net::HTTPOK                       # 200 Ready
-            Put.info "http::ok #{attempt}"
+            #Put.info "http::ok #{attempt}"
             # start provisioning
             variable = VagrantSubutai::Blueprint::VariablesController.new(0, 0, nil)
 
