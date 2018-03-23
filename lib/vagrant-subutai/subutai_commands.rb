@@ -288,13 +288,13 @@ module VagrantSubutai
             end
           when response.code == 503
             if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-              Put.info "status code 503 attempt: #{attempt}"
+              #Put.info "status code 503 attempt: #{attempt}"
               sleep(2**attempt) #
               blueprint(url, attempt+1)
             end
           when Net::HTTPNotFound
             if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-              Put.info "net::httpnotfound attempt: #{attempt}"
+              #Put.info "net::httpnotfound attempt: #{attempt}"
               sleep(2**attempt) #
               blueprint(url, attempt+1)
             end
@@ -306,37 +306,37 @@ module VagrantSubutai
         end
       rescue Net::OpenTimeout
         if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-          Put.info "net::opentimeout attempt: #{attempt}"
+          #Put.info "net::opentimeout attempt: #{attempt}"
           sleep(2**attempt) 
           blueprint(url, attempt+1)
         end
       rescue Errno::ECONNRESET
         if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-          Put.info "errno::econnreset attempt: #{attempt}"
+          #Put.info "errno::econnreset attempt: #{attempt}"
           sleep(2**attempt) #
           blueprint(url, attempt+1)
         end
       rescue Errno::ECONNABORTED
         if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-          Put.info "errno::econnaborted attempt: #{attempt}"
+          #Put.info "errno::econnaborted attempt: #{attempt}"
           sleep(2**attempt) #
           blueprint(url, attempt+1)
         end
       rescue OpenSSL::OpenSSLError # generic openssl error
         if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-          Put.info "openssl::opensslerror attempt: #{attempt}"
+          #Put.info "openssl::opensslerror attempt: #{attempt}"
           sleep(2**attempt) #
           blueprint(url, attempt+1)
         end
       rescue OpenSSL::SSL::SSLError
         if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
-          Put.info "openssl::ssl::sslerror attempt: #{attempt}"
+          #Put.info "openssl::ssl::sslerror attempt: #{attempt}"
           sleep(2**attempt) #
           blueprint(url, attempt+1)
         end
       rescue => e
         if attempt == 1 && ARGV[0] == 'up' # fails first attempt then try
-          Put.info "e attempt: #{attempt} error: #{e} arg: #{ARGV[0]}"
+          #Put.info "e attempt: #{attempt} error: #{e} arg: #{ARGV[0]}"
           sleep(10)
           blueprint(url, attempt+1)
         else
