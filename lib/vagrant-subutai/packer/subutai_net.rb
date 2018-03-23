@@ -88,16 +88,20 @@ def arp_table
     end
   elsif RbConfig::CONFIG['host_os'] =~ /linux|bsd/
     `ip n | awk '{print $1,$5}'`.split("\n").each do |line|
-      matches = /.*(\d+\.\d+\.\d+.\d+)[[:space:]]((([a-f]|[0-9]){1,2}:){5}([a-f]|[0-9]){1,2}).*/.match(line)
+      ip, mac = line.split(' ')
 
-      if ! matches.nil? && ! matches[2].nil?
-        key_mac = zero_pad_mac(matches[2])
-        value_ip = matches[1]
+      if ! line.nil? && ! mac.nil?
+
+        key_mac = zero_pad_mac(mac)
+        value_ip = ip
         arp_table.store(key_mac, value_ip)
       end
     end
   end
 
+  puts '-------'
+  puts arp_table
+  puts '--------'
   arp_table
 end
 
