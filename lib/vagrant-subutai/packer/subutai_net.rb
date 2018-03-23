@@ -72,18 +72,32 @@ end
 def arp_table
   broadcast_ping(2)
   arp_table = {}
-  `arp -a`.split("\n").each do |line|
-    matches = /.*(\d+\.\d+\.\d+.\d+)[[:space:]]((([a-f]|[0-9]){1,2}:){5}([a-f]|[0-9]){1,2})[[:space:]].*/.match(line) \
-      if (RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/)
-    matches = /.*\((\d+\.\d+\.\d+.\d+)\) at ((([a-f]|[0-9]){1,2}:){5}([a-f]|[0-9]){1,2}) .*/.match(line) \
-      if (RbConfig::CONFIG['host_os'] =~ /darwin|linux/)
 
-    if ! matches.nil? && ! matches[2].nil?
-      key_mac = zero_pad_mac(matches[2])
-      value_ip = matches[1]
-      arp_table.store(key_mac, value_ip)
+  if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin|darwin/
+    `arp -a`.split("\n").each do |line|
+      matches = /.*(\d+\.\d+\.\d+.\d+)[[:space:]]((([a-f]|[0-9]){1,2}:){5}([a-f]|[0-9]){1,2})[[:space:]].*/.match(line) \
+      if (RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/)
+      matches = /.*\((\d+\.\d+\.\d+.\d+)\) at ((([a-f]|[0-9]){1,2}:){5}([a-f]|[0-9]){1,2}) .*/.match(line) \
+      if (RbConfig::CONFIG['host_os'] =~ /darwin/)
+
+      if ! matches.nil? && ! matches[2].nil?
+        key_mac = zero_pad_mac(matches[2])
+        value_ip = matches[1]
+        arp_table.store(key_mac, value_ip)
+      end
+    end
+  elsif RbConfig::CONFIG['host_os'] =~ /linux|bsd/
+    `ip n`.split("\n").each do |line|
+      matches = /.*\((\d+\.\d+\.\d+.\d+)\) at ((([a-f]|[0-9]){1,2}:){5}([a-f]|[0-9]){1,2}) .*/.match(line)
+
+      if ! matches.nil? && ! matches[2].nil?
+        key_mac = zero_pad_mac(matches[2])
+        value_ip = matches[1]
+        arp_table.store(key_mac, value_ip)
+      end
     end
   end
+
   arp_table
 end
 
