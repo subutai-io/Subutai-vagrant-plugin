@@ -99,9 +99,6 @@ def arp_table
     end
   end
 
-  puts '-------'
-  puts arp_table
-  puts '--------'
   arp_table
 end
 
