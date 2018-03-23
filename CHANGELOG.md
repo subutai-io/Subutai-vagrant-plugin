@@ -16,3 +16,14 @@ BUG FIXES:
 BUG FIXES:
 
   - [Windows] Blueprint provisioning run first vagrant up   
+
+## 1.1.3 (March 23, 2018)
+
+BUG FIXES:
+
+  - [Linux] arp command replaces with ip
+  - Long running ansible playbook error fixed
+
+FEATURES:
+
+  - VM Disk Path variable added to conf file (SUBUTAI_DISK_PATH)
