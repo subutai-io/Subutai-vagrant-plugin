@@ -27,3 +27,9 @@ BUG FIXES:
 FEATURES:
 
   - VM Disk Path variable added to conf file (SUBUTAI_DISK_PATH)
+
+## 1.1.4 (March 30, 2018)
+
+FEATURES: 
+  - Libvirt disk size function added
+  - Cdn verfify certificate removed
