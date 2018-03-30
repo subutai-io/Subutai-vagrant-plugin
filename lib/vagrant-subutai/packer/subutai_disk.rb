@@ -2,8 +2,8 @@ require_relative 'subutai_config'
 
 # For managing VM disks
 module SubutaiDisk
-  DISK_NAME = "SubutaiDisk"
-  DISK_FORMAT = "vdi"
+  DISK_NAME = "SubutaiDisk".freeze
+  DISK_FORMAT = "vdi".freeze
 
   # Checks disk size for adding new VM disks
   def self.has_grow
@@ -32,6 +32,11 @@ module SubutaiDisk
 
   def self.size(grow_by)
     grow_by.to_i * 1024 + 2 * 1024 # 2 gb for overhead, unit in megabytes
+  end
+
+  def self.libvirt_size(grow_by)
+    size = grow_by.to_i + 2   # 2 gb for overhead, unit in gb
+    "#{size}G"
   end
 
   # Save disk size and port to generated.yml
@@ -67,6 +72,20 @@ module SubutaiDisk
         Put.warn "Invalid path: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
         "./#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}"
       end
+    end
+  end
+
+  def self.path
+    if File.directory?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
+      # check permission
+      if File.writable?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
+        File.join(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
+      else
+        Put.warn "No write permission: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
+        nil
+      end
+    else
+      nil
     end
   end
 end
