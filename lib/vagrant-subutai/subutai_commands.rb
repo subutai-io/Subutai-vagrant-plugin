@@ -136,8 +136,8 @@ module VagrantSubutai
         peer_id = Rest::SubutaiConsole.fingerprint(url)
         ip = info('ipaddr')
 
-        Put.info ip
-        Put.info peer_id
+        STDOUT.puts ip
+        STDOUT.puts peer_id
       rescue Net::OpenTimeout => e
         Put.error e
       rescue => e
