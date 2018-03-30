@@ -1,6 +1,7 @@
 require 'yaml'
 require 'digest'
-require 'net/http'
+require 'net/https'
+require 'uri'
 require 'json'
 
 require_relative 'subutai_net'
@@ -385,13 +386,26 @@ module SubutaiConfig
   # TODO remove Openssl verify (if certificate expired in cdn this code will be crashed)
   def self.get_latest_id_artifact(owner, artifact_name)
     url = url_of_cdn + '/raw/info?owner=' + owner + '&name=' + artifact_name
-    uri = URI(url)
-    response = Net::HTTP.get(uri)
-    result = JSON.parse(response)
-    result[0]['id']
+    uri = URI.parse(url)
+    https = Net::HTTP.new(uri.host, uri.port)
+    https.use_ssl = true
+    https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    https.read_timeout = 3600 # an hour
+
+    request = Net::HTTP::Get.new(uri.request_uri)
+    response = https.request(request)
+
+    case response
+      when Net::HTTPOK
+        response = JSON.parse(response.body)
+        response[0]['id']
+      else
+        Put.error "Try again! #{response.body} template name #{name}, owner #{owner}"
+    end
   end
 end
 
 at_exit do
   SubutaiConfig.cleanup unless SubutaiConfig.cmd.nil?
 end
+
