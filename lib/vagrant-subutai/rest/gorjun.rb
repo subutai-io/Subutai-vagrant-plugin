@@ -20,8 +20,8 @@ module VagrantSubutai
           when Net::HTTPOK
             response = JSON.parse(response.body)
             response[0]['id']
-          else
-            Put.error "Try again! #{response.body} template name #{name}, owner #{owner}"
+          when Net::HTTPNotFound
+            Put.error "#{response.body} template name #{name}, owner #{owner}"
         end
       end
 

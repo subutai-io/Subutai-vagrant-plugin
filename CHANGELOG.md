@@ -33,3 +33,9 @@ FEATURES:
 FEATURES: 
   - Libvirt disk size function added
   - Cdn verfify certificate removed
+  
+## 1.1.5 (March 31, 2018) 
+
+FEATURES:
+  - [Command] `deregister` command added (For unregistering the PeerOS from Bazaar)
+ 

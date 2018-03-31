@@ -43,6 +43,7 @@ COMMANDS:
        update                  - update Subutai management, container or Resource host
        vxlan                   - VXLAN tunnels operation
        register                - register Subutai PeerOS to Bazaar
+       deregister              - deregister Subutai PeerOS from Bazaar
        fingerprint             - shows fingerprint Subutai Console
        open                    - open the Subutai PeerOS in browser
        blueprint               - run blueprint provisioning

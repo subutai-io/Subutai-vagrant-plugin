@@ -26,6 +26,8 @@ module VagrantSubutai
       case ARGV[1]
         when 'register'
           subutai_cli.register(nil, nil, check_subutai_console_url(subutai_cli))
+        when 'deregister'
+          subutai_cli.deregister(nil, nil, check_subutai_console_url(subutai_cli))
         when 'fingerprint'
           subutai_cli.fingerprint(check_subutai_console_url(subutai_cli))
         when 'open'
@@ -100,6 +102,7 @@ COMMANDS:
      update                  - update Subutai management, container or Resource host
      vxlan                   - VXLAN tunnels operation
      register                - register Subutai PeerOS to Bazaar
+     deregister              - deregister Subutai PeerOS from Bazaar
      fingerprint             - shows fingerprint Subutai Console
      open                    - open the Subutai PeerOS in browser
      blueprint               - run blueprint provisioning
