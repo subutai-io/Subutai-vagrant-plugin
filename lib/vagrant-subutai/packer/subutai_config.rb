@@ -16,6 +16,8 @@ module SubutaiConfig
   CONF_FILE = File.expand_path('./vagrant-subutai.yml').freeze
   USER_CONF_FILE = File.expand_path('~/.vagrant-subutai/vagrant-subutai.yml').freeze
   SUBUTAI_ENVIRONMENTS = %i[prod master dev sysnet].freeze
+  SUBUTAI_SCOPES = %i[Public Private].freeze
+  SUBUTAI_ENV_TYPES = %i[bazaar peer].freeze
 
   # Without a variable key listed here it will not get pulled in from
   # the environment, or from any of the vagrant-subutai.yml conf files
@@ -250,6 +252,18 @@ module SubutaiConfig
     @config.store(key, value)
   end
 
+  def self.set_env_type(key, value)
+    raise "Invalid #{key} value of #{value}: use bazaar or peer" \
+          unless SUBUTAI_ENV_TYPES.include?(value.downcase)
+    @config.store(key, value.downcase)
+  end
+
+  def self.set_scope(key, value)
+    raise "Invalid #{key} value of #{value}: use public or private" \
+          unless SUBUTAI_SCOPES.include?(value.capitalize)
+    @config.store(key, value.capitalize)
+  end
+
   def self.load_config_file(config_file)
     temp = YAML.load_file(config_file)
     temp.each_key do |key|
@@ -258,6 +272,10 @@ module SubutaiConfig
 
       if key.to_sym == :SUBUTAI_ENV
         set_env(key.to_sym, temp[key].to_sym)
+      elsif key.to_sym == :SUBUTAI_SCOPE
+        set_scope(key.to_sym, temp[key].to_sym)
+      elsif key.to_sym == :SUBUTAI_ENV_TYPE
+        set_env_type(key.to_sym, temp[key].to_sym)
       elsif !temp[key].nil?
         # TODO add double checks type
 
