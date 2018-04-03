@@ -1,6 +1,7 @@
 require 'yaml'
 require 'digest'
-require 'net/http'
+require 'net/https'
+require 'uri'
 require 'json'
 
 require_relative 'subutai_net'
@@ -15,6 +16,8 @@ module SubutaiConfig
   CONF_FILE = File.expand_path('./vagrant-subutai.yml').freeze
   USER_CONF_FILE = File.expand_path('~/.vagrant-subutai/vagrant-subutai.yml').freeze
   SUBUTAI_ENVIRONMENTS = %i[prod master dev sysnet].freeze
+  SUBUTAI_SCOPES = %i[Public Private].freeze
+  SUBUTAI_ENV_TYPES = %i[bazaar peer].freeze
 
   # Without a variable key listed here it will not get pulled in from
   # the environment, or from any of the vagrant-subutai.yml conf files
@@ -249,6 +252,18 @@ module SubutaiConfig
     @config.store(key, value)
   end
 
+  def self.set_env_type(key, value)
+    raise "Invalid #{key} value of #{value}: use bazaar or peer" \
+          unless SUBUTAI_ENV_TYPES.include?(value.downcase)
+    @config.store(key, value.downcase)
+  end
+
+  def self.set_scope(key, value)
+    raise "Invalid #{key} value of #{value}: use public or private" \
+          unless SUBUTAI_SCOPES.include?(value.capitalize)
+    @config.store(key, value.capitalize)
+  end
+
   def self.load_config_file(config_file)
     temp = YAML.load_file(config_file)
     temp.each_key do |key|
@@ -257,6 +272,10 @@ module SubutaiConfig
 
       if key.to_sym == :SUBUTAI_ENV
         set_env(key.to_sym, temp[key].to_sym)
+      elsif key.to_sym == :SUBUTAI_SCOPE
+        set_scope(key.to_sym, temp[key].to_sym)
+      elsif key.to_sym == :SUBUTAI_ENV_TYPE
+        set_env_type(key.to_sym, temp[key].to_sym)
       elsif !temp[key].nil?
         # TODO add double checks type
 
@@ -382,16 +401,36 @@ module SubutaiConfig
     end
   end
 
-  # TODO remove Openssl verify (if certificate expired in cdn this code will be crashed)
   def self.get_latest_id_artifact(owner, artifact_name)
-    url = url_of_cdn + '/raw/info?owner=' + owner + '&name=' + artifact_name
-    uri = URI(url)
-    response = Net::HTTP.get(uri)
-    result = JSON.parse(response)
-    result[0]['id']
+    begin
+      url = url_of_cdn + '/raw/info?owner=' + owner + '&name=' + artifact_name
+      uri = URI.parse(url)
+      https = Net::HTTP.new(uri.host, uri.port)
+      https.use_ssl = true
+      https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      https.read_timeout = 3600 # an hour
+
+      request = Net::HTTP::Get.new(uri.request_uri)
+      response = https.request(request)
+
+      case response
+        when Net::HTTPOK
+          response = JSON.parse(response.body)
+          response[0]['id']
+        when Net::HTTPNotFound
+          Put.error "#{response.body} template name #{name}, owner #{owner}"
+      end
+    rescue Errno::ECONNREFUSED
+      Put.error "cdn.subutai.io:8338 connection refused"
+    rescue Errno::EHOSTUNREACH
+      Put.error "cdn.subutai.io:8338 unreachable"
+    rescue => e
+      Put.error e
+    end
   end
 end
 
 at_exit do
   SubutaiConfig.cleanup unless SubutaiConfig.cmd.nil?
 end
+

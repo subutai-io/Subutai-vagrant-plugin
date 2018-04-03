@@ -27,3 +27,19 @@ BUG FIXES:
 FEATURES:
 
   - VM Disk Path variable added to conf file (SUBUTAI_DISK_PATH)
+
+## 1.1.4 (March 30, 2018)
+
+FEATURES: 
+  - Libvirt disk size function added
+  - Cdn verfify certificate removed
+  
+## 1.1.5 (March 31, 2018) 
+
+FEATURES:
+  - [Command] `deregister` command added (For unregistering the PeerOS from Bazaar)
+ 
+## 1.1.6 (April 2, 2018)
+
+ BUG FIXES:
+   - User configuration values case sensitive fixed 

@@ -67,6 +67,32 @@ module VagrantSubutai
       end
     end
 
+    def deregister(username, password, url)
+      if registered?(url)
+          username, password = get_input_token if username.nil? || password.nil?
+
+          response = Rest::SubutaiConsole.token(url, username, password)
+
+          case response
+            when Net::HTTPOK
+
+              response = Rest::SubutaiConsole.deregister(response.body, url)
+
+              case response
+                when Net::HTTPOK
+                  Put.success response.body
+                  Put.success "Successfully PeerOS deregistered from Bazaar."
+                else
+                  Put.error "Error: #{response.body}\n"
+              end
+            else
+              Put.error "Error: #{response.body}\n"
+          end
+      else
+        Put.warn "The PeerOs not registered to Bazaar"
+      end
+    end
+
     # register Subutai Peer Os to Bazaar by username and password
     def register(username, password, url)
       if registered?(url)
@@ -136,8 +162,8 @@ module VagrantSubutai
         peer_id = Rest::SubutaiConsole.fingerprint(url)
         ip = info('ipaddr')
 
-        Put.info ip
-        Put.info peer_id
+        STDOUT.puts ip
+        STDOUT.puts peer_id
       rescue Net::OpenTimeout => e
         Put.error e
       rescue => e

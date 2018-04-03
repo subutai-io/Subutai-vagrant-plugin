@@ -113,18 +113,19 @@ module VagrantSubutai
       COMMAND_LOG   = '/rest/ui/commands/async/{COMMAND_ID}?sptoken='.freeze
 
       module V1
-        TOKEN        = '/rest/v1/identity/gettoken'.freeze
-        REGISTER_HUB = '/rest/v1/hub/register?sptoken='.freeze
-        APPROVE      = '/rest/v1/registration/requests'.freeze
-        FINGERPRINT  = '/rest/v1/security/keyman/getpublickeyfingerprint'.freeze
-        REQUESTS     = '/rest/v1/registration/requests?sptoken='.freeze
-        ENVIRONMENT  = '/rest/v1/environments?sptoken='.freeze
-        HOSTS        = '/rest/v1/hosts?sptoken='.freeze
-        ENVIRONMENTS = '/rest/v1/environments?sptoken='.freeze
-        LOG          = '/rest/v1/tracker/operations/ENVIRONMENT%20MANAGER/'.freeze
-        RESOURCES    = '/rest/v1/peer/resources?sptoken='.freeze
-        DOMAIN       = '/rest/ui/environments/'.freeze
-        READY        = '/rest/v1/peer/ready'.freeze
+        TOKEN           = '/rest/v1/identity/gettoken'.freeze
+        DE_REGISTER_HUB = '/rest/v1/hub/unregister?sptoken='.freeze
+        REGISTER_HUB    = '/rest/v1/hub/register?sptoken='.freeze
+        APPROVE         = '/rest/v1/registration/requests'.freeze
+        FINGERPRINT     = '/rest/v1/security/keyman/getpublickeyfingerprint'.freeze
+        REQUESTS        = '/rest/v1/registration/requests?sptoken='.freeze
+        ENVIRONMENT     = '/rest/v1/environments?sptoken='.freeze
+        HOSTS           = '/rest/v1/hosts?sptoken='.freeze
+        ENVIRONMENTS    = '/rest/v1/environments?sptoken='.freeze
+        LOG             = '/rest/v1/tracker/operations/ENVIRONMENT%20MANAGER/'.freeze
+        RESOURCES       = '/rest/v1/peer/resources?sptoken='.freeze
+        DOMAIN          = '/rest/ui/environments/'.freeze
+        READY           = '/rest/v1/peer/ready'.freeze
       end
       LOGIN = '/login'.freeze
       DEFAULT_PASSWORDS = 'secret'.freeze
