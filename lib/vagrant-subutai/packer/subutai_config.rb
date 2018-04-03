@@ -47,6 +47,9 @@ module SubutaiConfig
     BAZAAR_EMAIL
     BAZAAR_PASSWORD
     SUBUTAI_DISK_PATH
+    LIBVIRT_USER
+    LIBVIRT_HOST
+    LIBVIRT_PORT
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -87,6 +90,7 @@ module SubutaiConfig
     SUBUTAI_NAME: 'My Peer',         # PeerOS name
     SUBUTAI_SCOPE: 'Public',         # PeerOS scope
     SUBUTAI_USERNAME: 'admin',       # PeerOS default username
+    LIBVIRT_PORT: 22,                # Libvirt kvm remote operation ssh port
 
     # Configuration parameters below have not been implemented
     SUBUTAI_SNAP: nil,               # alternative snap to provision
