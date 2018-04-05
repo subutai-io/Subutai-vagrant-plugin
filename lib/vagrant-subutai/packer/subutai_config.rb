@@ -50,6 +50,7 @@ module SubutaiConfig
     LIBVIRT_USER
     LIBVIRT_HOST
     LIBVIRT_PORT
+    LIBVIRT_MACVTAP
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -91,6 +92,7 @@ module SubutaiConfig
     SUBUTAI_SCOPE: 'Public',         # PeerOS scope
     SUBUTAI_USERNAME: 'admin',       # PeerOS default username
     LIBVIRT_PORT: 22,                # Libvirt kvm remote operation ssh port
+    LIBVIRT_MACVTAP: false,          # Libvirt macvtap interface
 
     # Configuration parameters below have not been implemented
     SUBUTAI_SNAP: nil,               # alternative snap to provision
@@ -316,7 +318,7 @@ module SubutaiConfig
   def self.do_network(provider)
     # set the next available console port if provisioning a peer in nat mode
     put(:_CONSOLE_PORT, find_port(get(:DESIRED_CONSOLE_PORT)), true) \
-      if boolean?(:SUBUTAI_PEER) && get(:_CONSOLE_PORT).nil? && write?
+      if boolean?(:SUBUTAI_PEER) && get(:_CONSOLE_PORT).nil? && (write? || delete?)
 
     # set the SSH port if we are using bridged mode
     put(:_SSH_PORT, find_port(get(:DESIRED_SSH_PORT)), true) \
@@ -340,11 +342,6 @@ module SubutaiConfig
 
     # Load overrides from the environment, and generated configurations
     ENV.each do |key, value|
-      if value == 'true'
-        value = true
-      elsif value == 'false'
-        value = false
-      end
       put(key.to_sym, value, false) if USER_PARAMETERS.include? key.to_sym
     end
     do_handlers
