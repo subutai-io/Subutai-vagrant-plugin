@@ -47,6 +47,11 @@ module SubutaiConfig
     BAZAAR_EMAIL
     BAZAAR_PASSWORD
     SUBUTAI_DISK_PATH
+    LIBVIRT_USER
+    LIBVIRT_HOST
+    LIBVIRT_PORT
+    LIBVIRT_MACVTAP
+    LIBVIRT_NO_BRIDGE
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -87,6 +92,8 @@ module SubutaiConfig
     SUBUTAI_NAME: 'My Peer',         # PeerOS name
     SUBUTAI_SCOPE: 'Public',         # PeerOS scope
     SUBUTAI_USERNAME: 'admin',       # PeerOS default username
+    LIBVIRT_PORT: 22,                # Libvirt kvm remote operation ssh port
+    LIBVIRT_MACVTAP: false,          # Libvirt macvtap interface
 
     # Configuration parameters below have not been implemented
     SUBUTAI_SNAP: nil,               # alternative snap to provision
@@ -312,7 +319,7 @@ module SubutaiConfig
   def self.do_network(provider)
     # set the next available console port if provisioning a peer in nat mode
     put(:_CONSOLE_PORT, find_port(get(:DESIRED_CONSOLE_PORT)), true) \
-      if boolean?(:SUBUTAI_PEER) && get(:_CONSOLE_PORT).nil? && write?
+      if boolean?(:SUBUTAI_PEER) && get(:_CONSOLE_PORT).nil? && (write? || delete?)
 
     # set the SSH port if we are using bridged mode
     put(:_SSH_PORT, find_port(get(:DESIRED_SSH_PORT)), true) \
@@ -336,11 +343,6 @@ module SubutaiConfig
 
     # Load overrides from the environment, and generated configurations
     ENV.each do |key, value|
-      if value == 'true'
-        value = true
-      elsif value == 'false'
-        value = false
-      end
       put(key.to_sym, value, false) if USER_PARAMETERS.include? key.to_sym
     end
     do_handlers
@@ -402,30 +404,34 @@ module SubutaiConfig
   end
 
   def self.get_latest_id_artifact(owner, artifact_name)
-    begin
-      url = url_of_cdn + '/raw/info?owner=' + owner + '&name=' + artifact_name
-      uri = URI.parse(url)
-      https = Net::HTTP.new(uri.host, uri.port)
-      https.use_ssl = true
-      https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      https.read_timeout = 3600 # an hour
+    if write?
+      begin
+        url = url_of_cdn + '/raw/info?owner=' + owner + '&name=' + artifact_name
+        uri = URI.parse(url)
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 3600 # an hour
 
-      request = Net::HTTP::Get.new(uri.request_uri)
-      response = https.request(request)
+        request = Net::HTTP::Get.new(uri.request_uri)
+        response = https.request(request)
 
-      case response
-        when Net::HTTPOK
-          response = JSON.parse(response.body)
-          response[0]['id']
-        when Net::HTTPNotFound
-          Put.error "#{response.body} template name #{name}, owner #{owner}"
+        case response
+          when Net::HTTPOK
+            response = JSON.parse(response.body)
+            response[0]['id']
+          when Net::HTTPNotFound
+            Put.error "#{response.body} template name #{name}, owner #{owner}"
+        end
+      rescue Errno::ECONNREFUSED
+        Put.error "cdn.subutai.io:8338 connection refused"
+      rescue Errno::EHOSTUNREACH
+        Put.error "cdn.subutai.io:8338 unreachable"
+      rescue => e
+        Put.error e
       end
-    rescue Errno::ECONNREFUSED
-      Put.error "cdn.subutai.io:8338 connection refused"
-    rescue Errno::EHOSTUNREACH
-      Put.error "cdn.subutai.io:8338 unreachable"
-    rescue => e
-      Put.error e
+    else
+      ""  # send empty id. DON'T REMOVE
     end
   end
 end

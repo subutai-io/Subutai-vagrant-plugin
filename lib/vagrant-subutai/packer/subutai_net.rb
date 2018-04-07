@@ -32,7 +32,7 @@ PROVIDER_MAC_PREFIXES = {
     :virtualbox       => '080027',
     :libvirt          => '525400',
     :vmware_fusion    => '______',
-    :vmware           => '______',
+    :vmware           => '005056',
     :parallels        => '______',
     :hyper_v          => '______'
 }
@@ -127,8 +127,8 @@ def random_mac_addr(provider)
       # PROVIDER_MAC_PREFIXES[:vmware_fusion] + 3.times.map { '%02x' % rand(0..255) }.join
       raise "Unsupported provider #{provider}"
     when :vmware
-      # PROVIDER_MAC_PREFIXES[:vmware] + 3.times.map { '%02x' % rand(0..255) }.join
-      raise "Unsupported provider #{provider}"
+      PROVIDER_MAC_PREFIXES[:vmware] + 3.times.map { '%02x' % rand(0..255) }.join
+      #raise "Unsupported provider #{provider}"
     when :parallels
       # PROVIDER_MAC_PREFIXES[:parallels] + 3.times.map { '%02x' % rand(0..255) }.join
       raise "Unsupported provider #{provider}"
