@@ -41,5 +41,14 @@ FEATURES:
  
 ## 1.1.6 (April 2, 2018)
 
- BUG FIXES:
-   - User configuration values case sensitive fixed 
+BUG FIXES:
+  - User configuration values case sensitive fixed 
+   
+## 1.1.7 (April 7, 2018) 
+  
+BUG FIXES:
+  - null port forward value fixed   
+
+FEATURES:
+  - User configuration new keys added (LIBVIRT_USER, LIBVIRT_HOST, LIBVIRT_PORT, LIBVIRT_MACVTAP, LIBVIRT_NO_BRIDGE)   
+     
