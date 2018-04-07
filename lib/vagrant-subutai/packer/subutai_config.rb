@@ -51,6 +51,7 @@ module SubutaiConfig
     LIBVIRT_HOST
     LIBVIRT_PORT
     LIBVIRT_MACVTAP
+    LIBVIRT_NO_BRIDGE
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -403,30 +404,34 @@ module SubutaiConfig
   end
 
   def self.get_latest_id_artifact(owner, artifact_name)
-    begin
-      url = url_of_cdn + '/raw/info?owner=' + owner + '&name=' + artifact_name
-      uri = URI.parse(url)
-      https = Net::HTTP.new(uri.host, uri.port)
-      https.use_ssl = true
-      https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      https.read_timeout = 3600 # an hour
+    if write?
+      begin
+        url = url_of_cdn + '/raw/info?owner=' + owner + '&name=' + artifact_name
+        uri = URI.parse(url)
+        https = Net::HTTP.new(uri.host, uri.port)
+        https.use_ssl = true
+        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        https.read_timeout = 3600 # an hour
 
-      request = Net::HTTP::Get.new(uri.request_uri)
-      response = https.request(request)
+        request = Net::HTTP::Get.new(uri.request_uri)
+        response = https.request(request)
 
-      case response
-        when Net::HTTPOK
-          response = JSON.parse(response.body)
-          response[0]['id']
-        when Net::HTTPNotFound
-          Put.error "#{response.body} template name #{name}, owner #{owner}"
+        case response
+          when Net::HTTPOK
+            response = JSON.parse(response.body)
+            response[0]['id']
+          when Net::HTTPNotFound
+            Put.error "#{response.body} template name #{name}, owner #{owner}"
+        end
+      rescue Errno::ECONNREFUSED
+        Put.error "cdn.subutai.io:8338 connection refused"
+      rescue Errno::EHOSTUNREACH
+        Put.error "cdn.subutai.io:8338 unreachable"
+      rescue => e
+        Put.error e
       end
-    rescue Errno::ECONNREFUSED
-      Put.error "cdn.subutai.io:8338 connection refused"
-    rescue Errno::EHOSTUNREACH
-      Put.error "cdn.subutai.io:8338 unreachable"
-    rescue => e
-      Put.error e
+    else
+      ""  # send empty id. DON'T REMOVE
     end
   end
 end
