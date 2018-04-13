@@ -48,7 +48,7 @@ module SubutaiDisk
 
   def self.vmware_crate_disk(grow_by, file_disk)
     if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
-      false # Todo add windows vmware disk path
+      system("\"C:\\Program Files (x86)\\VMware\\VMware Workstation\\vmware-vdiskmanager.exe\" -c -s #{vmware_size(grow_by)}GB -a lsilogic -t 0 #{file_disk}")
     elsif RbConfig::CONFIG['host_os'] =~ /darwin/
       false # Todo add osx vmware disk path
     elsif RbConfig::CONFIG['host_os'] =~ /linux|bsd/
