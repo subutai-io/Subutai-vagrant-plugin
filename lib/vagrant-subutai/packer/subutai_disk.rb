@@ -46,11 +46,11 @@ module SubutaiDisk
     grow_by.to_i + 2 # 2 gb for overhead, unit in gb
   end
 
-  def self.vmware_crate_disk(grow_by, file_disk)
+  def self.vmware_create_disk(grow_by, file_disk)
     if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
       system("\"C:\\Program Files (x86)\\VMware\\VMware Workstation\\vmware-vdiskmanager.exe\" -c -s #{vmware_size(grow_by)}GB -a lsilogic -t 0 #{file_disk}")
     elsif RbConfig::CONFIG['host_os'] =~ /darwin/
-      false # Todo add osx vmware disk path
+      system("\"/Applications/VMware Fusion.app/Contents/Library/vmware-vdiskmanager\" -c -s #{vmware_size(grow_by)}GB -a lsilogic -t 0 #{file_disk}")
     elsif RbConfig::CONFIG['host_os'] =~ /linux|bsd/
       system "vmware-vdiskmanager -c -s #{vmware_size(grow_by)}GB -a lsilogic -t 0 #{file_disk}"
     end
