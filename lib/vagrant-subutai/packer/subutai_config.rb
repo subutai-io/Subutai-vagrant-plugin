@@ -3,6 +3,7 @@ require 'digest'
 require 'net/https'
 require 'uri'
 require 'json'
+require 'optparse'
 
 require_relative 'subutai_net'
 require_relative 'subutai_hooks'
@@ -18,6 +19,8 @@ module SubutaiConfig
   SUBUTAI_ENVIRONMENTS = %i[prod master dev sysnet].freeze
   SUBUTAI_SCOPES = %i[Public Private].freeze
   SUBUTAI_ENV_TYPES = %i[bazaar peer].freeze
+  PROVIDER_VMWARE_FUSION = 'vmware_fusion'.freeze
+  PROVIDER_VMWARE_WORKSTATION = 'vmware_workstation'.freeze
 
   # Without a variable key listed here it will not get pulled in from
   # the environment, or from any of the vagrant-subutai.yml conf files
@@ -68,6 +71,7 @@ module SubutaiConfig
     _ALT_MANAGEMENT_MD5_LAST
     _DISK_SIZE
     _DISK_PORT
+    _PROVIDER
   ].freeze
 
   # Used for testing
@@ -195,6 +199,19 @@ module SubutaiConfig
         grow_by = disk - (generated_disk.to_i + 100) # HERE Applied math BEDMAS rule
       end
       grow_by
+    end
+  end
+
+  # save provider name
+  def self.save_provider
+    if write?
+      OptionParser.new do |opts|
+        opts.on("--provider NAME", "") do |name|
+          if name == PROVIDER_VMWARE_FUSION || name == PROVIDER_VMWARE_WORKSTATION
+            put(:_PROVIDER, name, true)
+          end
+        end
+      end.parse(ARGV)
     end
   end
 
@@ -347,6 +364,7 @@ module SubutaiConfig
     end
     do_handlers
     do_network(provider)
+    save_provider
   end
 
   def self.reset
