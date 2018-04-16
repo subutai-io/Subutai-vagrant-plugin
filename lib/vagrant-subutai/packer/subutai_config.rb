@@ -71,7 +71,6 @@ module SubutaiConfig
     _ALT_MANAGEMENT_MD5_LAST
     _DISK_SIZE
     _DISK_PORT
-    _PROVIDER
   ].freeze
 
   # Used for testing
@@ -202,13 +201,19 @@ module SubutaiConfig
     end
   end
 
-  # save provider name
-  def self.save_provider
+  # checks provider for specific Hypervisor (VMware Fusion or VMware Workstation)
+  def self.check_provider
     if write?
       OptionParser.new do |opts|
         opts.on("--provider NAME", "") do |name|
-          if name == PROVIDER_VMWARE_FUSION || name == PROVIDER_VMWARE_WORKSTATION
-            put(:_PROVIDER, name, true)
+          if name == PROVIDER_VMWARE_FUSION
+            unless Vagrant.has_plugin?('vagrant-vmware-fusion')
+              raise 'VMware Fusion provider required to Vagrant. Please install: vagrant plugin install vagrant-vmware-fusion'
+            end
+          elsif name == PROVIDER_VMWARE_WORKSTATION
+            unless Vagrant.has_plugin?('vagrant-vmware-workstation')
+              raise 'VMware Workstation provider required to Vagrant. Please install: vagrant plugin install vagrant-vmware-workstation'
+            end
           end
         end
       end.parse(ARGV)
@@ -364,7 +369,6 @@ module SubutaiConfig
     end
     do_handlers
     do_network(provider)
-    save_provider
   end
 
   def self.reset
