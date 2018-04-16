@@ -33,7 +33,7 @@ PROVIDER_MAC_PREFIXES = {
     :libvirt          => '525400',
     :vmware_fusion    => '______',
     :vmware           => '005056',
-    :parallels        => '______',
+    :parallels        => '001c42',
     :hyper_v          => '______'
 }
 

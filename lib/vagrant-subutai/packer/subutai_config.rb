@@ -208,11 +208,11 @@ module SubutaiConfig
         opts.on("--provider NAME", "") do |name|
           if name == PROVIDER_VMWARE_FUSION
             unless Vagrant.has_plugin?('vagrant-vmware-fusion')
-              raise 'VMware Fusion provider required to Vagrant. Please install: vagrant plugin install vagrant-vmware-fusion'
+              raise 'Vagrant VMware Fusion Provider required. Please install: vagrant plugin install vagrant-vmware-fusion'
             end
           elsif name == PROVIDER_VMWARE_WORKSTATION
             unless Vagrant.has_plugin?('vagrant-vmware-workstation')
-              raise 'VMware Workstation provider required to Vagrant. Please install: vagrant plugin install vagrant-vmware-workstation'
+              raise 'Vagrant VMware Workstation Provider required. Please install: vagrant plugin install vagrant-vmware-workstation'
             end
           end
         end
