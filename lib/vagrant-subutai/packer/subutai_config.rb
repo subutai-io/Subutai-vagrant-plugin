@@ -3,7 +3,6 @@ require 'digest'
 require 'net/https'
 require 'uri'
 require 'json'
-require 'optparse'
 
 require_relative 'subutai_net'
 require_relative 'subutai_hooks'
@@ -19,8 +18,6 @@ module SubutaiConfig
   SUBUTAI_ENVIRONMENTS = %i[prod master dev sysnet].freeze
   SUBUTAI_SCOPES = %i[Public Private].freeze
   SUBUTAI_ENV_TYPES = %i[bazaar peer].freeze
-  PROVIDER_VMWARE_FUSION = 'vmware_fusion'.freeze
-  PROVIDER_VMWARE_WORKSTATION = 'vmware_workstation'.freeze
 
   # Without a variable key listed here it will not get pulled in from
   # the environment, or from any of the vagrant-subutai.yml conf files
