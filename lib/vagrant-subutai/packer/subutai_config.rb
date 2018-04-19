@@ -201,25 +201,6 @@ module SubutaiConfig
     end
   end
 
-  # checks provider for specific Hypervisor (VMware Fusion or VMware Workstation)
-  def self.check_provider
-    if write?
-      OptionParser.new do |opts|
-        opts.on("--provider NAME", "") do |name|
-          if name == PROVIDER_VMWARE_FUSION
-            unless Vagrant.has_plugin?('vagrant-vmware-fusion')
-              raise 'Vagrant VMware Fusion Provider required. Please install: vagrant plugin install vagrant-vmware-fusion'
-            end
-          elsif name == PROVIDER_VMWARE_WORKSTATION
-            unless Vagrant.has_plugin?('vagrant-vmware-workstation')
-              raise 'Vagrant VMware Workstation Provider required. Please install: vagrant plugin install vagrant-vmware-workstation'
-            end
-          end
-        end
-      end.parse(ARGV)
-    end
-  end
-
   def self.url_of_cdn
     @url_of_cdn
   end
