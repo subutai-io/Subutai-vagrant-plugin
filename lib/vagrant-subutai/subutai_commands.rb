@@ -10,23 +10,13 @@ module VagrantSubutai
       super(arg, env)
     end
 
-    # show snap logs
+    # show logs
     def log
       ssh(base + Configs::SubutaiAgentCommand::LOG)
     end
 
     def base
-      env = SubutaiConfig.get(:SUBUTAI_ENV)
-
-      if env.nil?
-        Configs::SubutaiAgentCommand::BASE
-      else
-        if env.to_s == 'prod'
-          Configs::SubutaiAgentCommand::BASE
-        else
-          "sudo /snap/bin/subutai-#{env.to_s}"
-        end
-      end
+      "sudo /usr/bin/subutai".freeze
     end
 
     # info id

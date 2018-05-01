@@ -4,6 +4,9 @@ require_relative 'subutai_config'
 module SubutaiDisk
   DISK_NAME = "SubutaiDisk".freeze
   DISK_FORMAT = "vdi".freeze
+  DISK_FORMAT_VIRTUALBOX = "vdi".freeze
+  DISK_FORMAT_VMWARE = "vmdk".freeze
+  PROVIDER_VMWARE = "vmware".freeze
 
   # Checks disk size for adding new VM disks
   def self.has_grow
@@ -39,6 +42,20 @@ module SubutaiDisk
     "#{size}G"
   end
 
+  def self.vmware_size(grow_by)
+    grow_by.to_i + 2 # 2 gb for overhead, unit in gb
+  end
+
+  def self.vmware_create_disk(grow_by, file_disk)
+    if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
+      system("\"C:\\Program Files (x86)\\VMware\\VMware Workstation\\vmware-vdiskmanager.exe\" -c -s #{vmware_size(grow_by)}GB -a lsilogic -t 0 #{file_disk}")
+    elsif RbConfig::CONFIG['host_os'] =~ /darwin/
+      system("\"/Applications/VMware Fusion.app/Contents/Library/vmware-vdiskmanager\" -c -s #{vmware_size(grow_by)}GB -a lsilogic -t 0 #{file_disk}")
+    elsif RbConfig::CONFIG['host_os'] =~ /linux|bsd/
+      system "vmware-vdiskmanager -c -s #{vmware_size(grow_by)}GB -a lsilogic -t 0 #{file_disk}"
+    end
+  end
+
   # Save disk size and port to generated.yml
   def self.save_conf(grow_by)
     SubutaiConfig.put(:_DISK_PORT, port, true)
@@ -52,6 +69,8 @@ module SubutaiDisk
   end
 
   # Gives disk file name
+  # THIS IS FOR OLD VERSION BOXES
+  # UNDER <= v3.0.5
   def self.file(grow_by)
     disk_port = port
 
@@ -71,6 +90,34 @@ module SubutaiDisk
       else
         Put.warn "Invalid path: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
         "./#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}"
+      end
+    end
+  end
+
+  def self.file_path(grow_by, provider)
+    disk_port = port
+    disk_format = DISK_FORMAT
+
+    if provider == PROVIDER_VMWARE
+      disk_format = DISK_FORMAT_VMWARE
+    end
+
+    # get disk path from conf file
+    if SubutaiConfig.get(:SUBUTAI_DISK_PATH).nil?
+      File.join(Dir.pwd, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}")
+    else
+      # Check is directory exist
+      if File.directory?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
+        # check permission
+        if File.writable?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
+          File.join(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}")
+        else
+          Put.warn "No write permission: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
+          File.join(Dir.pwd, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}")
+        end
+      else
+        Put.warn "Invalid path: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
+        File.join(Dir.pwd, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}")
       end
     end
   end

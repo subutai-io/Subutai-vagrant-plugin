@@ -179,7 +179,7 @@ module VagrantSubutai
     end
 
     module SubutaiAgentCommand
-      BASE   = 'sudo /snap/bin/subutai'.freeze
+      BASE   = 'sudo /usr/bin/subutai'.freeze
       UPDATE = ' update'.freeze                     # arg required
       LOG    = ' log'.freeze
       INFO   = ' info'.freeze                       # arg required

@@ -15,7 +15,7 @@ end
 def hook_handler(hook)
   # hook might be the upload file or an executable to give the path to the
   # file to be provisioned. Builders can use this to hook into the
-  # provisioning process for new snaps and management templates.
+  # provisioning process for new management templates.
   unless File.executable?(hook)
     puts '[WARNING] hook script ' + hook + ' not executable. Abandoning launch.'
     return nil
@@ -34,18 +34,6 @@ end
 
 # TODO: Match extension to OS and pick appropriately if
 # both a .bat and .sh are present.
-
-# If arg is nil check for presence of snap_hook.${ext}
-# ----------------------------------------------------
-def snap_handler(hook)
-  if hook.nil?
-    %w[.sh .bat].each do |e|
-      return hook_handler('./snap_hook' + e) if File.exist?('./snap_hook' + e)
-    end
-    return nil
-  end
-  hook_handler(hook)
-end
 
 # if arg is nil check for presence of management_hook.${ext}
 # ----------------------------------------------------
