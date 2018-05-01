@@ -37,7 +37,6 @@ class SubutaiConfigTest < Test::Unit::TestCase
     assert_equal(SubutaiConfig.get(:SUBUTAI_RAM), 4096)
     assert_equal(SubutaiConfig.get(:SUBUTAI_CPU), 2)
 
-    assert_nil(SubutaiConfig.get(:SUBUTAI_SNAP))
     assert_nil(SubutaiConfig.get(:SUBUTAI_MAN_TMPL))
     assert_nil(SubutaiConfig.get(:APT_PROXY_URL))
 
@@ -157,13 +156,6 @@ class SubutaiConfigTest < Test::Unit::TestCase
     assert_equal(:prod, SubutaiConfig.get(:SUBUTAI_ENV))
     assert_equal(:prod, SubutaiConfig.get('SUBUTAI_ENV'))
 
-    # SUBUTAI_SNAP
-    assert_nil(SubutaiConfig.get(:SUBUTAI_SNAP))
-    script = './bogus/path/script.sh'
-    assert_equal(script, SubutaiConfig.put(:SUBUTAI_SNAP, script, true))
-    assert_equal(script, SubutaiConfig.get(:SUBUTAI_SNAP))
-    assert_equal(script, SubutaiConfig.get('SUBUTAI_SNAP'))
-
     # SUBUTAI_MAN_TMPL
     assert_nil(SubutaiConfig.get(:SUBUTAI_MAN_TMPL))
     pkg = './bogus/path/management.deb'
@@ -187,13 +179,6 @@ class SubutaiConfigTest < Test::Unit::TestCase
     assert_equal(1234, SubutaiConfig.get(:_CONSOLE_PORT))
     assert_equal(1234, SubutaiConfig.get('_CONSOLE_PORT'))
 
-    # _ALT_SNAP
-    assert_nil(SubutaiConfig.get(:_ALT_SNAP))
-    snap = './bogus/path.snap'
-    assert_equal(snap, SubutaiConfig.put(:_ALT_SNAP, snap, true))
-    assert_equal(snap, SubutaiConfig.get(:_ALT_SNAP))
-    assert_equal(snap, SubutaiConfig.get('_ALT_SNAP'))
-
     # _ALT_MANAGEMENT
     assert_nil(SubutaiConfig.get(:_ALT_MANAGEMENT))
     pkg = './bogus/path.deb'
@@ -214,9 +199,6 @@ class SubutaiConfigTest < Test::Unit::TestCase
     assert_equal(cmd, SubutaiConfig.cmd, 'cmd does not equal ' + cmd)
     SubutaiConfig.put('SUBUTAI_PEER', true, true)
     assert_path_exist(SubutaiConfig::GENERATED_FILE)
-
-    SubutaiConfig.put('SUBUTAI_SNAP', './bogus/path', true)
-    assert_equal('./bogus/path', SubutaiConfig.get('SUBUTAI_SNAP'))
   end
 
   def test_destroy
@@ -228,14 +210,11 @@ class SubutaiConfigTest < Test::Unit::TestCase
   def test_seq0
     cmd = 'up'
     pkg = './bogus/path/management.deb'
-    snap = './bogus/path.snap'
 
     SubutaiConfig.load_config(cmd, :virtualbox)
     assert_equal(cmd, SubutaiConfig.cmd, 'cmd does not equal ' + cmd)
-    assert_equal(snap, SubutaiConfig.put(:SUBUTAI_SNAP, snap, true))
     assert_equal(pkg, SubutaiConfig.put(:SUBUTAI_MAN_TMPL, pkg, true))
     assert_equal(1234, SubutaiConfig.put(:_CONSOLE_PORT, 1234, true))
-    assert_equal(snap, SubutaiConfig.put(:_ALT_SNAP, snap, true))
     assert_equal(pkg, SubutaiConfig.put(:_ALT_MANAGEMENT, pkg, true))
     assert_true(SubutaiConfig.put(:ALLOW_INSECURE, true, true))
     assert_true(SubutaiConfig.put(:SUBUTAI_DESKTOP, true, true))
@@ -250,7 +229,6 @@ class SubutaiConfigTest < Test::Unit::TestCase
     cmd = 'ssh'
     SubutaiConfig.load_config(cmd, :virtualbox)
     assert_equal(cmd, SubutaiConfig.cmd, 'cmd does not equal ' + cmd)
-    assert_nil(SubutaiConfig.get(:SUBUTAI_SNAP))
     assert_nil(SubutaiConfig.get(:SUBUTAI_MAN_TMPL))
     assert_false(SubutaiConfig.get(:ALLOW_INSECURE))
     assert_false(SubutaiConfig.get(:SUBUTAI_DESKTOP))
@@ -261,7 +239,6 @@ class SubutaiConfigTest < Test::Unit::TestCase
     assert_equal(:prod, SubutaiConfig.get(:SUBUTAI_ENV))
 
     # these should not be cleared out by the reset
-    assert_equal(snap, SubutaiConfig.get(:_ALT_SNAP))
     assert_equal(pkg, SubutaiConfig.get(:_ALT_MANAGEMENT))
 
     cmd = 'suspend'
@@ -308,7 +285,6 @@ class SubutaiConfigTest < Test::Unit::TestCase
     assert_false(SubutaiConfig.get(:SUBUTAI_PEER))
     assert_true(SubutaiConfig.get(:SUBUTAI_DESKTOP))
     assert_true(SubutaiConfig.get(:ALLOW_INSECURE))
-    assert_equal('./foo/bar/bogus/path/to/shell/script.sh', SubutaiConfig.get(:SUBUTAI_SNAP))
     assert_equal('./bar/foo/bogus/path/to/deb/pkg/management.deb', SubutaiConfig.get(:SUBUTAI_MAN_TMPL))
 
     if ENV['APT_PROXY_URL'].nil?
@@ -322,7 +298,6 @@ class SubutaiConfigTest < Test::Unit::TestCase
     SubutaiConfig.load_config('up', :virtualbox)
     assert_true(SubutaiConfig.boolean?(:SUBUTAI_PEER))
     assert_false(SubutaiConfig.boolean?(:SUBUTAI_DESKTOP))
-    assert_false(SubutaiConfig.boolean?(:SUBUTAI_SNAP))
     assert_raise do
       SubutaiConfig.boolean?(:SUBUTAI_CPU)
     end
@@ -343,45 +318,6 @@ class SubutaiConfigTest < Test::Unit::TestCase
 
     SubutaiConfig.load_config('ssh', :virtualbox)
     assert_true(SubutaiConfig.read?)
-  end
-
-  def test_provision_snap?
-    SubutaiConfig.load_config('ssh', :virtualbox)
-    configs = SubutaiConfig.config
-
-    # Make it all negative for provisioning conditions
-    configs.store(:PROVISION, false)
-    configs.store(:_ALT_SNAP, nil)
-    configs.store(:_ALT_SNAP_MD5, '6fc87ffd922973f8c88fd939fc091885')
-    configs.store(:_ALT_SNAP_MD5_LAST, '6fc87ffd922973f8c88fd939fc091885')
-    assert_false(SubutaiConfig.provision_snap?)
-
-    configs.store(:PROVISION, true)
-    configs.store(:_ALT_SNAP, nil)
-    configs.store(:_ALT_SNAP_MD5, '6fc87ffd922973f8c88fd939fc091885')
-    configs.store(:_ALT_SNAP_MD5_LAST, '6fc87ffd922973f8c88fd939fc091885')
-    assert_false(SubutaiConfig.provision_snap?)
-
-    configs.store(:PROVISION, true)
-    configs.store(:_ALT_SNAP, './ruby/tests/snap_script.sh')
-    configs.store(:_ALT_SNAP_MD5, '6fc87ffd922973f8c88fd939fc091885')
-    configs.store(:_ALT_SNAP_MD5_LAST, '6fc87ffd922973f8c88fd939fc091885')
-    assert_false(SubutaiConfig.provision_snap?)
-
-    configs.store(:PROVISION, true)
-    configs.store(:_ALT_SNAP, './ruby/tests/snap_script.sh')
-    configs.store(:_ALT_SNAP_MD5, '6fc87ffd922973f8c88fd939fc091885')
-    configs.store(:_ALT_SNAP_MD5_LAST, nil)
-    assert_false(SubutaiConfig.provision_snap?)
-
-    SubutaiConfig.load_config('provision', :virtualbox)
-    configs.store(:PROVISION, true)
-    configs.store(:_ALT_SNAP, './ruby/tests/snap_script.sh')
-    configs.store(:_ALT_SNAP_MD5, '6fc87ffd922973f8c88fd939fc091885')
-    configs.store(:_ALT_SNAP_MD5_LAST, nil)
-    assert_true(SubutaiConfig.provision_snap?)
-
-    SubutaiConfig.snap_provisioned!
   end
 
   def test_provision_management?
@@ -432,11 +368,9 @@ class SubutaiConfigTest < Test::Unit::TestCase
     assert_false(SubutaiConfig.do_handlers)
 
     SubutaiConfig.load_config('up', :virtualbox)
-    configs.store(:SUBUTAI_SNAP, './ruby/tests/snap_script.sh')
     configs.store(:SUBUTAI_MAN_TMPL, './ruby/tests/snap_script.sh')
     assert_true(SubutaiConfig.do_handlers)
 
-    configs.store(:SUBUTAI_SNAP, './ruby/tests/bad_snap_script.sh')
     configs.store(:SUBUTAI_MAN_TMPL, './ruby/tests/bad_snap_script.sh')
     assert_raise do
       SubutaiConfig.do_handlers

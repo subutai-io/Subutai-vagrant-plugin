@@ -1,3 +1,3 @@
 module VagrantSubutai
-  VERSION = '1.1.7'
+  VERSION = '7.0.0'
 end

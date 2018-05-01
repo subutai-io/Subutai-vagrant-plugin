@@ -29,7 +29,6 @@ module SubutaiConfig
     SUBUTAI_CPU
     SUBUTAI_RAM
     SUBUTAI_PEER
-    SUBUTAI_SNAP
     SUBUTAI_DESKTOP
     SUBUTAI_MAN_TMPL
     APT_PROXY_URL
@@ -60,9 +59,6 @@ module SubutaiConfig
     _BASE_MAC
     _SSH_PORT
     _LOG_MODE
-    _ALT_SNAP
-    _ALT_SNAP_MD5
-    _ALT_SNAP_MD5_LAST
     _ALT_MANAGEMENT
     _ALT_MANAGEMENT_MD5
     _ALT_MANAGEMENT_MD5_LAST
@@ -84,7 +80,7 @@ module SubutaiConfig
     # Implemented configuration parameters
     DESIRED_CONSOLE_PORT: 9999,      # integer for console port
     DESIRED_SSH_PORT: 4567,          # integer for console port
-    ALLOW_INSECURE: false,           # boolean to enable insecure CDN and snap
+    ALLOW_INSECURE: false,           # boolean to enable insecure CDN
     SUBUTAI_ENV: :prod,              # subutai environment to use
     SUBUTAI_PEER: true,              # to provision or not console (peer)
     SUBUTAI_RAM: 4096,               # RAM memory assigned to the vm
@@ -96,7 +92,6 @@ module SubutaiConfig
     LIBVIRT_MACVTAP: false,          # Libvirt macvtap interface
 
     # Configuration parameters below have not been implemented
-    SUBUTAI_SNAP: nil,               # alternative snap to provision
     SUBUTAI_DESKTOP: false,          # install desktop with tray and p2p client
     SUBUTAI_MAN_TMPL: nil,           # provision alternative management template
     APT_PROXY_URL: nil,              # configure apt proxy URL
@@ -141,18 +136,6 @@ module SubutaiConfig
     else
       raise "#{key} value #{get(key.to_sym)} is not a boolean"
     end
-  end
-
-  def self.provision_snap?
-    return false unless boolean?(:PROVISION)
-    return false if get(:_ALT_SNAP).nil?
-    return false if get(:_ALT_SNAP_MD5) == get(:_ALT_SNAP_MD5_LAST)
-    return false unless %w[up provision].include?(@cmd)
-    true
-  end
-
-  def self.snap_provisioned!
-    put(:_ALT_SNAP_MD5_LAST, get(:_ALT_SNAP_MD5), true) if provision_snap?
   end
 
   def self.bridged!
@@ -299,11 +282,6 @@ module SubutaiConfig
 
   def self.do_handlers
     return false unless %w[up provision].include? @cmd
-    file = snap_handler(get(:SUBUTAI_SNAP))
-    unless file.nil?
-      put(:_ALT_SNAP, file, true) if provision_snap?
-      put(:_ALT_SNAP_MD5, Digest::MD5.file(file).to_s, true) if provision_snap?
-    end
 
     file = management_handler(get(:SUBUTAI_MAN_TMPL))
     unless file.nil?
