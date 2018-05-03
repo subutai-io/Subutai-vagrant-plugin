@@ -52,8 +52,10 @@ module VagrantSubutai
 
           url = "https://#{ip}:#{Configs::SubutaiConsoleAPI::PORT}"
 
-          unless subutai_cli.registered?(url)
-            subutai_cli.register(SubutaiConfig.get(:SUBUTAI_USERNAME), SubutaiConfig.get(:SUBUTAI_PASSWORD), url)
+          if subutai_cli.is_management_ready?(url, 1)
+            unless subutai_cli.registered?(url)
+              subutai_cli.register(SubutaiConfig.get(:SUBUTAI_USERNAME), SubutaiConfig.get(:SUBUTAI_PASSWORD), url)
+            end
           end
         end
       end

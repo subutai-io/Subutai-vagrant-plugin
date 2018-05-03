@@ -122,6 +122,67 @@ module VagrantSubutai
       end
     end
 
+    # it will wait exponential time until management is ready
+    def is_management_ready?(url, attempt)
+      begin
+        response = Rest::SubutaiConsole.ready(url)
+
+        case response
+          when Net::HTTPOK                       # 200 Ready
+            return true
+          when response.code == 503
+            if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+              sleep(2**attempt) #
+              is_management_ready?(url, attempt+1)
+            end
+          when Net::HTTPNotFound
+            if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+              sleep(2**attempt) #
+              is_management_ready?(url, attempt+1)
+            end
+          when response.code == 500       # management happened something wrong
+            Put.error "PeerOS failed to run!"
+            return false
+          else
+            # PeerOs not ready
+            Put.error "PeerOS failed to run"
+            return false
+        end
+      rescue Net::OpenTimeout
+        if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+          sleep(2**attempt)
+          is_management_ready?(url, attempt+1)
+        end
+      rescue Errno::ECONNRESET
+        if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+          sleep(2**attempt) #
+          is_management_ready?(url, attempt+1)
+        end
+      rescue Errno::ECONNABORTED
+        if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+          sleep(2**attempt) #
+          is_management_ready?(url, attempt+1)
+        end
+      rescue OpenSSL::OpenSSLError # generic openssl error
+        if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+          sleep(2**attempt) #
+          is_management_ready?(url, attempt+1)
+        end
+      rescue OpenSSL::SSL::SSLError
+        if attempt < VagrantSubutai::Configs::Blueprint::ATTEMPT
+          sleep(2**attempt) #
+          is_management_ready?(url, attempt+1)
+        end
+      rescue => e
+        if attempt == 1 && ARGV[0] == 'up' # fails first attempt then try
+          sleep(10)
+          is_management_ready?(url, attempt+1)
+        else
+          return false
+        end
+      end
+    end
+
     # register Subutai Peer Os to Bazaar by token
     def register_by_token(token, url)
       hub_email, hub_password, peer_name, peer_scope = get_input_register
