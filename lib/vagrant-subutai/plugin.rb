@@ -17,6 +17,10 @@ module VagrantSubutai
                Provisioner
             end
 
+            provisioner "registration" do
+               require_relative "registration"
+               Registration
+            end
 
             config 'subutai_console' do
                require_relative 'config'

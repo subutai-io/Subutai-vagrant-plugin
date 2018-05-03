@@ -51,6 +51,7 @@ module SubutaiConfig
     LIBVIRT_PORT
     LIBVIRT_MACVTAP
     LIBVIRT_NO_BRIDGE
+    BAZAAR_NO_AUTO
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -90,6 +91,7 @@ module SubutaiConfig
     SUBUTAI_USERNAME: 'admin',       # PeerOS default username
     LIBVIRT_PORT: 22,                # Libvirt kvm remote operation ssh port
     LIBVIRT_MACVTAP: false,          # Libvirt macvtap interface
+    BAZAAR_NO_AUTO: false,           # PeerOs automatic registration to Bazaar (turn on(false), turn off(true))
 
     # Configuration parameters below have not been implemented
     SUBUTAI_DESKTOP: false,          # install desktop with tray and p2p client
