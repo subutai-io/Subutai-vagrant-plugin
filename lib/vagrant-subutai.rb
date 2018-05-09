@@ -27,6 +27,7 @@ require 'vagrant-subutai/config'
 require 'vagrant-subutai/plugin'
 require 'vagrant-subutai/provisioner'
 require 'vagrant-subutai/put'
+require 'vagrant-subutai/registration'
 require 'vagrant-subutai/subutai_commands'
 require 'vagrant-subutai/version'
 
