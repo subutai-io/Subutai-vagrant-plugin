@@ -56,6 +56,10 @@ module SubutaiDisk
     end
   end
 
+  def self.hyperv_create_disk(grow_by, file_disk)
+
+  end
+
   # Save disk size and port to generated.yml
   def self.save_conf(grow_by)
     SubutaiConfig.put(:_DISK_PORT, port, true)

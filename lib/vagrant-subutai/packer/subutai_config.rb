@@ -6,6 +6,7 @@ require 'json'
 
 require_relative 'subutai_net'
 require_relative 'subutai_hooks'
+require_relative '../../../lib/vagrant-subutai/util/powershell'
 
 # Vagrant Driven Subutai Configuration
 # noinspection RubyTooManyMethodsInspection
@@ -329,6 +330,15 @@ module SubutaiConfig
       if @bridged && get(:_BASE_MAC).nil? && write?
 
     put(:_BRIDGED, @bridged, true) if write?
+
+    generate_switch if provider == :hyper_v && write?
+  end
+
+  # Generates Virtual Switch for Hyper-V
+  def self.generate_switch
+    unless VagrantSubutai::Util::Powershell.execute(File.join(File.expand_path(File.dirname(__FILE__)), 'script/create_virtual_switch.ps1'))
+      Put.error("Failed to create virtual switch")
+    end
   end
 
   # Loads the generated and user configuration from YAML files
