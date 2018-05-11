@@ -341,6 +341,14 @@ module SubutaiConfig
     end
   end
 
+  def self.machine_id(provider)
+    case provider
+    when :hyper_v
+      id = PARENT_DIR+'/machines/default/hyperv/id'
+      File.read(id) if File.exist?(id)
+    end
+  end
+
   # Loads the generated and user configuration from YAML files
   def self.load_config(cmd, provider)
     raise 'SubutaiConfig.cmd not set' if cmd.nil?

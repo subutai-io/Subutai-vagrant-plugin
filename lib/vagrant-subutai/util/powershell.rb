@@ -10,7 +10,7 @@ module VagrantSubutai
             "-NonInteractive",
             "-ExecutionPolicy", "Bypass",
             "&('#{path}')",
-            args
+            *args
         ].flatten
 
         system(*command)
