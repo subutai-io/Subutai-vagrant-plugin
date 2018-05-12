@@ -1,4 +1,5 @@
 require_relative 'subutai_config'
+require_relative '../../../lib/vagrant-subutai/util/powershell'
 
 # For managing VM disks
 module SubutaiDisk
@@ -6,7 +7,9 @@ module SubutaiDisk
   DISK_FORMAT = "vdi".freeze
   DISK_FORMAT_VIRTUALBOX = "vdi".freeze
   DISK_FORMAT_VMWARE = "vmdk".freeze
+  DISK_FORMAT_HYPERV = "vhdx".freeze
   PROVIDER_VMWARE = "vmware".freeze
+  PROVIDER_HYPERV = "hyper_v".freeze
 
   # Checks disk size for adding new VM disks
   def self.has_grow
@@ -56,6 +59,17 @@ module SubutaiDisk
     end
   end
 
+  def self.hyperv_create_disk(grow_by, file_disk)
+    script = File.join(File.expand_path(File.dirname(__FILE__)), 'script/create_disk_and_attach.ps1')
+    id = SubutaiConfig.machine_id(:hyper_v)
+
+    if id.nil?
+      Put.error("Not found machine id")
+    else
+      VagrantSubutai::Util::Powershell.execute(script, "-VmId", id, "-DiskPath", file_disk, "-DiskSize", "#{vmware_size(grow_by)}")
+    end
+  end
+
   # Save disk size and port to generated.yml
   def self.save_conf(grow_by)
     SubutaiConfig.put(:_DISK_PORT, port, true)
@@ -98,8 +112,11 @@ module SubutaiDisk
     disk_port = port
     disk_format = DISK_FORMAT
 
-    if provider == PROVIDER_VMWARE
+    case provider
+    when PROVIDER_VMWARE
       disk_format = DISK_FORMAT_VMWARE
+    when PROVIDER_HYPERV
+      disk_format = DISK_FORMAT_HYPERV
     end
 
     # get disk path from conf file
