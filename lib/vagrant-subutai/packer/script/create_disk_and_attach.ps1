@@ -6,9 +6,6 @@ param (
 
 try {
     $vm = Get-VM -Id $VmId -ErrorAction "stop"
-    echo $vm.Name
-    echo $DiskSize
-    echo $DiskPath
 
     # create new disk
     # converting GB to Byte

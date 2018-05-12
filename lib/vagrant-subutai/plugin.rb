@@ -18,6 +18,11 @@ module VagrantSubutai
             end
 
 
+            provisioner "create_disk" do
+              require_relative "create_disk"
+              CreateDisk
+            end
+
             config 'subutai_console' do
                require_relative 'config'
                Config
