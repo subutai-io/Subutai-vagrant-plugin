@@ -123,6 +123,8 @@ def random_mac_addr(provider)
       PROVIDER_MAC_PREFIXES[:virtualbox] + 3.times.map { '%02x' % rand(0..255) }.join
     when :libvirt
       PROVIDER_MAC_PREFIXES[:libvirt] + 3.times.map { '%02x' % rand(0..255) }.join
+    when :vmware_fusion
+       PROVIDER_MAC_PREFIXES[:vmware] + 3.times.map { '%02x' % rand(0..255) }.join
     when :vmware
       PROVIDER_MAC_PREFIXES[:vmware] + 3.times.map { '%02x' % rand(0..255) }.join
     when :parallels
