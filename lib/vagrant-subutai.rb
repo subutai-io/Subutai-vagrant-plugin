@@ -24,6 +24,7 @@ require 'vagrant-subutai/rest/subutai_console'
 
 require 'vagrant-subutai/command'
 require 'vagrant-subutai/config'
+require 'vagrant-subutai/create_disk'
 require 'vagrant-subutai/plugin'
 require 'vagrant-subutai/provisioner'
 require 'vagrant-subutai/put'
