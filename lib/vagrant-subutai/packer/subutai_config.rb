@@ -6,6 +6,7 @@ require 'json'
 
 require_relative 'subutai_net'
 require_relative 'subutai_hooks'
+require_relative 'subutai_validation'
 require_relative '../../../lib/vagrant-subutai/util/powershell'
 
 # Vagrant Driven Subutai Configuration
@@ -113,6 +114,11 @@ module SubutaiConfig
   def self.write?
     raise 'SubutaiConfig.cmd not set' if @cmd.nil?
     @cmd == 'up'
+  end
+
+  def self.reload?
+    raise 'SubutaiConfig.cmd not set' if @cmd.nil?
+    @cmd == 'reload'
   end
 
   def self.delete?
@@ -263,23 +269,8 @@ module SubutaiConfig
       raise "Invalid key in YAML file: '#{key}'" \
           unless USER_PARAMETERS.include?(key.to_sym)
 
-      if key.to_sym == :SUBUTAI_ENV
-        set_env(key.to_sym, temp[key].to_sym)
-      elsif key.to_sym == :SUBUTAI_SCOPE
-        set_scope(key.to_sym, temp[key].to_sym)
-      elsif key.to_sym == :SUBUTAI_ENV_TYPE
-        set_env_type(key.to_sym, temp[key].to_sym)
-      elsif !temp[key].nil?
-        # TODO add double checks type
-
-        if temp[key] == 'true'
-          temp[key] = true
-        elsif temp[key] == 'false'
-          temp[key] = false
-        end
-
-        @config.store(key.to_sym, temp[key])
-      end
+      SubutaiValidation.validate(key.to_sym, temp[key])
+      @config.store(key.to_sym, temp[key]) unless temp[key].nil?
     end
   end
 
@@ -300,7 +291,7 @@ module SubutaiConfig
   def self.do_network(provider)
     # set the next available console port if provisioning a peer in nat mode
     put(:_CONSOLE_PORT, find_port(get(:DESIRED_CONSOLE_PORT)), true) \
-      if boolean?(:SUBUTAI_PEER) && get(:_CONSOLE_PORT).nil? && (write? || delete?)
+      if boolean?(:SUBUTAI_PEER) && get(:_CONSOLE_PORT).nil? && (write? || delete? || read?)
 
     # set the SSH port if we are using bridged mode
     put(:_SSH_PORT, find_port(get(:DESIRED_SSH_PORT)), true) \
