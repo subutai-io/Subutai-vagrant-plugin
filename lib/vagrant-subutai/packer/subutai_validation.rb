@@ -53,11 +53,21 @@ module SubutaiValidation
       when :string
         raise "Invalid #{key} type of #{value}: use string type " unless value.is_a?(String)
       when :bool
-        raise "Invalid #{key} type of #{value}: use bool type " unless SubutaiConfig.boolean?(key)
+        raise "Invalid #{key} type of #{value}: use bool type " unless bool?(value)
       when :url
         raise "Invalid #{key} url of #{value}: use valid url " unless host =~ URI::regexp
       when :json_object
         raise "Invalid #{key} json of #{value}: use json object " unless is_json?(value)
+    end
+  end
+
+  def self.bool?(value)
+    if value == 'true' || value == true
+      true
+    elsif value == 'false' || value == false
+      true
+    else
+      false
     end
   end
 
