@@ -17,6 +17,7 @@ require 'vagrant-subutai/packer/subutai_config'
 require 'vagrant-subutai/packer/subutai_hooks'
 require 'vagrant-subutai/packer/subutai_net'
 require 'vagrant-subutai/packer/subutai_disk'
+require 'vagrant-subutai/packer/subutai_validation'
 
 require 'vagrant-subutai/rest/bazaar'
 require 'vagrant-subutai/rest/gorjun'
