@@ -52,9 +52,15 @@ BUG FIXES:
 FEATURES:
   - User configuration new keys added (LIBVIRT_USER, LIBVIRT_HOST, LIBVIRT_PORT, LIBVIRT_MACVTAP, LIBVIRT_NO_BRIDGE)   
  
-## 7.0.0. (May 9, 2018) 
+## 7.0.0 (May 9, 2018) 
 
 FEATURES:
   - Support Vmware desktop and Parallels hypervisor    
   - Auto registration PeerOs to Bazaar
   - User configuration new keys added (BAZAAR_NO_AUTO)
+  
+## 7.0.1 (May 21, 2018)
+
+FEATURES:
+  - Support HyperV hypervisor
+  - Improved validation (user configuration)
