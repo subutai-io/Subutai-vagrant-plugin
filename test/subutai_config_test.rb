@@ -257,6 +257,12 @@ class SubutaiConfigTest < Test::Unit::TestCase
     end
   end
 
+  def test_not_raise
+    assert_nothing_raised do
+      SubutaiConfig.load_config_file('./test/subutai-validation-0.yml')
+    end
+  end
+
   def test_bad_env_subutai_yaml_0
     assert_raise do
       SubutaiConfig.load_config_file('./test/subutai0.yaml')
