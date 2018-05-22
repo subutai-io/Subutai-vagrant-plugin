@@ -55,7 +55,7 @@ module SubutaiValidation
       when :bool
         raise "Invalid #{key} type of #{value}: use bool type " unless bool?(value)
       when :url
-        raise "Invalid #{key} url of #{value}: use valid url " unless host =~ URI::regexp
+        raise "Invalid #{key} url of #{value}: use valid url " unless value =~ URI::regexp
       when :json_object
         raise "Invalid #{key} json of #{value}: use json object " unless is_json?(value)
     end
