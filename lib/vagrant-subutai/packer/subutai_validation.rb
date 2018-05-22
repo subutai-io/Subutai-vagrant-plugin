@@ -1,4 +1,5 @@
 require 'uri'
+require 'json'
 require_relative 'subutai_config'
 
 module SubutaiValidation
@@ -59,6 +60,8 @@ module SubutaiValidation
       when :json_object
         raise "Invalid #{key} json of #{value}: use json object " unless is_json?(value)
     end
+
+    true
   end
 
   def self.bool?(value)
@@ -74,8 +77,8 @@ module SubutaiValidation
   def self.is_json?(json)
     begin
       JSON.parse(json)
-    rescue
-      false
+    rescue JSON::ParserError
+      return false
     end
 
     true

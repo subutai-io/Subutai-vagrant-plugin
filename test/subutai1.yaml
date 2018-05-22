@@ -6,5 +6,5 @@ invalid_value: foo
 ALLOW_INSECURE: true
 SUBUTAI_RAM: 2000
 SUBUTAI_CPU: 6
-SUBUTAI_MAN_IMPL: ./bar/foo/bogus/path/to/deb/pkg/management.deb
+SUBUTAI_MAN_IMPL: './test/management_test_file.deb'
 APT_PROXY_URL: http://some_server:4444

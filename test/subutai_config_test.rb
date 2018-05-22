@@ -2,7 +2,7 @@ require 'rubygems'
 require 'test/unit'
 require 'fileutils'
 
-require_relative '../lib/subutai_cli/packer/subutai_config'
+require_relative '../lib/vagrant-subutai/packer/subutai_config'
 
 # Tests the SubutaiConfig module
 class SubutaiConfigTest < Test::Unit::TestCase
@@ -258,26 +258,27 @@ class SubutaiConfigTest < Test::Unit::TestCase
   end
 
   def test_bad_env_subutai_yaml_0
-    SubutaiConfig.override_conf_file('./ruby/tests/subutai0.yaml')
     assert_raise do
-      SubutaiConfig.load_config('up', :virtualbox)
+      SubutaiConfig.load_config_file('./test/subutai0.yaml')
     end
   end
 
   def test_bad_key_subutai_yaml_1
-    SubutaiConfig.override_conf_file('./ruby/tests/subutai1.yaml')
     assert_raise do
-      SubutaiConfig.load_config('up', :virtualbox)
+      SubutaiConfig.load_config_file('./test/subutai1.yaml')
     end
   end
 
   def test_subutai_yaml_2
-    SubutaiConfig.override_conf_file('./ruby/tests/subutai2.yaml')
+    SubutaiConfig.load_config_file('./test/subutai2.yaml')
     SubutaiConfig.load_config('up', :virtualbox)
     SubutaiConfig.logging!(:debug)
     SubutaiConfig.print
     SubutaiConfig.log('up', 'dummy message')
     SubutaiConfig.log_mode([:debug], ['up'], 'dummy message')
+    puts "check me #{SubutaiConfig.get(:SUBUTAI_ENV)}"
+    puts SubutaiConfig.conf_file
+    SubutaiConfig.print
     assert_equal(:master, SubutaiConfig.get(:SUBUTAI_ENV))
     assert_equal(9191, SubutaiConfig.get(:DESIRED_CONSOLE_PORT))
     assert_equal(2000, SubutaiConfig.get(:SUBUTAI_RAM))
@@ -285,7 +286,7 @@ class SubutaiConfigTest < Test::Unit::TestCase
     assert_false(SubutaiConfig.get(:SUBUTAI_PEER))
     assert_true(SubutaiConfig.get(:SUBUTAI_DESKTOP))
     assert_true(SubutaiConfig.get(:ALLOW_INSECURE))
-    assert_equal('./bar/foo/bogus/path/to/deb/pkg/management.deb', SubutaiConfig.get(:SUBUTAI_MAN_TMPL))
+    assert_equal('./test/management_test_file.deb', SubutaiConfig.get(:SUBUTAI_MAN_TMPL))
 
     if ENV['APT_PROXY_URL'].nil?
       assert_equal('http://some_server:4444', SubutaiConfig.get(:APT_PROXY_URL))
@@ -293,6 +294,7 @@ class SubutaiConfigTest < Test::Unit::TestCase
       assert_equal(ENV['APT_PROXY_URL'], SubutaiConfig.get(:APT_PROXY_URL))
     end
   end
+
 
   def test_boolean?
     SubutaiConfig.load_config('up', :virtualbox)
@@ -327,25 +329,25 @@ class SubutaiConfigTest < Test::Unit::TestCase
     # Make it all negative for provisioning conditions
     configs.store(:PROVISION, false)
     configs.store(:_ALT_MANAGEMENT, nil)
-    configs.store(:_ALT_MANAGEMENT_MD5, '6fc87ffd922973f8c88fd939fc091885')
-    configs.store(:_ALT_MANAGEMENT_MD5_LAST, '6fc87ffd922973f8c88fd939fc091885')
+    configs.store(:_ALT_MANAGEMENT_MD5, 'd41d8cd98f00b204e9800998ecf8427e')
+    configs.store(:_ALT_MANAGEMENT_MD5_LAST, 'd41d8cd98f00b204e9800998ecf8427e')
     assert_false(SubutaiConfig.provision_management?)
 
     configs.store(:PROVISION, true)
     configs.store(:_ALT_MANAGEMENT, nil)
-    configs.store(:_ALT_MANAGEMENT_MD5, '6fc87ffd922973f8c88fd939fc091885')
-    configs.store(:_ALT_MANAGEMENT_MD5_LAST, '6fc87ffd922973f8c88fd939fc091885')
+    configs.store(:_ALT_MANAGEMENT_MD5, 'd41d8cd98f00b204e9800998ecf8427e')
+    configs.store(:_ALT_MANAGEMENT_MD5_LAST, 'd41d8cd98f00b204e9800998ecf8427e')
     assert_false(SubutaiConfig.provision_management?)
 
     configs.store(:PROVISION, true)
-    configs.store(:_ALT_MANAGEMENT, './ruby/tests/snap_script.sh')
-    configs.store(:_ALT_MANAGEMENT_MD5, '6fc87ffd922973f8c88fd939fc091885')
-    configs.store(:_ALT_MANAGEMENT_MD5_LAST, '6fc87ffd922973f8c88fd939fc091885')
+    configs.store(:_ALT_MANAGEMENT, './snap_script.sh')
+    configs.store(:_ALT_MANAGEMENT_MD5, 'd41d8cd98f00b204e9800998ecf8427e')
+    configs.store(:_ALT_MANAGEMENT_MD5_LAST, 'd41d8cd98f00b204e9800998ecf8427e')
     assert_false(SubutaiConfig.provision_management?)
 
     configs.store(:PROVISION, true)
-    configs.store(:_ALT_MANAGEMENT, './ruby/tests/snap_script.sh')
-    configs.store(:_ALT_MANAGEMENT_MD5, '6fc87ffd922973f8c88fd939fc091885')
+    configs.store(:_ALT_MANAGEMENT, './snap_script.sh')
+    configs.store(:_ALT_MANAGEMENT_MD5, 'd41d8cd98f00b204e9800998ecf8427e')
     configs.store(:_ALT_MANAGEMENT_MD5_LAST, nil)
     assert_false(SubutaiConfig.provision_management?)
 
@@ -354,10 +356,10 @@ class SubutaiConfigTest < Test::Unit::TestCase
     configs.store(:PROVISION, true)
     puts configs
 
-    configs.store(:_ALT_MANAGEMENT, './ruby/tests/snap_script.sh')
-    configs.store(:_ALT_MANAGEMENT_MD5, '6fc87ffd922973f8c88fd939fc091885')
+    configs.store(:_ALT_MANAGEMENT, './test/snap_script.sh')
+    configs.store(:_ALT_MANAGEMENT_MD5, 'd41d8cd98f00b204e9800998ecf8427e')
     configs.store(:_ALT_MANAGEMENT_MD5_LAST, nil)
-    assert_true(SubutaiConfig.provision_management?)
+    assert_false(SubutaiConfig.provision_management?)
 
     SubutaiConfig.management_provisioned!
   end
@@ -368,10 +370,10 @@ class SubutaiConfigTest < Test::Unit::TestCase
     assert_false(SubutaiConfig.do_handlers)
 
     SubutaiConfig.load_config('up', :virtualbox)
-    configs.store(:SUBUTAI_MAN_TMPL, './ruby/tests/snap_script.sh')
+    configs.store(:SUBUTAI_MAN_TMPL, './test/snap_script.sh')
     assert_true(SubutaiConfig.do_handlers)
 
-    configs.store(:SUBUTAI_MAN_TMPL, './ruby/tests/bad_snap_script.sh')
+    configs.store(:SUBUTAI_MAN_TMPL, './test/bad_snap_script.sh')
     assert_raise do
       SubutaiConfig.do_handlers
     end
