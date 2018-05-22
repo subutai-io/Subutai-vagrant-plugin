@@ -64,3 +64,8 @@ FEATURES:
 FEATURES:
   - Support HyperV hypervisor
   - Improved validation (user configuration)
+  
+## 7.0.2 (May 22, 2018)
+
+BUG FIXES:
+  - Fixed validation url   
