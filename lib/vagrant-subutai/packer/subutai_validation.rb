@@ -75,6 +75,10 @@ module SubutaiValidation
   end
 
   def self.is_json?(json)
+    if json.kind_of?(Hash)
+      return true
+    end
+
     begin
       JSON.parse(json)
     rescue JSON::ParserError

@@ -24,6 +24,8 @@ class SubutaiValidationTest < Test::Unit::TestCase
     assert_true(SubutaiValidation.is_json?("{\"key\": \"value\"}"))
     assert_false(SubutaiValidation.is_json?("{key: value}"))
     assert_false(SubutaiValidation.is_json?("key value"))
+    assert_true(SubutaiValidation.is_json?({"key": "value"}))
+    assert_true(SubutaiValidation.is_json?('{"key": "value"}'))
   end
 
   def test_validation
@@ -56,6 +58,20 @@ class SubutaiValidationTest < Test::Unit::TestCase
 
     assert_raise do
       SubutaiValidation.validate(:SUBUTAI_PASSWORD, 56565)
+    end
+  end
+
+  def test_user_conf_params
+    SubutaiValidation::USER_CONF_PARAMS_TYPE.keys.each do |key|
+      assert_true(SubutaiConfig::USER_PARAMETERS.include?(key))
+    end
+  end
+
+  def test_user_conf_params_type
+    user_conf_types = [:int, :bool, :path, :url, :string, :enum, :json_object]
+
+    SubutaiValidation::USER_CONF_PARAMS_TYPE.keys.each do |key|
+      assert_true(user_conf_types.include?(SubutaiValidation::USER_CONF_PARAMS_TYPE[key]))
     end
   end
 end

@@ -18,7 +18,7 @@ SUBUTAI_NAME: '56565'
 SUBUTAI_SCOPE: public
 SUBUTAI_USERNAME: '656'
 SUBUTAI_PASSWORD: 'password'
-USER_VARIABLES: {env: "env name"}
+USER_VARIABLES: '{"env": "env name"}'
 BAZAAR_EMAIL: '6565'
 BAZAAR_PASSWORD: 'password'
 LIBVIRT_USER: 'libvirtuser'
