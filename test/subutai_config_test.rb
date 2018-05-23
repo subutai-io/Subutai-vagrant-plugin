@@ -3,6 +3,7 @@ require 'test/unit'
 require 'fileutils'
 
 require_relative '../lib/vagrant-subutai/packer/subutai_config'
+require_relative '../lib/vagrant-subutai/put'
 
 # Tests the SubutaiConfig module
 class SubutaiConfigTest < Test::Unit::TestCase
@@ -382,6 +383,44 @@ class SubutaiConfigTest < Test::Unit::TestCase
     configs.store(:SUBUTAI_MAN_TMPL, './test/bad_snap_script.sh')
     assert_raise do
       SubutaiConfig.do_handlers
+    end
+  end
+
+  def test_get_latest_artifact
+    assert_equal('https://cdn.subutai.io:8338/kurjun/rest', SubutaiConfig.url_of_cdn)
+
+    SubutaiConfig.load_config("up", :libvirt)
+    assert_equal("", SubutaiConfig.get_latest_id_artifact("invalid", "vagrant-subutai-stretch-libvirt.box"))
+
+    SubutaiConfig.cleanup!
+
+    SubutaiConfig.load_config("destroy", :hyper_v)
+    assert_equal("", SubutaiConfig.get_latest_id_artifact("subutai", "vagrant-subutai-stretch-hyperv.box"))
+
+    SubutaiConfig.cleanup!
+
+    SubutaiConfig.url_of_cdn = 'https://cdn.subutai.io:8338/kurjun/rest/invalid'
+    assert_equal('https://cdn.subutai.io:8338/kurjun/rest/invalid', SubutaiConfig.url_of_cdn)
+
+    SubutaiConfig.load_config("up", :virtualbox)
+    SubutaiConfig.url_of_cdn = 'https://cdn.subutai.io:8338/kurjun/rest/invalid'
+    assert_equal("", SubutaiConfig.get_latest_id_artifact("subutai", "vagrant-subutai-stretch-virtualbox-master.box"))
+  end
+
+  def test_get
+    SubutaiConfig.load_config("up", :virtualbox)
+
+    assert_equal(nil, SubutaiConfig.get(:INVALID_KEY))
+  end
+
+  def test_set_scope
+    assert_raise do
+      SubutaiConfig.set_scope(:SUBUTAI_SCOPE, "public_incorrect")
+    end
+
+    assert_nothing_raised do
+      SubutaiConfig.set_scope(:SUBUTAI_SCOPE, 'PubLiC'.to_sym)
+      SubutaiConfig.set_scope(:SUBUTAI_SCOPE, 'PriVate'.to_sym)
     end
   end
 end

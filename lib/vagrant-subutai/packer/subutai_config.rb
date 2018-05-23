@@ -193,6 +193,11 @@ module SubutaiConfig
   def self.url_of_cdn
     @url_of_cdn
   end
+
+  def self.url_of_cdn=(cdn_url)
+    @url_of_cdn = cdn_url
+  end
+
   def self.override_conf_file(filepath)
     @conf_file_override = filepath
   end
@@ -411,13 +416,16 @@ module SubutaiConfig
             response[0]['id']
           when Net::HTTPNotFound
             Put.error "#{response.body} template name #{name}, owner #{owner}"
+          "" # send empty id. DON'T REMOVE
         end
       rescue Errno::ECONNREFUSED
         Put.error "cdn.subutai.io:8338 connection refused"
+        "" # send empty id. DON'T REMOVE
       rescue Errno::EHOSTUNREACH
         Put.error "cdn.subutai.io:8338 unreachable"
       rescue => e
         Put.error e
+        "" # send empty id. DON'T REMOVE
       end
     else
       ""  # send empty id. DON'T REMOVE
