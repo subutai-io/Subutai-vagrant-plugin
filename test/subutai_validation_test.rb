@@ -74,4 +74,12 @@ class SubutaiValidationTest < Test::Unit::TestCase
       assert_true(user_conf_types.include?(SubutaiValidation::USER_CONF_PARAMS_TYPE[key]))
     end
   end
+
+  def test_writable_and_exist
+    assert_false(SubutaiValidation.writable_and_exist?('/home'))
+    assert_true(SubutaiValidation.writable_and_exist?("#{Dir.pwd}"))
+    assert_false(SubutaiValidation.writable_and_exist?('/root'))
+
+    assert_false(SubutaiValidation.writable_and_exist?('/home/not_exist_user'))
+  end
 end

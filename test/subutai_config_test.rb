@@ -260,12 +260,15 @@ class SubutaiConfigTest < Test::Unit::TestCase
 
   def test_not_raise
     assert_nothing_raised do
+      SubutaiConfig.load_config('up', :virtualbox)
       SubutaiConfig.load_config_file('./test/subutai-validation-0.yml')
     end
   end
 
   def test_bad_env_subutai_yaml_0
     assert_raise do
+      SubutaiConfig.load_config('up', :virtualbox)
+
       SubutaiConfig.load_config_file('./test/subutai0.yaml')
     end
   end
@@ -277,6 +280,7 @@ class SubutaiConfigTest < Test::Unit::TestCase
   end
 
   def test_subutai_yaml_2
+    SubutaiConfig.load_config('up', :virtualbox)
     SubutaiConfig.load_config_file('./test/subutai2.yaml')
     SubutaiConfig.load_config('up', :virtualbox)
     SubutaiConfig.logging!(:debug)
@@ -422,5 +426,43 @@ class SubutaiConfigTest < Test::Unit::TestCase
       SubutaiConfig.set_scope(:SUBUTAI_SCOPE, 'PubLiC'.to_sym)
       SubutaiConfig.set_scope(:SUBUTAI_SCOPE, 'PriVate'.to_sym)
     end
+  end
+
+  def test_write
+    SubutaiConfig.load_config("up", :libvirt)
+    assert_true(SubutaiConfig.write?)
+    SubutaiConfig.cleanup!
+
+    SubutaiConfig.load_config("destroy", :virtualbox)
+    assert_false(SubutaiConfig.write?)
+  end
+
+  def test_reload
+    SubutaiConfig.load_config("reload", :virtualbox)
+    assert_true(SubutaiConfig.reload?)
+
+    SubutaiConfig.cleanup!
+    SubutaiConfig.load_config("up", :libvirt)
+    assert_false(SubutaiConfig.reload?)
+  end
+
+  def test_delete
+    SubutaiConfig.load_config("destroy", :vmware)
+    assert_true(SubutaiConfig.delete?)
+
+    SubutaiConfig.cleanup!
+
+    SubutaiConfig.load_config("up", :vmware)
+    assert_false(SubutaiConfig.delete?)
+  end
+
+  def test_read
+    SubutaiConfig.load_config("up", :vmware)
+    assert_false(SubutaiConfig.read?)
+
+    SubutaiConfig.cleanup!
+
+    SubutaiConfig.load_config("provision", :vmware)
+    assert_true(SubutaiConfig.read?)
   end
 end

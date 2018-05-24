@@ -274,7 +274,7 @@ module SubutaiConfig
       raise "Invalid key in YAML file: '#{key}'" \
           unless USER_PARAMETERS.include?(key.to_sym)
 
-      SubutaiValidation.validate(key.to_sym, temp[key])
+      SubutaiValidation.validate(key.to_sym, temp[key]) unless delete?
       @config.store(key.to_sym, temp[key]) unless temp[key].nil?
     end
   end

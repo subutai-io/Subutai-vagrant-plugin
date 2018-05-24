@@ -5,11 +5,15 @@ require_relative '../../../lib/vagrant-subutai/util/powershell'
 module SubutaiDisk
   DISK_NAME = "SubutaiDisk".freeze
   DISK_FORMAT = "vdi".freeze
+
   DISK_FORMAT_VIRTUALBOX = "vdi".freeze
   DISK_FORMAT_VMWARE = "vmdk".freeze
   DISK_FORMAT_HYPERV = "vhdx".freeze
+  DISK_FORMAT_LIBVIRT = "qcow2".freeze
+
   PROVIDER_VMWARE = "vmware".freeze
   PROVIDER_HYPERV = "hyper_v".freeze
+  PROVIDER_LIBVIRT = "libvirt".freeze
 
   # Checks disk size for adding new VM disks
   def self.has_grow
@@ -92,19 +96,7 @@ module SubutaiDisk
     if SubutaiConfig.get(:SUBUTAI_DISK_PATH).nil?
       "./#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}"
     else
-      # Check is directory exist
-      if File.directory?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
-        # check permission
-        if File.writable?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
-          File.join(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}")
-        else
-          Put.warn "No write permission: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
-          "./#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}"
-        end
-      else
-        Put.warn "Invalid path: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
-        "./#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}"
-      end
+      File.join(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}")
     end
   end
 
@@ -117,25 +109,15 @@ module SubutaiDisk
       disk_format = DISK_FORMAT_VMWARE
     when PROVIDER_HYPERV
       disk_format = DISK_FORMAT_HYPERV
+    when PROVIDER_LIBVIRT
+      disk_format = DISK_FORMAT_LIBVIRT
     end
 
     # get disk path from conf file
     if SubutaiConfig.get(:SUBUTAI_DISK_PATH).nil?
       File.join(Dir.pwd, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}")
     else
-      # Check is directory exist
-      if File.directory?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
-        # check permission
-        if File.writable?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
-          File.join(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}")
-        else
-          Put.warn "No write permission: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
-          File.join(Dir.pwd, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}")
-        end
-      else
-        Put.warn "Invalid path: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
-        File.join(Dir.pwd, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}")
-      end
+      File.join(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}")
     end
   end
 
