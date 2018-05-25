@@ -332,7 +332,7 @@ module SubutaiConfig
 
     # Load YAML based user and local configuration if they exist
     load_config_file(USER_CONF_FILE) if File.exist?(USER_CONF_FILE)
-    load_config_file(CONF_FILE) if File.exist?(CONF_FILE)
+    load_config_file(conf_file) if File.exist?(conf_file)
     load_generated
 
     # Load overrides from the environment, and generated configurations

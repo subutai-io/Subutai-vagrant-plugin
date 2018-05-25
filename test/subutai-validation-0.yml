@@ -5,7 +5,7 @@ SUBUTAI_PEER: 'true'
 SUBUTAI_RAM: 1025
 SUBUTAI_CPU: 5
 SUBUTAI_DESKTOP: true
-SUBUTAI_MAN_TMPL: '/tmp'
+SUBUTAI_MAN_TMPL: './test/management_script.sh'
 APT_PROXY_URL: 'http://google.com'
 PROVISION: "false"
 PASSWORD_OVERRIDE: secret

@@ -15,6 +15,8 @@ module SubutaiDisk
   PROVIDER_HYPERV = "hyper_v".freeze
   PROVIDER_LIBVIRT = "libvirt".freeze
 
+  SCRIPT_HYPERV_DISK_CREATE_PATH = 'script/create_disk_and_attach.ps1'.freeze
+
   # Checks disk size for adding new VM disks
   def self.has_grow
     grow_by = SubutaiConfig.get_grow_by
@@ -64,11 +66,12 @@ module SubutaiDisk
   end
 
   def self.hyperv_create_disk(grow_by, file_disk)
-    script = File.join(File.expand_path(File.dirname(__FILE__)), 'script/create_disk_and_attach.ps1')
+    script = File.join(File.expand_path(File.dirname(__FILE__)), SCRIPT_HYPERV_DISK_CREATE_PATH)
     id = SubutaiConfig.machine_id(:hyper_v)
 
     if id.nil?
-      Put.error("Not found machine id")
+      Put.error(" => [FAILED] Disk Creation. Not found machine id")
+      false
     else
       VagrantSubutai::Util::Powershell.execute(script, "-VmId", id, "-DiskPath", file_disk, "-DiskSize", "#{vmware_size(grow_by)}")
     end
@@ -115,23 +118,9 @@ module SubutaiDisk
 
     # get disk path from conf file
     if SubutaiConfig.get(:SUBUTAI_DISK_PATH).nil?
-      File.join(Dir.pwd, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}")
+      File.expand_path "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}"
     else
-      File.join(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}")
-    end
-  end
-
-  def self.path
-    if File.directory?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
-      # check permission
-      if File.writable?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
-        File.join(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
-      else
-        Put.warn "No write permission: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
-        nil
-      end
-    else
-      nil
+      File.join(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}")
     end
   end
 end

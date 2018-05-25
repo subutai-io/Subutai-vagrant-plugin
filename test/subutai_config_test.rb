@@ -260,35 +260,32 @@ class SubutaiConfigTest < Test::Unit::TestCase
 
   def test_not_raise
     assert_nothing_raised do
+      SubutaiConfig.override_conf_file('./test/subutai-validation-0.yml')
       SubutaiConfig.load_config('up', :virtualbox)
-      SubutaiConfig.load_config_file('./test/subutai-validation-0.yml')
     end
   end
 
   def test_bad_env_subutai_yaml_0
     assert_raise do
+      SubutaiConfig.override_conf_file('./test/subutai0.yaml')
       SubutaiConfig.load_config('up', :virtualbox)
-
-      SubutaiConfig.load_config_file('./test/subutai0.yaml')
     end
   end
 
   def test_bad_key_subutai_yaml_1
     assert_raise do
-      SubutaiConfig.load_config_file('./test/subutai1.yaml')
+      SubutaiConfig.override_conf_file('./test/subutai1.yaml')
+      SubutaiConfig.load_config('up', :virtualbox)
     end
   end
 
   def test_subutai_yaml_2
-    SubutaiConfig.load_config('up', :virtualbox)
-    SubutaiConfig.load_config_file('./test/subutai2.yaml')
+    SubutaiConfig.override_conf_file('./test/subutai2.yaml')
     SubutaiConfig.load_config('up', :virtualbox)
     SubutaiConfig.logging!(:debug)
     SubutaiConfig.print
     SubutaiConfig.log('up', 'dummy message')
     SubutaiConfig.log_mode([:debug], ['up'], 'dummy message')
-    puts "check me #{SubutaiConfig.get(:SUBUTAI_ENV)}"
-    puts SubutaiConfig.conf_file
     SubutaiConfig.print
     assert_equal(:master, SubutaiConfig.get(:SUBUTAI_ENV))
     assert_equal(9191, SubutaiConfig.get(:DESIRED_CONSOLE_PORT))
@@ -464,5 +461,12 @@ class SubutaiConfigTest < Test::Unit::TestCase
 
     SubutaiConfig.load_config("provision", :vmware)
     assert_true(SubutaiConfig.read?)
+  end
+
+  def test_conf_file
+    puts "conf file: #{SubutaiConfig::CONF_FILE}"
+    assert_equal(SubutaiConfig::CONF_FILE, SubutaiConfig.conf_file)
+    SubutaiConfig.override_conf_file "./test/vagrant-subutai-disk-withoutpath.yml"
+    assert_equal("./test/vagrant-subutai-disk-withoutpath.yml", SubutaiConfig.conf_file)
   end
 end
