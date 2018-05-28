@@ -30,6 +30,21 @@ module SubutaiDisk
     end
   end
 
+  # Save disk pathes. We saves for cleanup while destroying peer
+  def self.save_path(port, file_path)
+    if SubutaiConfig.get(:_DISK_PATHES).nil?
+      hash = {}
+      hash[port] = file_path
+      SubutaiConfig.put(:_DISK_PATHES, hash, true)
+      true
+    else
+      hash = SubutaiConfig.get(:_DISK_PATHES)
+      hash[port] = file_path
+      SubutaiConfig.put(:_DISK_PATHES, hash, true)
+      true
+    end
+  end
+
   # Gives disk port
   def self.port
     port = SubutaiConfig.get(:_DISK_PORT)
@@ -84,8 +99,10 @@ module SubutaiDisk
     generated_disk = SubutaiConfig.get(:_DISK_SIZE)
     if generated_disk.nil?
       SubutaiConfig.put(:_DISK_SIZE, grow_by, true) # we set all size of virtual disks to _DISK_SIZE in unit gb
+      true
     else
       SubutaiConfig.put(:_DISK_SIZE, grow_by + generated_disk.to_i, true) # we set all size of virtual disks to _DISK_SIZE in unit gb
+      true
     end
   end
 

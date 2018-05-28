@@ -27,6 +27,11 @@ module VagrantSubutai
               CreateDisk
             end
 
+            provisioner "cleanup" do
+              require_relative "cleanup"
+              Cleanup
+            end
+
             config 'subutai_console' do
                require_relative 'config'
                Config

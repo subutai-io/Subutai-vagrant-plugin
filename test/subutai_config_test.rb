@@ -76,7 +76,7 @@ class SubutaiConfigTest < Test::Unit::TestCase
     SubutaiConfig.load_config('destroy', :virtualbox)
     assert_path_exist(SubutaiConfig::GENERATED_FILE, 'generated.yaml')
 
-    SubutaiConfig.cleanup
+    SubutaiConfig.cleanup!
     assert_path_not_exist(SubutaiConfig::GENERATED_FILE, 'generated.yaml')
   end
 

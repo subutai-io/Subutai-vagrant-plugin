@@ -23,6 +23,7 @@ require 'vagrant-subutai/rest/bazaar'
 require 'vagrant-subutai/rest/gorjun'
 require 'vagrant-subutai/rest/subutai_console'
 
+require 'vagrant-subutai/cleanup'
 require 'vagrant-subutai/command'
 require 'vagrant-subutai/config'
 require 'vagrant-subutai/create_disk'

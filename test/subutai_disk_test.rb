@@ -132,11 +132,14 @@ class SubutaiDiskTest < Test::Unit::TestCase
   end
 
   def test_vmware_create_disk
-    FileUtils.rm('/tmp/SubutaiDisk-1-1.vmdk')
+    if File.exist?('/tmp/SubutaiDisk-1-1.vmdk')
+      FileUtils.rm('/tmp/SubutaiDisk-1-1.vmdk')
+    end
     SubutaiConfig.cleanup!
     SubutaiConfig.override_conf_file('./test/disk_create.yml')
     SubutaiConfig.load_config('up', :virtualbox)
 
+    puts "DISKSIZE: #{SubutaiConfig.get(:DISK_SIZE)}"
     assert_equal(1, SubutaiConfig.get_grow_by)
     assert_true(SubutaiDisk.vmware_create_disk(SubutaiConfig.get_grow_by,
                                                SubutaiDisk.file_path(SubutaiConfig.get_grow_by,
@@ -152,5 +155,60 @@ class SubutaiDiskTest < Test::Unit::TestCase
     assert_false(SubutaiDisk.hyperv_create_disk(SubutaiConfig.get_grow_by,
                                                 SubutaiDisk.file_path(SubutaiConfig.get_grow_by,
                                                                       "hyper_v")))
+  end
+
+  def test_save_path
+    SubutaiConfig.cleanup!
+    SubutaiConfig.override_conf_file('./test/disk_create.yml')
+    SubutaiConfig.load_config('up', :virtualbox)
+
+
+    grow_by = SubutaiConfig.get_grow_by
+    assert_equal(1, grow_by)
+    assert_equal('/tmp/SubutaiDisk-1-1.vmdk',
+                 SubutaiDisk.file_path(grow_by, "vmware"))
+
+    File.delete(SubutaiDisk.file_path(grow_by, "vmware")) if File.exist?(SubutaiDisk.file_path(grow_by,
+                                                                                               "vmware"))
+
+    assert_true(SubutaiDisk.vmware_create_disk(grow_by,
+                                               SubutaiDisk.file_path(grow_by,
+                                                                     "vmware")))
+
+    assert_true(SubutaiDisk.save_path(SubutaiDisk.port,
+                          SubutaiDisk.file_path(grow_by,
+                                                "vmware")))
+
+    assert_true(SubutaiDisk.save_conf(grow_by))
+
+    hash = {}
+    hash[1] = "/tmp/SubutaiDisk-1-1.vmdk"
+    assert_equal(hash, SubutaiConfig.get(:_DISK_PATHES))
+
+
+    # Let's set disk size 150 Gb, grow by would be 49
+    SubutaiConfig.put(:DISK_SIZE, 150, false)
+    grow_by = SubutaiConfig.get_grow_by
+    assert_equal(49, grow_by)
+    assert_equal('/tmp/SubutaiDisk-2-49.vmdk',
+                 SubutaiDisk.file_path(grow_by, "vmware"))
+
+    File.delete(SubutaiDisk.file_path(grow_by, "vmware")) if File.exist?(SubutaiDisk.file_path(grow_by,
+                                                                                               "vmware"))
+
+    assert_true(SubutaiDisk.vmware_create_disk(grow_by,
+                                               SubutaiDisk.file_path(grow_by,
+                                                                     "vmware")))
+
+    assert_true(SubutaiDisk.save_path(SubutaiDisk.port,
+                                      SubutaiDisk.file_path(grow_by,
+                                                            "vmware")))
+
+    assert_true(SubutaiDisk.save_conf(grow_by))
+    hash[2] = "/tmp/SubutaiDisk-2-49.vmdk"
+    assert_equal(hash, SubutaiConfig.get(:_DISK_PATHES))
+
+    SubutaiConfig.cleanup!
+    assert_equal(nil, SubutaiConfig.get(:_DISK_PATHES))
   end
 end

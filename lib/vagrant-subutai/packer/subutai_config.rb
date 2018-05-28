@@ -67,6 +67,7 @@ module SubutaiConfig
     _ALT_MANAGEMENT_MD5_LAST
     _DISK_SIZE
     _DISK_PORT
+    _DISK_PATHES
   ].freeze
 
   # Used for testing
@@ -350,9 +351,8 @@ module SubutaiConfig
     @conf_file_override = nil
   end
 
-  # Destroys the generated file if vagrant destroy is used
+
   def self.cleanup
-    cleanup! if delete?
   end
 
   def self.cleanup!
@@ -423,6 +423,7 @@ module SubutaiConfig
         "" # send empty id. DON'T REMOVE
       rescue Errno::EHOSTUNREACH
         Put.error "cdn.subutai.io:8338 unreachable"
+        "" # send empty id. DON'T REMOVE
       rescue => e
         Put.error e
         "" # send empty id. DON'T REMOVE

@@ -2,7 +2,7 @@ require_relative '../vagrant-subutai'
 
 
 module VagrantSubutai
-  class CreateDisk < Vagrant.plugin(2, :provisioner)
+  class Cleanup < Vagrant.plugin(2, :provisioner)
     attr_reader :machine
     attr_reader :config
 
@@ -39,24 +39,28 @@ module VagrantSubutai
     #
     # No return value is expected.
     def provision
-      has_grow, grow_by = SubutaiDisk.has_grow
-      file_disk = SubutaiDisk.file_path(grow_by, "hyper_v")
-
-      unless File.exist?(file_disk)
-        Put.warn "Disk size is growing by #{grow_by} gb."
-        if has_grow
-          if SubutaiDisk.hyperv_create_disk(grow_by, file_disk)
-            SubutaiDisk.save_path(SubutaiDisk.port, file_disk)
-            SubutaiDisk.save_conf(grow_by)
-          end
-        end
-      end
     end
 
     # This is the method called when destroying a machine that allows
     # for any state related to the machine created by the provisioner
     # to be cleaned up.
     def cleanup
+      # cleanup virtual disks
+      disks = SubutaiConfig.get(:_DISK_PATHES)
+      unless disks.nil?
+        disks.keys.each do |key|
+           if File.exist?(disks[key])
+             File.delete(disks[key])
+             puts " ==> Deleted file: #{disks[key]}"
+           end
+        end
+      end
+
+      # cleanup generated files
+      if File.exist?(SubutaiConfig::GENERATED_FILE)
+        File.delete SubutaiConfig::GENERATED_FILE
+        puts " ==> Deleted file: #{SubutaiConfig::GENERATED_FILE}"
+      end
     end
   end
 end
