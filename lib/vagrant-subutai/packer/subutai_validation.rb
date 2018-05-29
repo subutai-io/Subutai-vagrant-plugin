@@ -48,17 +48,17 @@ module SubutaiValidation
           SubutaiConfig.set_env_type(key, value.to_sym)
         end
       when :int
-        raise "Invalid #{key} type of #{value}: use int type " unless value.is_a?(Integer)
+        raise "\e[33m\n\nInvalid #{key} type of #{value}: use int type \n\e[0m" unless value.is_a?(Integer)
       when :path
-        raise "Invalid #{key} path of #{value}: use valid path " unless File.exist?(value)
+        raise "\e[33m\n\nPermission denied or invalid #{key} path of #{value}: use valid path \n\e[0m" unless writable_and_exist?(value)
       when :string
-        raise "Invalid #{key} type of #{value}: use string type " unless value.is_a?(String)
+        raise "\e[33m\n\nInvalid #{key} type of #{value}: use string type \n\e[0m" unless value.is_a?(String)
       when :bool
-        raise "Invalid #{key} type of #{value}: use bool type " unless bool?(value)
+        raise "\e[33m\n\nInvalid #{key} type of #{value}: use bool type \n\e[0m" unless bool?(value)
       when :url
-        raise "Invalid #{key} url of #{value}: use valid url " unless value =~ URI::regexp
+        raise "\e[33m\n\nInvalid #{key} url of #{value}: use valid url \n\e[0m" unless value =~ URI::regexp
       when :json_object
-        raise "Invalid #{key} json of #{value}: use json object " unless is_json?(value)
+        raise "\e[33m\n\nInvalid #{key} json of #{value}: use json object \n\e[0m" unless is_json?(value)
     end
 
     true
@@ -72,6 +72,14 @@ module SubutaiValidation
     else
       false
     end
+  end
+
+  def self.writable_and_exist?(value)
+    if File.exist?(value) && File.writable?(value)
+      return true
+    end
+
+    false
   end
 
   def self.is_json?(json)

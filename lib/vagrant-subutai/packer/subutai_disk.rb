@@ -5,11 +5,17 @@ require_relative '../../../lib/vagrant-subutai/util/powershell'
 module SubutaiDisk
   DISK_NAME = "SubutaiDisk".freeze
   DISK_FORMAT = "vdi".freeze
+
   DISK_FORMAT_VIRTUALBOX = "vdi".freeze
   DISK_FORMAT_VMWARE = "vmdk".freeze
   DISK_FORMAT_HYPERV = "vhdx".freeze
+  DISK_FORMAT_LIBVIRT = "qcow2".freeze
+
   PROVIDER_VMWARE = "vmware".freeze
   PROVIDER_HYPERV = "hyper_v".freeze
+  PROVIDER_LIBVIRT = "libvirt".freeze
+
+  SCRIPT_HYPERV_DISK_CREATE_PATH = 'script/create_disk_and_attach.ps1'.freeze
 
   # Checks disk size for adding new VM disks
   def self.has_grow
@@ -21,6 +27,21 @@ module SubutaiDisk
       [true, grow_by]
     else
       [false, nil]
+    end
+  end
+
+  # Save disk pathes. We saves for cleanup while destroying peer
+  def self.save_path(port, file_path)
+    if SubutaiConfig.get(:_DISK_PATHES).nil?
+      hash = {}
+      hash[port] = file_path
+      SubutaiConfig.put(:_DISK_PATHES, hash, true)
+      true
+    else
+      hash = SubutaiConfig.get(:_DISK_PATHES)
+      hash[port] = file_path
+      SubutaiConfig.put(:_DISK_PATHES, hash, true)
+      true
     end
   end
 
@@ -60,11 +81,12 @@ module SubutaiDisk
   end
 
   def self.hyperv_create_disk(grow_by, file_disk)
-    script = File.join(File.expand_path(File.dirname(__FILE__)), 'script/create_disk_and_attach.ps1')
+    script = File.join(File.expand_path(File.dirname(__FILE__)), SCRIPT_HYPERV_DISK_CREATE_PATH)
     id = SubutaiConfig.machine_id(:hyper_v)
 
     if id.nil?
-      Put.error("Not found machine id")
+      Put.error(" => [FAILED] Disk Creation. Not found machine id")
+      false
     else
       VagrantSubutai::Util::Powershell.execute(script, "-VmId", id, "-DiskPath", file_disk, "-DiskSize", "#{vmware_size(grow_by)}")
     end
@@ -77,8 +99,10 @@ module SubutaiDisk
     generated_disk = SubutaiConfig.get(:_DISK_SIZE)
     if generated_disk.nil?
       SubutaiConfig.put(:_DISK_SIZE, grow_by, true) # we set all size of virtual disks to _DISK_SIZE in unit gb
+      true
     else
       SubutaiConfig.put(:_DISK_SIZE, grow_by + generated_disk.to_i, true) # we set all size of virtual disks to _DISK_SIZE in unit gb
+      true
     end
   end
 
@@ -92,19 +116,7 @@ module SubutaiDisk
     if SubutaiConfig.get(:SUBUTAI_DISK_PATH).nil?
       "./#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}"
     else
-      # Check is directory exist
-      if File.directory?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
-        # check permission
-        if File.writable?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
-          File.join(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}")
-        else
-          Put.warn "No write permission: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
-          "./#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}"
-        end
-      else
-        Put.warn "Invalid path: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
-        "./#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}"
-      end
+      File.join(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{DISK_FORMAT}")
     end
   end
 
@@ -117,39 +129,15 @@ module SubutaiDisk
       disk_format = DISK_FORMAT_VMWARE
     when PROVIDER_HYPERV
       disk_format = DISK_FORMAT_HYPERV
+    when PROVIDER_LIBVIRT
+      disk_format = DISK_FORMAT_LIBVIRT
     end
 
     # get disk path from conf file
     if SubutaiConfig.get(:SUBUTAI_DISK_PATH).nil?
-      File.join(Dir.pwd, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}")
+      File.expand_path "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}"
     else
-      # Check is directory exist
-      if File.directory?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
-        # check permission
-        if File.writable?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
-          File.join(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}")
-        else
-          Put.warn "No write permission: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
-          File.join(Dir.pwd, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}")
-        end
-      else
-        Put.warn "Invalid path: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
-        File.join(Dir.pwd, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}")
-      end
-    end
-  end
-
-  def self.path
-    if File.directory?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
-      # check permission
-      if File.writable?(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
-        File.join(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s)
-      else
-        Put.warn "No write permission: #{SubutaiConfig.get(:SUBUTAI_DISK_PATH)}"
-        nil
-      end
-    else
-      nil
+      File.join(SubutaiConfig.get(:SUBUTAI_DISK_PATH).to_s, "#{DISK_NAME}-#{disk_port.to_i}-#{grow_by}.#{disk_format}")
     end
   end
 end

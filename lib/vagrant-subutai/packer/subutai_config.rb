@@ -67,6 +67,7 @@ module SubutaiConfig
     _ALT_MANAGEMENT_MD5_LAST
     _DISK_SIZE
     _DISK_PORT
+    _DISK_PATHES
   ].freeze
 
   # Used for testing
@@ -274,7 +275,7 @@ module SubutaiConfig
       raise "Invalid key in YAML file: '#{key}'" \
           unless USER_PARAMETERS.include?(key.to_sym)
 
-      SubutaiValidation.validate(key.to_sym, temp[key])
+      SubutaiValidation.validate(key.to_sym, temp[key]) unless delete?
       @config.store(key.to_sym, temp[key]) unless temp[key].nil?
     end
   end
@@ -332,7 +333,7 @@ module SubutaiConfig
 
     # Load YAML based user and local configuration if they exist
     load_config_file(USER_CONF_FILE) if File.exist?(USER_CONF_FILE)
-    load_config_file(CONF_FILE) if File.exist?(CONF_FILE)
+    load_config_file(conf_file) if File.exist?(conf_file)
     load_generated
 
     # Load overrides from the environment, and generated configurations
@@ -350,9 +351,8 @@ module SubutaiConfig
     @conf_file_override = nil
   end
 
-  # Destroys the generated file if vagrant destroy is used
+
   def self.cleanup
-    cleanup! if delete?
   end
 
   def self.cleanup!
@@ -423,6 +423,7 @@ module SubutaiConfig
         "" # send empty id. DON'T REMOVE
       rescue Errno::EHOSTUNREACH
         Put.error "cdn.subutai.io:8338 unreachable"
+        "" # send empty id. DON'T REMOVE
       rescue => e
         Put.error e
         "" # send empty id. DON'T REMOVE
