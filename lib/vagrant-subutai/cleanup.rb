@@ -50,16 +50,24 @@ module VagrantSubutai
       unless disks.nil?
         disks.keys.each do |key|
            if File.exist?(disks[key])
-             File.delete(disks[key])
-             puts " ==> Deleted file: #{disks[key]}"
+             begin
+               File.delete(disks[key])
+               puts " ==> Deleted file: #{disks[key]}"
+             rescue Errno::EACCES
+               puts " ==> (Permission denied) Failed delete file: #{disks[key]}"
+             end
            end
         end
       end
 
       # cleanup generated files
       if File.exist?(SubutaiConfig::GENERATED_FILE)
-        File.delete SubutaiConfig::GENERATED_FILE
-        puts " ==> Deleted file: #{SubutaiConfig::GENERATED_FILE}"
+        begin
+          File.delete SubutaiConfig::GENERATED_FILE
+          puts " ==> Deleted file: #{SubutaiConfig::GENERATED_FILE}"
+        rescue Errno::EACCES
+          puts " ==> (Permission denied) Failed delete file: #{SubutaiConfig::GENERATED_FILE}"
+        end
       end
     end
   end
