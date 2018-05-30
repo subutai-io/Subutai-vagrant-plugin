@@ -69,3 +69,9 @@ FEATURES:
 
 BUG FIXES:
   - Fixed validation url   
+  
+## 7.0.3 (May 30, 2018)
+  
+BUG FIXES:
+  - [hyperv, vmware_desktop] fixed delete virtual disk file after destroy VM
+  - user configuration validation  
