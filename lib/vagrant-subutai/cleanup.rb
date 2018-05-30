@@ -45,6 +45,11 @@ module VagrantSubutai
     # for any state related to the machine created by the provisioner
     # to be cleaned up.
     def cleanup
+      case SubutaiConfig.provider
+        when :hyper_v
+          SubutaiDisk.hyperv_remove_disk
+      end
+
       # cleanup virtual disks
       disks = SubutaiConfig.get(:_DISK_PATHES)
       unless disks.nil?

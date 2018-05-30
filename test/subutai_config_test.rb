@@ -469,4 +469,12 @@ class SubutaiConfigTest < Test::Unit::TestCase
     SubutaiConfig.override_conf_file "./test/vagrant-subutai-disk-withoutpath.yml"
     assert_equal("./test/vagrant-subutai-disk-withoutpath.yml", SubutaiConfig.conf_file)
   end
+
+  def test_provider
+    SubutaiConfig.load_config('up', :hyper_v)
+    assert_equal(:hyper_v, SubutaiConfig.provider)
+
+    SubutaiConfig.reset
+    assert_equal(nil, SubutaiConfig.provider)
+  end
 end

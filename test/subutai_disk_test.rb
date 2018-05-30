@@ -39,6 +39,8 @@ class SubutaiDiskTest < Test::Unit::TestCase
                  SubutaiDisk::PROVIDER_LIBVIRT)
     assert_equal('script/create_disk_and_attach.ps1',
                  SubutaiDisk::SCRIPT_HYPERV_DISK_CREATE_PATH)
+    assert_equal('script/remove_virtual_disk.ps1',
+                 SubutaiDisk::SCRIPT_HYPERV_DISK_REMOVE_PATH)
   end
 
   def test_port
@@ -155,6 +157,10 @@ class SubutaiDiskTest < Test::Unit::TestCase
     assert_false(SubutaiDisk.hyperv_create_disk(SubutaiConfig.get_grow_by,
                                                 SubutaiDisk.file_path(SubutaiConfig.get_grow_by,
                                                                       "hyper_v")))
+  end
+
+  def test_hyperv_remove_disk
+    assert_false(SubutaiDisk.hyperv_remove_disk)
   end
 
   def test_save_path
