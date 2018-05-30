@@ -76,6 +76,9 @@ module SubutaiConfig
   # Vagrant command currently being executed, must not be nil
   @cmd = nil
 
+  # Vagrant provider name
+  @provider = nil
+
   # Hash of generated/calculated settings preserved through commands
   @generated = {}
 
@@ -167,6 +170,10 @@ module SubutaiConfig
 
   def self.cmd
     @cmd
+  end
+
+  def self.provider
+    @provider
   end
 
   def self.config
@@ -330,6 +337,7 @@ module SubutaiConfig
   def self.load_config(cmd, provider)
     raise 'SubutaiConfig.cmd not set' if cmd.nil?
     @cmd = cmd
+    @provider = provider
 
     # Load YAML based user and local configuration if they exist
     load_config_file(USER_CONF_FILE) if File.exist?(USER_CONF_FILE)
@@ -346,6 +354,7 @@ module SubutaiConfig
 
   def self.reset
     @cmd = nil
+    @provider = nil
     @config = @defaults.clone
     @generated = {}
     @conf_file_override = nil

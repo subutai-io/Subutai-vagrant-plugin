@@ -16,6 +16,7 @@ module SubutaiDisk
   PROVIDER_LIBVIRT = "libvirt".freeze
 
   SCRIPT_HYPERV_DISK_CREATE_PATH = 'script/create_disk_and_attach.ps1'.freeze
+  SCRIPT_HYPERV_DISK_REMOVE_PATH = 'script/remove_virtual_disk.ps1'.freeze
 
   # Checks disk size for adding new VM disks
   def self.has_grow
@@ -89,6 +90,18 @@ module SubutaiDisk
       false
     else
       VagrantSubutai::Util::Powershell.execute(script, "-VmId", id, "-DiskPath", file_disk, "-DiskSize", "#{vmware_size(grow_by)}")
+    end
+  end
+
+  def self.hyperv_remove_disk
+    script = File.join(File.expand_path(File.dirname(__FILE__)), SCRIPT_HYPERV_DISK_REMOVE_PATH)
+    id = SubutaiConfig.machine_id(:hyper_v)
+
+    if id.nil?
+      Put.error(" => [FAILED] Remove virtual disk. Not found machine id")
+      false
+    else
+      VagrantSubutai::Util::Powershell.execute(script, "-VmId", id)
     end
   end
 
