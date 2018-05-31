@@ -54,6 +54,7 @@ module SubutaiConfig
     LIBVIRT_MACVTAP
     LIBVIRT_NO_BRIDGE
     BAZAAR_NO_AUTO
+    SUBUTAI_DISK
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -98,12 +99,12 @@ module SubutaiConfig
     LIBVIRT_PORT: 22,                # Libvirt kvm remote operation ssh port
     LIBVIRT_MACVTAP: false,          # Libvirt macvtap interface
     BAZAAR_NO_AUTO: false,           # PeerOs automatic registration to Bazaar (turn on(false), turn off(true))
+    PROVISION: true,                 # to provision or not to
 
     # Configuration parameters below have not been implemented
     SUBUTAI_DESKTOP: false,          # install desktop with tray and p2p client
     SUBUTAI_MAN_TMPL: nil,           # provision alternative management template
-    APT_PROXY_URL: nil,              # configure apt proxy URL
-    PROVISION: true                  # to provision or not to
+    APT_PROXY_URL: nil               # configure apt proxy URL
   }
 
   # User provided configuration settings
@@ -180,8 +181,16 @@ module SubutaiConfig
     @config
   end
 
+  # Now we support both configuration parameter DISK_SIZE and SUBUTAI_DISK
+  def self.disk_size
+    return get(:SUBUTAI_DISK) unless get(:SUBUTAI_DISK).nil?
+
+    get(:DISK_SIZE)
+  end
+
   def self.get_grow_by
-    disk = get(:DISK_SIZE)
+    disk = disk_size
+
     if disk.nil?
       nil
     else

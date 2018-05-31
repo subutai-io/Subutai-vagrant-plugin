@@ -20,6 +20,7 @@ module SubutaiValidation
     "AUTHORIZED_KEYS":      :path,
     "PASSWORD_OVERRIDE":    :string,
     "DISK_SIZE":            :int,
+    "SUBUTAI_DISK":         :int,
     "SUBUTAI_ENV_TYPE":     :enum,
     "SUBUTAI_NAME":         :string,
     "SUBUTAI_SCOPE":        :enum,
