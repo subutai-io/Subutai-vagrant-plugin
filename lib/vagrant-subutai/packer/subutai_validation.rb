@@ -35,7 +35,12 @@ module SubutaiValidation
     "LIBVIRT_PORT":         :int,
     "LIBVIRT_MACVTAP":      :bool,
     "LIBVIRT_NO_BRIDGE":    :bool,
-    "BAZAAR_NO_AUTO":       :bool
+    "BAZAAR_NO_AUTO":       :bool,
+    "BRIDGE_VIRTUALBOX":    :string,
+    "BRIDGE_PARALLELS":     :string,
+    "BRIDGE_VMWARE":        :string,
+    "BRIDGE_KVM":           :string,
+    "BRIDGE_HYPERV":        :string
   }.freeze
 
   def self.validate(key, value)

@@ -55,6 +55,11 @@ module SubutaiConfig
     LIBVIRT_NO_BRIDGE
     BAZAAR_NO_AUTO
     SUBUTAI_DISK
+    BRIDGE_VIRTUALBOX
+    BRIDGE_PARALLELS
+    BRIDGE_VMWARE
+    BRIDGE_KVM
+    BRIDGE_HYPERV
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -154,6 +159,25 @@ module SubutaiConfig
 
   def self.bridged!
     @bridged = true
+  end
+
+  # The "general" BRIDGE configuration property should be overridden or
+  # set to the hypervisor/provider specific
+  def self.bridge
+    case provider
+      when :hyper_v
+        SubutaiConfig.put(:BRIDGE, get(:BRIDGE_HYPERV), true) unless get(:BRIDGE_HYPERV).nil?
+      when :parallels
+        SubutaiConfig.put(:BRIDGE, get(:BRIDGE_PARALLELS), true) unless get(:BRIDGE_PARALLELS).nil?
+      when :vmware
+        SubutaiConfig.put(:BRIDGE, get(:BRIDGE_VMWARE), true) unless get(:BRIDGE_VMWARE).nil?
+      when :libvirt
+        SubutaiConfig.put(:BRIDGE, get(:BRIDGE_KVM), true) unless get(:BRIDGE_KVM).nil?
+      when :virtualbox
+        SubutaiConfig.put(:BRIDGE, get(:BRIDGE_VIRTUALBOX), true) unless get(:BRIDGE_VIRTUALBOX).nil?
+    end
+
+    get(:BRIDGE)
   end
 
   def self.provision_management?
