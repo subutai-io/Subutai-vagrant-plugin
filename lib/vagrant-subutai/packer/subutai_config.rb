@@ -176,8 +176,6 @@ module SubutaiConfig
       when :virtualbox
         SubutaiConfig.put(:BRIDGE, get(:BRIDGE_VIRTUALBOX), true) unless get(:BRIDGE_VIRTUALBOX).nil?
     end
-
-    get(:BRIDGE)
   end
 
   def self.provision_management?
@@ -381,6 +379,10 @@ module SubutaiConfig
     ENV.each do |key, value|
       put(key.to_sym, value, false) if USER_PARAMETERS.include? key.to_sym
     end
+
+    # override configuration parameters BRIDGE by specified provider bridge name
+    bridge
+
     do_handlers
     do_network(provider)
   end
