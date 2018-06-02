@@ -490,22 +490,19 @@ class SubutaiConfigTest < Test::Unit::TestCase
     SubutaiConfig.load_config('up', :hyper_v)
 
     assert_equal(123, SubutaiConfig.get(:SUBUTAI_DISK))
-    assert_equal(123, SubutaiConfig.disk_size)
-    assert_equal(nil, SubutaiConfig.get(:DISK_SIZE))
+    assert_equal(123, SubutaiConfig.get(:DISK_SIZE))
 
     SubutaiConfig.cleanup!
     SubutaiConfig.override_conf_file('./test/disk_size.yml')
     SubutaiConfig.load_config('up', :hyper_v)
 
     assert_equal(250, SubutaiConfig.get(:DISK_SIZE))
-    assert_equal(250, SubutaiConfig.disk_size)
-    assert_nil(SubutaiConfig.get(:SUBUTAI_DISK))
+    assert_equal(nil, SubutaiConfig.get(:SUBUTAI_DISK))
 
     SubutaiConfig.cleanup!
     SubutaiConfig.override_conf_file('./test/both_disk.yml')
     SubutaiConfig.load_config('up', :hyper_v)
-    assert_equal(654, SubutaiConfig.disk_size)
-    assert_equal(985, SubutaiConfig.get(:DISK_SIZE))
+    assert_equal(654, SubutaiConfig.get(:DISK_SIZE))
     assert_equal(654, SubutaiConfig.get(:SUBUTAI_DISK))
 
     SubutaiConfig.cleanup!

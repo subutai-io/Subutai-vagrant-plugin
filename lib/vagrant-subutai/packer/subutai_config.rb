@@ -204,14 +204,13 @@ module SubutaiConfig
   end
 
   # Now we support both configuration parameter DISK_SIZE and SUBUTAI_DISK
+  # SUBUTAI_DISK overrides DISK_SIZE
   def self.disk_size
-    return get(:SUBUTAI_DISK) unless get(:SUBUTAI_DISK).nil?
-
-    get(:DISK_SIZE)
+    put(:DISK_SIZE, get(:SUBUTAI_DISK), true)  unless get(:SUBUTAI_DISK).nil?
   end
 
   def self.get_grow_by
-    disk = disk_size
+    disk = get(:DISK_SIZE)
 
     if disk.nil?
       nil
@@ -382,6 +381,8 @@ module SubutaiConfig
 
     # override configuration parameters BRIDGE by specified provider bridge name
     bridge
+    # SUBUTAI_DISK overrides DISK_SIZE
+    disk_size
 
     do_handlers
     do_network(provider)
