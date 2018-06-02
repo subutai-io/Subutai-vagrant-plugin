@@ -296,7 +296,7 @@ module VagrantSubutai
         @json[KEYS[:containers]].each do |container|
           if container.key?(KEYS[:port_mapping])
             container[KEYS[:port_mapping]].each do |port_map|
-              if port_map[KEYS[:protocol]] == 'HTTP' || port_map[KEYS[:protocol]] == 'http'
+              if port_map[KEYS[:protocol]].downcase == 'http' || port_map[KEYS[:protocol]].downcase == 'tcp'
                 domain = VagrantSubutai::Models::Domain.new
 
                 domain.protocol = port_map[KEYS[:protocol]]
