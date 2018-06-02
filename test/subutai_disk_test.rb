@@ -163,6 +163,15 @@ class SubutaiDiskTest < Test::Unit::TestCase
     assert_false(SubutaiDisk.hyperv_remove_disk)
   end
 
+  def test_message
+    SubutaiConfig.cleanup!
+    SubutaiConfig.override_conf_file('./test/disk_create.yml')
+    SubutaiConfig.load_config('up', :virtualbox)
+
+    assert_equal("==> default: Disk size configured to 101GB, increasing 1GB default by 100GB.",
+                 SubutaiDisk.message(SubutaiConfig.get_grow_by))
+  end
+
   def test_save_path
     SubutaiConfig.cleanup!
     SubutaiConfig.override_conf_file('./test/disk_create.yml')

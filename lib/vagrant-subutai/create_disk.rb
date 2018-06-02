@@ -43,7 +43,8 @@ module VagrantSubutai
       file_disk = SubutaiDisk.file_path(grow_by, "hyper_v")
 
       unless File.exist?(file_disk)
-        Put.warn "Disk size is growing by #{grow_by} gb."
+        Put.warn SubutaiDisk.message(grow_by)
+
         if has_grow
           if SubutaiDisk.hyperv_create_disk(grow_by, file_disk)
             SubutaiDisk.save_path(SubutaiDisk.port, file_disk)

@@ -57,9 +57,9 @@ module VagrantSubutai
            if File.exist?(disks[key])
              begin
                File.delete(disks[key])
-               puts " ==> Deleted file: #{disks[key]}"
+               puts "==> default: Deleted file: #{disks[key]}"
              rescue Errno::EACCES
-               puts " ==> (Permission denied) Failed delete file: #{disks[key]}"
+               puts "==> default: (Permission denied) Failed delete file: #{disks[key]}"
              end
            end
         end
@@ -69,9 +69,9 @@ module VagrantSubutai
       if File.exist?(SubutaiConfig::GENERATED_FILE)
         begin
           File.delete SubutaiConfig::GENERATED_FILE
-          puts " ==> Deleted file: #{SubutaiConfig::GENERATED_FILE}"
+          puts "==> default: Deleted file: #{SubutaiConfig::GENERATED_FILE}"
         rescue Errno::EACCES
-          puts " ==> (Permission denied) Failed delete file: #{SubutaiConfig::GENERATED_FILE}"
+          puts "==> default: (Permission denied) Failed delete file: #{SubutaiConfig::GENERATED_FILE}"
         end
       end
     end

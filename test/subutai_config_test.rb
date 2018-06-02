@@ -477,4 +477,74 @@ class SubutaiConfigTest < Test::Unit::TestCase
     SubutaiConfig.reset
     assert_equal(nil, SubutaiConfig.provider)
   end
+
+  def test_disk_size
+    SubutaiConfig.cleanup!
+    #SubutaiConfig.load_config_file('')
+
+    assert_equal(nil, SubutaiConfig.disk_size)
+    assert_equal(nil, SubutaiConfig.get(:DISK_SIZE))
+    assert_equal(nil, SubutaiConfig.get(:SUBUTAI_DISK))
+
+    SubutaiConfig.override_conf_file('./test/subutai_disk.yml')
+    SubutaiConfig.load_config('up', :hyper_v)
+
+    assert_equal(123, SubutaiConfig.get(:SUBUTAI_DISK))
+    assert_equal(123, SubutaiConfig.get(:DISK_SIZE))
+
+    SubutaiConfig.cleanup!
+    SubutaiConfig.override_conf_file('./test/disk_size.yml')
+    SubutaiConfig.load_config('up', :hyper_v)
+
+    assert_equal(250, SubutaiConfig.get(:DISK_SIZE))
+    assert_equal(nil, SubutaiConfig.get(:SUBUTAI_DISK))
+
+    SubutaiConfig.cleanup!
+    SubutaiConfig.override_conf_file('./test/both_disk.yml')
+    SubutaiConfig.load_config('up', :hyper_v)
+    assert_equal(654, SubutaiConfig.get(:DISK_SIZE))
+    assert_equal(654, SubutaiConfig.get(:SUBUTAI_DISK))
+
+    SubutaiConfig.cleanup!
+    assert_nil(SubutaiConfig.disk_size)
+    assert_nil(SubutaiConfig.get(:DISK_SIZE))
+    assert_nil(SubutaiConfig.get(:SUBUTAI_DISK))
+  end
+
+  def test_bridge
+    SubutaiConfig.cleanup!
+    SubutaiConfig.override_conf_file('./test/hyperv.yml')
+    SubutaiConfig.load_config('up', :hyper_v)
+    assert_equal('hyperv', SubutaiConfig.get(:BRIDGE))
+    assert_equal('hyperv', SubutaiConfig.get(:BRIDGE_HYPERV))
+    assert_not_equal('global bridge', SubutaiConfig.get(:BRIDGE))
+
+    SubutaiConfig.cleanup!
+    SubutaiConfig.override_conf_file('./test/parallels.yml')
+    SubutaiConfig.load_config('up', :parallels)
+    assert_equal('parallels', SubutaiConfig.get(:BRIDGE))
+    assert_equal('parallels', SubutaiConfig.get(:BRIDGE_PARALLELS))
+    assert_not_equal('global bridge', SubutaiConfig.get(:BRIDGE))
+
+    SubutaiConfig.cleanup!
+    SubutaiConfig.override_conf_file('./test/vmware.yml')
+    SubutaiConfig.load_config('up', :vmware)
+    assert_equal('vmware', SubutaiConfig.get(:BRIDGE))
+    assert_equal('vmware', SubutaiConfig.get(:BRIDGE_VMWARE))
+    assert_not_equal('global bridge', SubutaiConfig.get(:BRIDGE))
+
+    SubutaiConfig.cleanup!
+    SubutaiConfig.override_conf_file('./test/kvm.yml')
+    SubutaiConfig.load_config('up', :libvirt)
+    assert_equal('kvm', SubutaiConfig.get(:BRIDGE))
+    assert_equal('kvm', SubutaiConfig.get(:BRIDGE_KVM))
+    assert_not_equal('global bridge', SubutaiConfig.get(:BRIDGE))
+
+    SubutaiConfig.cleanup!
+    SubutaiConfig.override_conf_file('./test/virtualbox.yml')
+    SubutaiConfig.load_config('up', :virtualbox)
+    assert_equal('virtualbox', SubutaiConfig.get(:BRIDGE))
+    assert_equal('virtualbox', SubutaiConfig.get(:BRIDGE_VIRTUALBOX))
+    assert_not_equal('global bridge', SubutaiConfig.get(:BRIDGE))
+  end
 end

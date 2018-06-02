@@ -54,6 +54,12 @@ module SubutaiConfig
     LIBVIRT_MACVTAP
     LIBVIRT_NO_BRIDGE
     BAZAAR_NO_AUTO
+    SUBUTAI_DISK
+    BRIDGE_VIRTUALBOX
+    BRIDGE_PARALLELS
+    BRIDGE_VMWARE
+    BRIDGE_KVM
+    BRIDGE_HYPERV
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -98,12 +104,12 @@ module SubutaiConfig
     LIBVIRT_PORT: 22,                # Libvirt kvm remote operation ssh port
     LIBVIRT_MACVTAP: false,          # Libvirt macvtap interface
     BAZAAR_NO_AUTO: false,           # PeerOs automatic registration to Bazaar (turn on(false), turn off(true))
+    PROVISION: true,                 # to provision or not to
 
     # Configuration parameters below have not been implemented
     SUBUTAI_DESKTOP: false,          # install desktop with tray and p2p client
     SUBUTAI_MAN_TMPL: nil,           # provision alternative management template
-    APT_PROXY_URL: nil,              # configure apt proxy URL
-    PROVISION: true                  # to provision or not to
+    APT_PROXY_URL: nil               # configure apt proxy URL
   }
 
   # User provided configuration settings
@@ -155,6 +161,23 @@ module SubutaiConfig
     @bridged = true
   end
 
+  # The "general" BRIDGE configuration property should be overridden or
+  # set to the hypervisor/provider specific
+  def self.bridge
+    case provider
+      when :hyper_v
+        SubutaiConfig.put(:BRIDGE, get(:BRIDGE_HYPERV), true) unless get(:BRIDGE_HYPERV).nil?
+      when :parallels
+        SubutaiConfig.put(:BRIDGE, get(:BRIDGE_PARALLELS), true) unless get(:BRIDGE_PARALLELS).nil?
+      when :vmware
+        SubutaiConfig.put(:BRIDGE, get(:BRIDGE_VMWARE), true) unless get(:BRIDGE_VMWARE).nil?
+      when :libvirt
+        SubutaiConfig.put(:BRIDGE, get(:BRIDGE_KVM), true) unless get(:BRIDGE_KVM).nil?
+      when :virtualbox
+        SubutaiConfig.put(:BRIDGE, get(:BRIDGE_VIRTUALBOX), true) unless get(:BRIDGE_VIRTUALBOX).nil?
+    end
+  end
+
   def self.provision_management?
     return false unless boolean?(:PROVISION)
     return false if get(:_ALT_MANAGEMENT).nil?
@@ -180,8 +203,15 @@ module SubutaiConfig
     @config
   end
 
+  # Now we support both configuration parameter DISK_SIZE and SUBUTAI_DISK
+  # SUBUTAI_DISK overrides DISK_SIZE
+  def self.disk_size
+    put(:DISK_SIZE, get(:SUBUTAI_DISK), true)  unless get(:SUBUTAI_DISK).nil?
+  end
+
   def self.get_grow_by
     disk = get(:DISK_SIZE)
+
     if disk.nil?
       nil
     else
@@ -348,6 +378,12 @@ module SubutaiConfig
     ENV.each do |key, value|
       put(key.to_sym, value, false) if USER_PARAMETERS.include? key.to_sym
     end
+
+    # override configuration parameters BRIDGE by specified provider bridge name
+    bridge
+    # SUBUTAI_DISK overrides DISK_SIZE
+    disk_size
+
     do_handlers
     do_network(provider)
   end

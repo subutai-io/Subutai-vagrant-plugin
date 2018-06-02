@@ -86,7 +86,7 @@ module SubutaiDisk
     id = SubutaiConfig.machine_id(:hyper_v)
 
     if id.nil?
-      Put.error(" => [FAILED] Disk Creation. Not found machine id")
+      Put.error("[FAILED] Disk Creation. Not found machine id")
       false
     else
       VagrantSubutai::Util::Powershell.execute(script, "-VmId", id, "-DiskPath", file_disk, "-DiskSize", "#{vmware_size(grow_by)}")
@@ -98,7 +98,7 @@ module SubutaiDisk
     id = SubutaiConfig.machine_id(:hyper_v)
 
     if id.nil?
-      Put.error(" => [FAILED] Remove virtual disk. Not found machine id")
+      Put.error("[FAILED] Remove virtual disk. Not found machine id")
       false
     else
       VagrantSubutai::Util::Powershell.execute(script, "-VmId", id)
@@ -117,6 +117,10 @@ module SubutaiDisk
       SubutaiConfig.put(:_DISK_SIZE, grow_by + generated_disk.to_i, true) # we set all size of virtual disks to _DISK_SIZE in unit gb
       true
     end
+  end
+
+  def self.message(grow_by)
+    "==> default: Disk size configured to #{SubutaiConfig.get(:DISK_SIZE)}GB, increasing #{grow_by}GB default by 100GB."
   end
 
   # Gives disk file name

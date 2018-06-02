@@ -20,6 +20,7 @@ module SubutaiValidation
     "AUTHORIZED_KEYS":      :path,
     "PASSWORD_OVERRIDE":    :string,
     "DISK_SIZE":            :int,
+    "SUBUTAI_DISK":         :int,
     "SUBUTAI_ENV_TYPE":     :enum,
     "SUBUTAI_NAME":         :string,
     "SUBUTAI_SCOPE":        :enum,
@@ -34,7 +35,12 @@ module SubutaiValidation
     "LIBVIRT_PORT":         :int,
     "LIBVIRT_MACVTAP":      :bool,
     "LIBVIRT_NO_BRIDGE":    :bool,
-    "BAZAAR_NO_AUTO":       :bool
+    "BAZAAR_NO_AUTO":       :bool,
+    "BRIDGE_VIRTUALBOX":    :string,
+    "BRIDGE_PARALLELS":     :string,
+    "BRIDGE_VMWARE":        :string,
+    "BRIDGE_KVM":           :string,
+    "BRIDGE_HYPERV":        :string
   }.freeze
 
   def self.validate(key, value)

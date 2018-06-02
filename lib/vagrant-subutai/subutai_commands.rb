@@ -57,6 +57,7 @@ module VagrantSubutai
       end
     end
 
+    # Unregister Subutai Peer OS from Bazaar
     def deregister(username, password, url)
       if registered?(url)
           username, password = get_input_token if username.nil? || password.nil?
@@ -71,7 +72,7 @@ module VagrantSubutai
               case response
                 when Net::HTTPOK
                   Put.success response.body
-                  Put.success "Successfully PeerOS deregistered from Bazaar."
+                  Put.success "Successfully PeerOS unregistered from Bazaar."
                 else
                   Put.error "Error: #{response.body}\n"
               end
