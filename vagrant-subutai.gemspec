@@ -5,6 +5,7 @@ require_relative 'lib/vagrant-subutai/version'
 Gem::Specification.new do |spec|
   spec.name          = 'vagrant-subutai'
   spec.version       = VagrantSubutai::VERSION
+  spec.licenses      = ['Apache-2.0']
   spec.authors       = ["Subutai"]
   spec.email         = "info@subutai.io"
   spec.summary       = ["Subutai CLI. Execute subutai commands outside the Vagrant box"]

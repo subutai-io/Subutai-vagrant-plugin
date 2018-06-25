@@ -239,7 +239,7 @@ module VagrantSubutai
 
       if SubutaiConfig.get(:SUBUTAI_PASSWORD).nil?
         begin
-          Put.info "\nPeerOS password: "
+          Put.info "\nSet PeerOS password: "
           password = STDIN.noecho(&:gets).chomp
         rescue Errno::EBADF
           Put.warn "\nStdin doesn't support echo less input. Stdin can't hide password\n"
