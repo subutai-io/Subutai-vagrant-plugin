@@ -151,6 +151,7 @@ module VagrantSubutai
         VARIABLES = '/rest/v1/client/blueprint/variables'.freeze
         BLUEPRINT = '/rest/v1/client/blueprint/build'.freeze
         DOMAIN_LIST  = '/rest/v1/client/domains'.freeze
+        TEMPLATE = '/rest/v1/cdn/template?name={TEMPLATE_NAME}'
       end
     end
 

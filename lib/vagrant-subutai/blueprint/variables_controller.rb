@@ -208,7 +208,7 @@ module VagrantSubutai
             node = {}
             node['hostname'] = container.hostname
             node['quota'] = {'containerSize' => container.container_size}
-            node['templateId'] = Rest::Gorjun.template_id(container.name, container.owner)
+            node['templateId'] = Rest::Bazaar.template_id(container.name, container.owner)
             node['resourceHostId'] = rh_id
             node['peerId'] = peer_id
             nodes << node
@@ -222,7 +222,7 @@ module VagrantSubutai
             node = {}
             node['hostname'] = container.hostname
             node['quota'] = {'containerSize' => container.container_size}
-            node['templateId'] = Rest::Gorjun.template_id(container.name, container.owner)
+            node['templateId'] = Rest::Bazaar.template_id(container.name, container.owner)
             node['resourceHostId'] = rh_id
             node['templateName'] = container.name
             node['peerId'] = peer_id
@@ -318,7 +318,7 @@ module VagrantSubutai
       # @params variable json object
       def get_input(variable_json)
         if variable_json[KEYS[:type]] == 'enum'
-          Put.info "\nEnter your container size (Ex: #{variable_json[KEYS[:default]]}): "
+          Put.info "\n#{variable_json[KEYS[:description]]} (Ex: #{variable_json[KEYS[:default]]}): "
           validations = variable_json[KEYS[:validation]].split(',')
 
           temp = nil
