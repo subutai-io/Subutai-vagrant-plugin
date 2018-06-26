@@ -74,4 +74,20 @@ BUG FIXES:
   
 BUG FIXES:
   - [hyperv, vmware_desktop] fixed delete virtual disk file after destroy VM
-  - user configuration validation  
+  - user configuration validation 
+  
+## 7.0.4 (June 26, 2018)
+
+BUG FIXES:
+  - Blueprint provisioning template not found fixed 
+
+FEATURES: 
+  
+  - Added new bridge configuration property by specific hypervisor
+  - User configuration added new keys:
+      -  SUBUTAI_DISK
+      -  BRIDGE_VIRTUALBOX
+      -  BRIDGE_PARALLELS
+      -  BRIDGE_VMWARE
+      -  BRIDGE_KVM
+      -  BRIDGE_HYPERV 
