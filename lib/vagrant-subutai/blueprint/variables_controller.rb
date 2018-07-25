@@ -391,40 +391,40 @@ module VagrantSubutai
 
       def get_input_bazaar(variable)
         Put.info "\n#{variable['label']}"
-        if variable.key?('acceptableValues')
-          if variable['type'] == 'enum'
-            arr = variable['acceptableValues'].split(',')
-            temp = nil
 
-            arr.each_with_index do |val, index|
-              Put.info "     #{index}.  #{val}"
-              temp = index
-            end
+        if variable['type'] == 'enum'
+          arr = []
+          arr = variable['acceptableValues'].split(',') if variable.key?('acceptableValues')
+          temp = -1
 
-            Put.info "\nChoose your container size between ( 0 to #{temp}): "
-            input = STDIN.gets.strip.to_i
+          arr.each_with_index do |val, index|
+            Put.info "     #{index}.  #{val}"
+            temp = index
+          end
+
+          Put.info "\nChoose your container size between ( 0 to #{temp}): "
+          input = STDIN.gets.strip.to_i
+          arr[input]
+        elsif variable['type'] == 'domain'
+          arr = []
+          arr = variable['acceptableValues'].split(',') if variable.key?('acceptableValues')
+          temp = -1
+
+          arr.each_with_index do |val, index|
+            Put.info "     #{index}.  #{val}"
+            temp = index
+          end
+          Put.info "     #{temp+1}.  Create a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
+
+          Put.info "\nChoose options:  ( 0 to #{temp+1}) "
+          input = STDIN.gets.strip.to_i
+
+          if temp+1 == input
+            Put.success "\nCreate a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
+            reserve
+          else
+            Put.success "\n Chosen a domain: #{arr[input]}"
             arr[input]
-          elsif variable['type'] == 'domain'
-            arr = variable['acceptableValues'].split(',')
-            temp = nil
-
-            arr.each_with_index do |val, index|
-              Put.info "     #{index}.  #{val}"
-              temp = index
-            end
-            Put.info "     #{temp+1}.  Create a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
-
-            Put.info "\nChoose options:  ( 0 to #{temp+1}) "
-            input = STDIN.gets.strip.to_i
-
-            if temp+1 == input
-              Put.success "\nCreate a new domain: (Ex: YOUR_DOMAIN_NAME.envs.subutai.cloud)"
-              reserve
-            else
-              Put.success "\n Chosen a domain: #{arr[input]}"
-              arr[input]
-            end
-
           end
         else
           STDIN.gets.strip

@@ -21,6 +21,7 @@ module VagrantSubutai
         variable.check_required_quota
 
         if mode == Configs::Blueprint::MODE::PEER
+
           variable.user_variables
 
           if variable.has_ansible?
@@ -136,8 +137,10 @@ module VagrantSubutai
           response = VagrantSubutai::Rest::Bazaar.variables(variable.json, peer_id, token)
 
           case response
-            when Net::HTTPOK
+          when Net::HTTPOK
               variables = JSON.parse(response.body)
+              Put.debug("Bazaar variables rest response: #{variables}")
+
               conf_user_variables = SubutaiConfig.get(:USER_VARIABLES)
 
               if conf_user_variables.nil?
@@ -154,8 +157,10 @@ module VagrantSubutai
               end
 
               params = []
+              Put.debug "JSON parsed variables response: #{variables}"
 
               variables.each do |var|
+                Put.debug("For each in variables: #{var}")
                 temp = var
                 if conf_user_variables[var['name']].nil?
                   temp['value'] = variable.get_input_bazaar(var)
@@ -165,93 +170,100 @@ module VagrantSubutai
                 params << temp
               end
 
+              Put.debug("Bazaar blueprint rest endpoint params: ")
+              Put.debug("Variable: #{variable.json}")
+              Put.debug("params: #{params.to_json}")
+              Put.debug("peer_id: #{peer_id}")
               response = Rest::Bazaar.blueprint(variable.json, params, peer_id, token)
 
               case response
-                when Net::HTTPAccepted
-                  json = JSON.parse(response.body)
-                  hub_id = json['hubId']
-                  subutai_id = json['subutaiId']
-                  @id = subutai_id
+              when Net::HTTPAccepted
+                json = JSON.parse(response.body)
+                Put.debug("Bazaar blueprint rest endpoint response accepted: #{json}")
+                hub_id = json['hubId']
+                subutai_id = json['subutaiId']
+                @id = subutai_id
 
-                  Put.warn "\nStarted environment building ...... \n"
+                Put.warn "\nStarted environment building ...... \n"
 
-                  # Track environment create state logs
+                # Track environment create state logs
+                @log = Rest::Bazaar.log(token, subutai_id)
+                @log = JSON.parse(@log.body)
+                timer = Time.now + (60 * 60 * 17) # 17 hours
+                @last_peer_state = nil
+
+                until (@log['environment_status'] == Configs::EnvironmentState::HEALTHY || @log['environment_status'] == Configs::EnvironmentState::UNHEALTHY) && Time.now <= timer
                   @log = Rest::Bazaar.log(token, subutai_id)
-                  @log = JSON.parse(@log.body)
-                  timer = Time.now + (60 * 60 * 17) # 17 hours
-                  @last_peer_state = nil
 
-                  until (@log['environment_status'] == Configs::EnvironmentState::HEALTHY || @log['environment_status'] == Configs::EnvironmentState::UNHEALTHY) && Time.now <= timer
-                    @log = Rest::Bazaar.log(token, subutai_id)
+                  begin
+                    @log = JSON.parse(@log.body)
+                    environment_peers = @log['environment_peers']
 
-                    begin
-                      @log = JSON.parse(@log.body)
-                      environment_peers = @log['environment_peers']
-
-                      environment_peers.each_with_index do |v, i|
-                        if (@last_peer_state != v['peer_state'])
-                          Put.info v['peer_state']
-                          Put.info v['peer_message']
-                        end
-                        @last_peer_state = v['peer_state']
+                    environment_peers.each_with_index do |v, i|
+                      if (@last_peer_state != v['peer_state'])
+                        Put.info v['peer_state']
+                        Put.info v['peer_message']
                       end
-
-                    rescue JSON::ParserError => e
-                      Put.error e
+                      @last_peer_state = v['peer_state']
                     end
 
-                    sleep 5 # sleep 5 seconds
+                  rescue JSON::ParserError => e
+                    Put.error e
                   end
 
-                  if @log['environment_status'] == Configs::EnvironmentState::HEALTHY
-                    Put.success "\nEnvironment State: #{@log['environment_status']}"
-                    # Track ansible logs
+                  sleep 5 # sleep 5 seconds
+                end
 
-                    unless @log['environment_applications'].empty?
-                      arr = @log['environment_applications']
+                if @log['environment_status'] == Configs::EnvironmentState::HEALTHY
+                  Put.success "\nEnvironment State: #{@log['environment_status']}"
+                  # Track ansible logs
 
-                      arr.each_with_index  do |environment_application, i|
-                        @tmp = nil
+                  unless @log['environment_applications'].empty?
+                    arr = @log['environment_applications']
 
-                        until (@log['environment_applications'][i])['application_state'] == Configs::ApplicationState::INSTALLED
-                          @log = Rest::Bazaar.log(token, subutai_id)
+                    arr.each_with_index  do |environment_application, i|
+                      @tmp = nil
 
-                          begin
-                            @log = JSON.parse(@log.body)
+                      until (@log['environment_applications'][i])['application_state'] == Configs::ApplicationState::INSTALLED
+                        @log = Rest::Bazaar.log(token, subutai_id)
 
-                            if @tmp.nil?
-                              Put.info (@log['environment_applications'][i])['application_log']
-                            else
-                              msg = (@log['environment_applications'][i])['application_log']
-                              if @tmp.length < msg.length
-                                msg = msg[(@tmp.length)..(msg.length-1)]
-                                Put.info msg
-                              end
+                        begin
+                          @log = JSON.parse(@log.body)
+
+                          if @tmp.nil?
+                            Put.info (@log['environment_applications'][i])['application_log']
+                          else
+                            msg = (@log['environment_applications'][i])['application_log']
+                            if @tmp.length < msg.length
+                              msg = msg[(@tmp.length)..(msg.length-1)]
+                              Put.info msg
                             end
-                            @tmp = (@log['environment_applications'][i])['application_log']
-
-                          rescue JSON::ParserError => e
-                            Put.error e
                           end
+                          @tmp = (@log['environment_applications'][i])['application_log']
 
-                          sleep 5 # sleep 5 seconds
+                        rescue JSON::ParserError => e
+                          Put.error e
                         end
+
+                        sleep 5 # sleep 5 seconds
                       end
                     end
-                  elsif @log['environment_status'] == Configs::EnvironmentState::UNHEALTHY
-                    Put.error "\nEnvironment State: #{@log['environment_status']}"
-                  elsif timer < Time.now
-                    Put.error "\nEnvironment State: Timeout environment creating"
-                  else
-                    Put.error "\nEnvironment State: #{@log['environment_status']}"
                   end
+                elsif @log['environment_status'] == Configs::EnvironmentState::UNHEALTHY
+                  Put.error "\nEnvironment State: #{@log['environment_status']}"
+                elsif timer < Time.now
+                  Put.error "\nEnvironment State: Timeout environment creating"
                 else
-                  Put.error response.body
-              end
-            else
-              Put.error response.body
-              Put.error response.message
+                  Put.error "\nEnvironment State: #{@log['environment_status']}"
+                end
+              else
+                Put.debug("Bazaar blueprint rest endpoint error: ")
+                Put.error response.body
+            end
+          else
+            Put.debug "Failed bazaar variable rest endpoint"
+            Put.error response.body
+            Put.error response.message
           end
         end
       end
