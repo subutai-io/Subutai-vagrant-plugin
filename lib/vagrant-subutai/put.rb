@@ -18,4 +18,8 @@ module Put
   def self.error(msg)
     STDOUT.puts "\e[31m#{msg}\e[0m"
   end
+
+  def self.debug(msg)
+    STDOUT.puts "\e[37m#{msg}\e[0m" if ENV["SUBUTAI_DEBUG"] == "1"
+  end
 end

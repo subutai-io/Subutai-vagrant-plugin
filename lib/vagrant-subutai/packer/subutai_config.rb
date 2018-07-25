@@ -18,7 +18,7 @@ module SubutaiConfig
   CONF_FILE = File.expand_path('./vagrant-subutai.yml').freeze
   USER_CONF_FILE = File.expand_path('~/.vagrant-subutai/vagrant-subutai.yml').freeze
   SUBUTAI_ENVIRONMENTS = %i[prod master dev sysnet].freeze
-  SUBUTAI_SCOPES = %i[Public Private].freeze
+  SUBUTAI_SCOPES = %i[Public Private Shared].freeze
   SUBUTAI_ENV_TYPES = %i[bazaar peer].freeze
 
   # Without a variable key listed here it will not get pulled in from
@@ -301,7 +301,7 @@ module SubutaiConfig
   end
 
   def self.set_scope(key, value)
-    raise "Invalid #{key} value of #{value}: use public or private" \
+    raise "Invalid #{key} value of #{value}: use public, private or shared" \
           unless SUBUTAI_SCOPES.include?(value.capitalize)
     @config.store(key, value.capitalize)
   end
