@@ -74,6 +74,7 @@ module SubutaiConfig
     _DISK_SIZE
     _DISK_PORT
     _DISK_PATHES
+    _IP_HYPERV
   ].freeze
 
   # Used for testing
