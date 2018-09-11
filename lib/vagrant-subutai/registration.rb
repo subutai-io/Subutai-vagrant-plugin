@@ -59,6 +59,19 @@ module VagrantSubutai
           end
         end
       end
+
+      # Write peer ip address to genereted file if provider Hyper-V
+      if SubutaiConfig.boolean?(:SUBUTAI_PEER) && SubutaiConfig.write? && SubutaiConfig.provider == :hyper_v
+        subutai_cli = Commands.new(ARGV, @machine.env)
+        ip = subutai_cli.info(Configs::VagrantCommand::ARG_IP_ADDR)
+
+        if ip.nil?
+          STDOUT.puts 'We can\'t detect your PeerOS ip address!'
+          exit
+        end
+
+        SubutaiConfig.put(:_IP_HYPERV, ip, true)
+      end
     end
 
     # This is the method called when destroying a machine that allows
