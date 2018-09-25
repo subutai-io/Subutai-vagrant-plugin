@@ -180,8 +180,8 @@ module VagrantSubutai
               when Net::HTTPAccepted
                 json = JSON.parse(response.body)
                 Put.debug("Bazaar blueprint rest endpoint response accepted: #{json}")
-                hub_id = json['hubId']
-                subutai_id = json['subutaiId']
+                hub_id = json['id']              # Hub id
+                subutai_id = json['subutai_id']  # Subutai id
                 @id = subutai_id
 
                 Put.warn "\nStarted environment building ...... \n"
