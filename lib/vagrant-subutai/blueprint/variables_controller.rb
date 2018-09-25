@@ -394,7 +394,7 @@ module VagrantSubutai
 
         if variable['type'] == 'enum'
           arr = []
-          arr = variable['acceptableValues'].split(',') if variable.key?('acceptableValues')
+          arr = variable['acceptableValues'] if variable.key?('acceptableValues')
           temp = -1
 
           arr.each_with_index do |val, index|
@@ -407,7 +407,7 @@ module VagrantSubutai
           arr[input]
         elsif variable['type'] == 'domain'
           arr = []
-          arr = variable['acceptableValues'].split(',') if variable.key?('acceptableValues')
+          arr = variable['acceptableValues'] if variable.key?('acceptableValues')
           temp = -1
 
           arr.each_with_index do |val, index|
