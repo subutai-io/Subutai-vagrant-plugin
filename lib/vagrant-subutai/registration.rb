@@ -61,7 +61,7 @@ module VagrantSubutai
       end
 
       # Write peer ip address to genereted file if provider Hyper-V
-      if SubutaiConfig.boolean?(:SUBUTAI_PEER) && SubutaiConfig.write? && SubutaiConfig.provider == :hyper_v
+      if SubutaiConfig.boolean?(:SUBUTAI_PEER) && SubutaiConfig.provider == :hyper_v
         subutai_cli = Commands.new(ARGV, @machine.env)
         ip = subutai_cli.info(Configs::VagrantCommand::ARG_IP_ADDR)
 
