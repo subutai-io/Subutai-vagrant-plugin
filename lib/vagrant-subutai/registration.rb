@@ -1,5 +1,5 @@
 require_relative '../vagrant-subutai'
-
+require 'ipaddr'
 
 module VagrantSubutai
   class Registration < Vagrant.plugin(2, :provisioner)
@@ -70,7 +70,7 @@ module VagrantSubutai
           exit
         end
 
-        SubutaiConfig.put(:_IP_HYPERV, ip, true)
+        SubutaiConfig.put(:_IP_HYPERV, ip, true) if is_ip?(ip)
       end
     end
 
@@ -78,6 +78,10 @@ module VagrantSubutai
     # for any state related to the machine created by the provisioner
     # to be cleaned up.
     def cleanup
+    end
+
+    def is_ip?(ip)
+      !!IPAddr.new(ip) rescue false
     end
   end
 end
