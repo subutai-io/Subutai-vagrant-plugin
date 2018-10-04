@@ -114,8 +114,8 @@ module VagrantSubutai
 
       module V1
         TOKEN           = '/rest/v1/identity/gettoken'.freeze
-        DE_REGISTER_HUB = '/rest/v1/bazaar/unregister?sptoken='.freeze
-        REGISTER_HUB    = '/rest/v1/bazaar/register?sptoken='.freeze
+        DE_REGISTER_HUB = '/rest/v1/hub/unregister?sptoken='.freeze
+        REGISTER_HUB    = '/rest/v1/hub/register?sptoken='.freeze
         APPROVE         = '/rest/v1/registration/requests'.freeze
         FINGERPRINT     = '/rest/v1/security/keyman/getpublickeyfingerprint'.freeze
         REQUESTS        = '/rest/v1/registration/requests?sptoken='.freeze
