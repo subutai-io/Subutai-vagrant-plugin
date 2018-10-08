@@ -32,6 +32,7 @@ module SubutaiValidation
     "SUBUTAI_DISK_PATH":    :path,
     "LIBVIRT_USER":         :string,
     "LIBVIRT_HOST":         :string,
+    "LIBVIRT_POOL":         :string,
     "LIBVIRT_PORT":         :int,
     "LIBVIRT_MACVTAP":      :bool,
     "LIBVIRT_NO_BRIDGE":    :bool,

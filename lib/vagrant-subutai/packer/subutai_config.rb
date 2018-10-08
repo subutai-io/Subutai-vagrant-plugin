@@ -53,6 +53,7 @@ module SubutaiConfig
     LIBVIRT_PORT
     LIBVIRT_MACVTAP
     LIBVIRT_NO_BRIDGE
+    LIBVIRT_POOL
     BAZAAR_NO_AUTO
     SUBUTAI_DISK
     BRIDGE_VIRTUALBOX
@@ -106,6 +107,7 @@ module SubutaiConfig
     LIBVIRT_MACVTAP: false,          # Libvirt macvtap interface
     BAZAAR_NO_AUTO: false,           # PeerOs automatic registration to Bazaar (turn on(false), turn off(true))
     PROVISION: true,                 # to provision or not to
+    LIBVIRT_POOL: 'default',         # Libvirt pool name
 
     # Configuration parameters below have not been implemented
     SUBUTAI_DESKTOP: false,          # install desktop with tray and p2p client
