@@ -112,7 +112,14 @@ module SubutaiConfig
     # Configuration parameters below have not been implemented
     SUBUTAI_DESKTOP: false,          # install desktop with tray and p2p client
     SUBUTAI_MAN_TMPL: nil,           # provision alternative management template
-    APT_PROXY_URL: nil               # configure apt proxy URL
+    APT_PROXY_URL: nil,               # configure apt proxy URL
+
+    # provider with value
+    hyper_v: 'hyperv',
+    parallels: 'parallels',
+    virtualbox: 'virtualbox',
+    libvirt: 'libvirt',
+    vmware: 'vmware_desktop'
   }
 
   # User provided configuration settings
@@ -376,6 +383,13 @@ module SubutaiConfig
     load_config_file(USER_CONF_FILE) if File.exist?(USER_CONF_FILE)
     load_config_file(conf_file) if File.exist?(conf_file)
     load_generated
+
+    # Write empty file with name provider
+    # ControlCenter uses for checking provider of peer
+    unless File.exist?(File.join(PARENT_DIR, @defaults[@provider]))
+      file = File.new(File.join(PARENT_DIR, @defaults[@provider]), 'w')
+      file.close
+    end
 
     # Load overrides from the environment, and generated configurations
     ENV.each do |key, value|
