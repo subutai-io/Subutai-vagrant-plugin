@@ -89,7 +89,7 @@ module SubutaiDisk
       Put.error("[FAILED] Disk Creation. Not found machine id")
       false
     else
-      VagrantSubutai::Util::Powershell.execute(script, "-VmId", id, "-DiskPath", file_disk, "-DiskSize", "#{vmware_size(grow_by)}")
+      VagrantSubutai::Util::Powershell.execute(script, "-VmId", id, "-DiskPath", "'#{file_disk}'", "-DiskSize", "#{vmware_size(grow_by)}")
     end
   end
 
