@@ -1,4 +1,5 @@
 require_relative '../vagrant-subutai'
+require 'pathname'
 
 
 module VagrantSubutai
@@ -41,16 +42,19 @@ module VagrantSubutai
     def provision
       has_grow, grow_by = SubutaiDisk.has_grow
       file_disk = SubutaiDisk.file_path(grow_by, "hyper_v")
+      disk_path = Pathname.new file_disk
 
-      unless File.exist?(file_disk)
+      unless disk_path.exist?
         Put.warn SubutaiDisk.message(grow_by)
 
         if has_grow
-          if SubutaiDisk.hyperv_create_disk(grow_by, file_disk)
-            SubutaiDisk.save_path(SubutaiDisk.port, file_disk)
+          if SubutaiDisk.hyperv_create_disk(grow_by, disk_path.to_s)
+            SubutaiDisk.save_path(SubutaiDisk.port, disk_path.to_s)
             SubutaiDisk.save_conf(grow_by)
           end
         end
+      else
+        Put.error "Disk file already exist in #{file_disk}"
       end
     end
 
