@@ -35,6 +35,7 @@ module SubutaiConfig
     SUBUTAI_MAN_TMPL
     APT_PROXY_URL
     PROVISION
+    BLUEPRINT_NO_AUTO
     BRIDGE
     AUTHORIZED_KEYS
     PASSWORD_OVERRIDE
@@ -47,6 +48,7 @@ module SubutaiConfig
     USER_VARIABLES
     BAZAAR_EMAIL
     BAZAAR_PASSWORD
+    BAZAAR_NO_AUTO
     SUBUTAI_DISK_PATH
     LIBVIRT_USER
     LIBVIRT_HOST
@@ -54,7 +56,6 @@ module SubutaiConfig
     LIBVIRT_MACVTAP
     LIBVIRT_NO_BRIDGE
     LIBVIRT_POOL
-    BAZAAR_NO_AUTO
     SUBUTAI_DISK
     BRIDGE_VIRTUALBOX
     BRIDGE_PARALLELS
@@ -108,6 +109,7 @@ module SubutaiConfig
     BAZAAR_NO_AUTO: false,           # PeerOs automatic registration to Bazaar (turn on(false), turn off(true))
     PROVISION: true,                 # to provision or not to
     LIBVIRT_POOL: 'default',         # Libvirt pool name
+    BLUEPRINT_NO_AUTO: false,        # Auto provision blueprints if present
 
     # Configuration parameters below have not been implemented
     SUBUTAI_DESKTOP: false,          # install desktop with tray and p2p client
