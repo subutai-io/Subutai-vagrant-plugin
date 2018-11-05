@@ -39,18 +39,20 @@ module VagrantSubutai
     #
     # No return value is expected.
     def provision
-      # If Subutai.json exist
-      if File.exist?("#{Dir.pwd}/#{Configs::Blueprint::FILE_NAME}")
-        subutai_cli = Commands.new(ARGV, @machine.env)
-        ip = subutai_cli.info(Configs::VagrantCommand::ARG_IP_ADDR)
+      unless SubutaiConfig.get(:BLUEPRINT_NO_AUTO)
+        # If Subutai.json exist
+        if File.exist?(File.join(Dir.pwd, Configs::Blueprint::FILE_NAME))
+          subutai_cli = Commands.new(ARGV, @machine.env)
+          ip = subutai_cli.info(Configs::VagrantCommand::ARG_IP_ADDR)
 
-        if ip.nil?
-          STDOUT.puts 'We can\'t detect your PeerOS ip address!'
-          exit
+          if ip.nil?
+            STDOUT.puts 'We can\'t detect your PeerOS ip address!'
+            exit
+          end
+          url = "https://#{ip}:#{Configs::SubutaiConsoleAPI::PORT}"
+
+          subutai_cli.blueprint(url, 1)
         end
-        url = "https://#{ip}:#{Configs::SubutaiConsoleAPI::PORT}"
-
-        subutai_cli.blueprint(url, 1)
       end
     end
 
