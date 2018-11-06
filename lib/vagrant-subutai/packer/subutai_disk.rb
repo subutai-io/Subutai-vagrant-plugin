@@ -133,7 +133,7 @@ module SubutaiDisk
   end
 
   def self.message(grow_by)
-    "==> default: Disk size configured to #{SubutaiConfig.get(:DISK_SIZE)}GB, increasing 100GB default by #{grow_by}GB."
+    "==> default: Disk size configured to #{SubutaiConfig.get(:DISK_SIZE)}GB, increasing #{SubutaiConfig.get(:DISK_SIZE) - grow_by}GB default by #{grow_by}GB."
   end
 
   # Gives disk file name
