@@ -1,5 +1,6 @@
 require_relative 'subutai_config'
 require_relative '../../../lib/vagrant-subutai/util/powershell'
+require_relative '../../../lib/vagrant-subutai/util/terminal'
 
 # For managing VM disks
 module SubutaiDisk
@@ -93,6 +94,18 @@ module SubutaiDisk
     end
   end
 
+  def self.parallels_create_disk(grow_by)
+    id = SubutaiConfig.machine_id(:parallels)
+
+    if id.nil?
+      Put.error("[FAILED] Disk Creation. Not found machine id")
+      false
+    else
+      # prlctl set ec45bf0c-1d1e-44c0-b5b8-6d80623b8364 --device-add=hdd --size=4092 # in megabytes
+      VagrantSubutai::Util::Terminal.execute_cmd("prlctl", "set", id, "--device-add=hdd", "--size=#{SubutaiDisk.size(grow_by)}")
+    end
+  end
+
   def self.hyperv_remove_disk
     script = File.join(File.expand_path(File.dirname(__FILE__)), SCRIPT_HYPERV_DISK_REMOVE_PATH)
     id = SubutaiConfig.machine_id(:hyper_v)
@@ -120,7 +133,7 @@ module SubutaiDisk
   end
 
   def self.message(grow_by)
-    "==> default: Disk size configured to #{SubutaiConfig.get(:DISK_SIZE)}GB, increasing 100GB default by #{grow_by}GB."
+    "==> default: Disk size configured to #{SubutaiConfig.get(:DISK_SIZE)}GB, increasing #{SubutaiConfig.get(:DISK_SIZE) - grow_by}GB default by #{grow_by}GB."
   end
 
   # Gives disk file name

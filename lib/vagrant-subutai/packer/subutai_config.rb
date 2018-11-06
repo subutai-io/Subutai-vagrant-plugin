@@ -368,11 +368,16 @@ module SubutaiConfig
   end
 
   def self.machine_id(provider)
+    id = nil
+
     case provider
     when :hyper_v
-      id = PARENT_DIR+'/machines/default/hyperv/id'
-      File.read(id) if File.exist?(id)
+      id = File.join(PARENT_DIR, 'machines/default/hyperv/id')
+    when :parallels
+      id = File.join(PARENT_DIR, 'machines/default/parallels/id')
     end
+
+    File.read(id) if File.exist?(id)
   end
 
   # Loads the generated and user configuration from YAML files
