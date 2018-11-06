@@ -1,5 +1,6 @@
 require_relative 'subutai_config'
 require_relative '../../../lib/vagrant-subutai/util/powershell'
+require_relative '../../../lib/vagrant-subutai/util/terminal'
 
 # For managing VM disks
 module SubutaiDisk
@@ -90,6 +91,18 @@ module SubutaiDisk
       false
     else
       VagrantSubutai::Util::Powershell.execute(script, "-VmId", id, "-DiskPath", "'#{file_disk}'", "-DiskSize", "#{vmware_size(grow_by)}")
+    end
+  end
+
+  def self.parallels_create_disk(grow_by)
+    id = SubutaiConfig.machine_id(:parallels)
+
+    if id.nil?
+      Put.error("[FAILED] Disk Creation. Not found machine id")
+      false
+    else
+      # prlctl set ec45bf0c-1d1e-44c0-b5b8-6d80623b8364 --device-add=hdd --size=4092 # in megabytes
+      VagrantSubutai::Util::Terminal.execute_cmd("prlctl", "set", id, "--device-add=hdd", "--size=#{SubutaiDisk.size(grow_by)}")
     end
   end
 

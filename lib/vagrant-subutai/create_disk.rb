@@ -39,7 +39,8 @@ module VagrantSubutai
     # and any shared folders or networks are already setup.
     #
     # No return value is expected.
-    def provision
+    # Create virtual disk for hyperv
+    def hyperv
       has_grow, grow_by = SubutaiDisk.has_grow
       file_disk = SubutaiDisk.file_path(grow_by, "hyper_v")
       disk_path = Pathname.new file_disk
@@ -55,6 +56,26 @@ module VagrantSubutai
         end
       else
         Put.error "Disk file already exist in #{file_disk}"
+      end
+    end
+
+    # Create virtual disk for parallels
+    def parallels
+      has_grow, grow_by = SubutaiDisk.has_grow
+      
+      if has_grow
+        if SubutaiDisk.parallels_create_disk(grow_by)
+          Put.warn SubutaiDisk.message(grow_by)
+          SubutaiDisk.save_conf(grow_by)
+        end
+      end
+    end
+
+    def provision
+      if SubutaiConfig.provider == :hyper_v
+        hyperv
+      elsif SubutaiConfig.provider == :parallels
+        parallels
       end
     end
 
