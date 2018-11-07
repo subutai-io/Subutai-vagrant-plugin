@@ -1,3 +1,13 @@
+## 7.0.7 (November 07, 2018)
+
+BUG FIXES:
+  - [Parallels] Fixed bug with disability of creating virtual disk. #135
+  - Fixed bug with white space in home directory path results in VM storage growth script failures. #129
+
+FEATURES:  
+  - [configuration] Implemented LIBVIRT_POOL configuration parameter. #127
+  - [configuration] Implemented APT_PROXY_URL configuration parameter
+
 ## 7.0.6 (October 17, 2018)
 
 BUG FIXES:
