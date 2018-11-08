@@ -60,8 +60,8 @@ module VagrantSubutai
         end
       end
 
-      # Write peer ip address to genereted file if provider Hyper-V
-      if SubutaiConfig.boolean?(:SUBUTAI_PEER) && SubutaiConfig.provider == :hyper_v
+      # Write peer ip address to genereted file if provider Hyper-V or Libvirt
+      if SubutaiConfig.boolean?(:SUBUTAI_PEER)
         subutai_cli = Commands.new(ARGV, @machine.env)
         ip = subutai_cli.info(Configs::VagrantCommand::ARG_IP_ADDR)
 
@@ -70,7 +70,10 @@ module VagrantSubutai
           exit
         end
 
-        SubutaiConfig.put(:_IP_HYPERV, ip, true) if is_ip?(ip)
+        if is_ip?(ip)
+          SubutaiConfig.put(:_IP_HYPERV, ip, true) # for support back compatibility (depricated)
+          SubutaiConfig.put(:_IP_PEER, ip, true)
+        end 
       end
     end
 

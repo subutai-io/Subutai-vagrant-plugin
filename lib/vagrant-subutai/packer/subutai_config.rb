@@ -77,6 +77,7 @@ module SubutaiConfig
     _DISK_PORT
     _DISK_PATHES
     _IP_HYPERV
+    _IP_PEER
   ].freeze
 
   # Used for testing
