@@ -1,3 +1,7 @@
+## 7.0.8 (November 13, 2018)
+FEATURES:
+  - Write the PeerOs IP address to generated file (_IP_PEER).
+
 ## 7.0.7 (November 07, 2018)
 
 BUG FIXES:
