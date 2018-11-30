@@ -395,8 +395,10 @@ module SubutaiConfig
     # Write empty file with name provider
     # ControlCenter uses for checking provider of peer
     unless File.exist?(File.join(PARENT_DIR, @defaults[@provider]))
-      file = File.new(File.join(PARENT_DIR, @defaults[@provider]), 'w')
-      file.close
+      if Dir.exist?(PARENT_DIR)
+        file = File.new(File.join(PARENT_DIR, @defaults[@provider]), 'w') 
+        file.close
+      end
     end
 
     # Load overrides from the environment, and generated configurations
