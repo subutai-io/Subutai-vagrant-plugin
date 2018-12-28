@@ -1,3 +1,10 @@
+## 7.0.9 (December 28, 2018)
+FEATURES:
+  - Use new the PeerOs REST API for peer registration and unregistering. #124
+
+BUG FIXES:
+  - CLI read disk size user configuration parameter error fixed. #139
+
 ## 7.0.8 (November 13, 2018)
 FEATURES:
   - Write the PeerOs IP address to generated file (_IP_PEER).
