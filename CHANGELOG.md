@@ -1,3 +1,7 @@
+## 7.0.10 (Decemeber 29, 2018)
+IMPROVEMENTS:
+  - Plugin help command output info is updated.
+  
 ## 7.0.9 (December 28, 2018)
 FEATURES:
   - Use new the PeerOs REST API for peer registration and unregistering. #124

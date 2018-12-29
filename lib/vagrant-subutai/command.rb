@@ -72,45 +72,160 @@ module VagrantSubutai
 Usage: vagrant subutai command [command options] [arguments...]
 
 COMMANDS:
-     attach                  - attach to Subutai container
-     backup                  - backup Subutai container
-     batch                   - batch commands execution
-     checkpoint              - checkpoint/restore in user space
-     clone                   - clone Subutai container
-     cleanup                 - clean Subutai environment
-     config                  - edit container config
-     daemon                  - start Subutai agent
-     demote                  - demote Subutai container
-     destroy                 - destroy Subutai container
-     export                  - export Subutai container
-     import                  - import Subutai template
-     info                    - information about host system
-     hostname                - Set hostname of container or host
-     list                    - list Subutai container
-     log                     - print application logs
-     map                     - Subutai port mapping
-     metrics                 - list Subutai container
-     migrate                 - migrate Subutai container
-     p2p                     - P2P network operations
-     promote                 - promote Subutai container
-     proxy                   - Subutai reverse proxy
-     quota                   - set quotas for Subutai container
-     rename                  - rename Subutai container
-     restore                 - restore Subutai container
-     stats                   - statistics from host
-     start                   - start Subutai container
-     stop                    - stop Subutai container
-     tunnel                  - SSH tunnel management
-     update                  - update Subutai management, container or Resource host
-     vxlan                   - VXLAN tunnels operation
-     register                - register Subutai PeerOS to Bazaar
-     unregister              - unregister Subutai PeerOS from Bazaar
-     fingerprint             - shows fingerprint Subutai Console
-     open                    - open the Subutai PeerOS in browser
-     blueprint               - run blueprint provisioning
+    help [<command>...]
+      Show help.
+
+    daemon
+      Run subutai agent daemon
+
+    list containers
+      List containers
+
+    list templates
+      List templates
+
+    list all
+      List all
+
+    list info
+      List containers info
+
+    attach <name> [<command>]
+      Attach to Subutai container
+
+    clone [<flags>] <template> <container>
+      Create Subutai container
+
+    cleanup <vlan>
+      Cleanup environment
+
+    prune
+      Prune templates with no child containers
+
+    destroy <name>
+      Destroy Subutai container/template
+
+    export --token=TOKEN [<flags>] <container>
+      Export container as a template
+
+    import [<flags>] <template>
+      Import Subutai template
+
+    info id [<container>]
+      host/container id
+
+    info system
+      Host info
+
+    info os
+      Host os
+
+    info ipaddr
+      Host ip address
+
+    info ports
+      Host used ports
+
+    info du <container>
+      Container disk usage
+
+    info qu <container>
+      Container quota usage
+
+    hostname rh <hostname>
+      Set RH hostname
+
+    hostname con <container> <hostname>
+      Set container hostname
+
+    map add --protocol=PROTOCOL --external port=EXTERNAL PORT --internal server=INTERNAL SERVER [<flags>]
+      Add port mapping
+
+    map rm --protocol=PROTOCOL --external port=EXTERNAL PORT [<flags>]
+      Remove port mapping
+
+    map list [<flags>]
+      List mapped ports
+
+    metrics --start=START --end=END <name>
+      Print host/container metrics
+
+    proxy create --protocol=PROTOCOL --port=PORT --tag=TAG [<flags>]
+      Create proxy
+
+    proxy list [<flags>]
+      List proxies
+
+    proxy remove --tag=TAG
+      Remove proxy
+
+    proxy server add --tag=TAG --server=SERVER
+      Add proxied server
+
+    proxy server remove --tag=TAG --server=SERVER
+      Remove proxied server
+
+    proxy server list --tag=TAG
+      List servers for proxy
+
+    quota get --resource=RESOURCE --container=CONTAINER
+      Print container resource quota
+
+    quota set --resource=RESOURCE --container=CONTAINER <limit>
+      Set container resource quota
+
+    start <name(s)>...
+      Start Subutai container
+
+    stop <name(s)>...
+      Stop Subutai container
+
+    restart <name(s)>...
+      Restart Subutai container
+
+    update [<flags>] <component>
+      Update peer components
+
+    tunnel add [<flags>] <socket> [<ttl>]
+      Create ssh tunnel
+
+    tunnel del <socket>
+      Delete ssh tunnel
+
+    tunnel list
+      List ssh tunnels
+
+    vxlan add --remoteip=REMOTEIP --vni=VNI --vlan=VLAN <name>
+      Add vxlan tunnel
+
+    vxlan del <name>
+      Delete vxlan tunnel
+
+    vxlan list
+      List vxlan tunnels
+
+    batch <commands>
+      Execute a batch of commands
+
+    register
+      Register Subutai PeerOS to Bazaar
+
+    unregister
+      Unregister Subutai PeerOS from Bazaar
+
+    fingerprint
+      Shows fingerprint Subutai Console
+
+    open
+      Open the Subutai PeerOS in browser
+
+    blueprint
+      Run blueprint provisioning
+
 
 GLOBAL OPTIONS:
-     -h, --help              - show help
+    -h, --help
+      Show help
       EOF
       commands
     end
