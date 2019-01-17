@@ -2,6 +2,7 @@ require_relative '../vagrant-subutai'
 require 'net/https'
 require 'io/console'
 require 'fileutils'
+require 'probench'
 
 module VagrantSubutai
   class Commands < Vagrant.plugin('2', :command)
@@ -17,6 +18,17 @@ module VagrantSubutai
 
     def base
       "sudo /usr/bin/subutai".freeze
+    end
+
+    def run_benchmarks
+      probe = SystemMemory.probe
+      json = {:speed => probe.speed, :size => probe.size}
+      STDOUT.puts json.to_json
+    end
+
+    def profile_hardware
+      probe = SystemNetwork.probe
+      STDOUT.puts probe.to_json
     end
 
     # info id

@@ -38,6 +38,10 @@ module VagrantSubutai
           subutai_cli.blueprint(check_subutai_console_url(subutai_cli), 1)
         when 'finger'
           subutai_cli.finger(check_subutai_console_url(subutai_cli))
+        when 'profile_hardware'
+          subutai_cli.profile_hardware
+        when 'run_benchmarks'
+          subutai_cli.run_benchmarks
         when '-h'
           STDOUT.puts cli_info
         when '--help'
