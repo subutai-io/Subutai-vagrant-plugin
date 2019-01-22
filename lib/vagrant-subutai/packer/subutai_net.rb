@@ -54,9 +54,9 @@ def broadcast_addr
 end
 
 def broadcast_ping(count)
-  system("ping -n #{count} #{broadcast_addr} >/dev/null")   \
+  system("ping -n #{count} #{broadcast_addr} &>/dev/null")   \
     if (RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/)
-  system("ping -c #{count} #{broadcast_addr} >/dev/null")   \
+  system("ping -c #{count} #{broadcast_addr} &>/dev/null")   \
     if (RbConfig::CONFIG['host_os'] =~ /darwin|linux/)
 end
 
