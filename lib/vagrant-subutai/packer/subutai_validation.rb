@@ -43,7 +43,7 @@ module SubutaiValidation
     "BRIDGE_VMWARE":        :string,
     "BRIDGE_KVM":           :string,
     "BRIDGE_HYPERV":        :string,
-    "CHECK_MAC":            :bool
+    "ENABLE_MAC_CHECK":     :bool
   }.freeze
 
   def self.validate(key, value)

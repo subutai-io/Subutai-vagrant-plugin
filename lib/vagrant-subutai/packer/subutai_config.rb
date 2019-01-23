@@ -62,7 +62,7 @@ module SubutaiConfig
     BRIDGE_VMWARE
     BRIDGE_KVM
     BRIDGE_HYPERV
-    CHECK_MAC
+    ENABLE_MAC_CHECK
   ].freeze
   
   GENERATED_PARAMETERS = %i[
@@ -116,7 +116,7 @@ module SubutaiConfig
     SUBUTAI_DESKTOP: false,          # install desktop with tray and p2p client
     SUBUTAI_MAN_TMPL: nil,           # provision alternative management template
     APT_PROXY_URL: nil,              # configure apt proxy URL
-    CHECK_MAC: false,                # mac addr checks
+    ENABLE_MAC_CHECK: false,                # mac addr checks
 
     # provider with value
     hyper_v: 'hyperv',
@@ -355,7 +355,7 @@ module SubutaiConfig
       if @bridged && get(:_SSH_PORT).nil? && write?
 
     put(:_BASE_MAC, find_mac(provider), true) \
-      if @bridged && get(:_BASE_MAC).nil? && write? && get(:CHECK_MAC)
+      if @bridged && get(:_BASE_MAC).nil? && write? && get(:ENABLE_MAC_CHECK)
 
     put(:_BRIDGED, @bridged, true) if write?
 
