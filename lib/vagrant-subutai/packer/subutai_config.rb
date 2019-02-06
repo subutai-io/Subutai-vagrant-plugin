@@ -355,7 +355,7 @@ module SubutaiConfig
       if @bridged && get(:_SSH_PORT).nil? && write?
 
     put(:_BASE_MAC, find_mac(provider), true) \
-      if @bridged && get(:_BASE_MAC).nil? && write? && get(:ENABLE_MAC_CHECK)
+      if @bridged && get(:_BASE_MAC).nil? && write? && boolean?(:ENABLE_MAC_CHECK)
 
     put(:_BRIDGED, @bridged, true) if write?
 
